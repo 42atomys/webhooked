@@ -1,3 +1,3 @@
-module github.com/42Stellar/webhooks
+module 42Stellar.org/webhooks
 
 go 1.17
