@@ -1,4 +1,4 @@
-module atomys.codes/42stellar/webhooks
+module 42stellar.org/webhooks
 
 go 1.17
 

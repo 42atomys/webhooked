@@ -32,8 +32,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "webhooks",
-	Short: "",
-	Long:  ``,
+	Short: "webhooks is a simple program to receive webhooks from around the world and place them in a storage space of your choice.",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

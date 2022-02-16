@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 package main
 
-import "atomys.codes/42stellar/webhooks/cmd"
+import "42stellar.org/webhooks/cmd"
 
 func main() {
 	cmd.Execute()
