@@ -3,11 +3,15 @@ on:
   push:
     paths-ignore:
     - .github/FUNDING.yml
-    - config/
+    - .github/issue_template/*
+    - config/*
     - .gitignore
+    - CODE_OF_CONDUCT.md
     - CODEOWNERS
+    - CONTRIBUTING.md
     - LICENSE
     - README.md
+    - pull_request_template.md
 permissions:
   contents: read
 jobs:
