@@ -25,6 +25,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
+	"42stellar.org/webhooks/internal/config"
 	"42stellar.org/webhooks/internal/server"
 )
 
@@ -35,6 +36,10 @@ var (
 		Use:   "serve",
 		Short: "serve the http server",
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := config.Validate(); err != nil {
+				log.Fatal().Err(err).Msg("invalid configuration")
+			}
+
 			log.Fatal().Err(server.Serve(*flagPort)).Msg("Error during server start")
 		},
 	}

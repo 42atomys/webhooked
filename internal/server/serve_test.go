@@ -26,3 +26,8 @@ func Test_validPort(t *testing.T) {
 	}
 
 }
+
+func Test_newRouter(t *testing.T) {
+	router := newRouter()
+	assert.NotNil(t, router.NotFoundHandler)
+}
