@@ -18,7 +18,7 @@ type APIVersion interface {
 var (
 	// apiVersions is a list of supported API versions by the server
 	apiVersions = []APIVersion{
-		v1alpha1.Server{},
+		v1alpha1.NewServer(),
 	}
 )
 
