@@ -7,20 +7,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Configuration struct {
-	APIVersion string                       `mapstructure:"apiVersion"`
-	Specs      map[string]ConfigurationSpec `mapstructure:"specs"`
-}
-
-type ConfigurationSpec struct {
-	EntrypointURL string                  `mapstructure:"entrypointUrl"`
-	Security      map[string]SecuritySpec `mapstructure:"security"`
-	Storage       map[string]StorageSpec  `mapstructure:"storage"`
-}
-
-type SecuritySpec struct{}
-type StorageSpec struct{}
-
 var (
 	config = &Configuration{}
 	// ErrSpecNotFound is returned when the spec is not found
@@ -50,9 +36,9 @@ func Current() *Configuration {
 	return config
 }
 
-// GetEntry returns the spec for the given name, if no entry
+// GetSpec returns the spec for the given name, if no entry
 // is found, ErrSpecNotFound is returned
-func (c *Configuration) GetEntry(name string) (*ConfigurationSpec, error) {
+func (c *Configuration) GetSpec(name string) (*WebhookSpec, error) {
 	spec, ok := c.Specs[name]
 	if !ok {
 		log.Error().Err(ErrSpecNotFound).Msgf("Spec %s not found", name)
@@ -62,9 +48,9 @@ func (c *Configuration) GetEntry(name string) (*ConfigurationSpec, error) {
 	return &spec, nil
 }
 
-// GetEntryByEndpoint returns the spec for the given endpoint, if no entry
+// GetSpecByEndpoint returns the spec for the given endpoint, if no entry
 // is found, ErrSpecNotFound is returned
-func (c *Configuration) GetEntryByEndpoint(endpoint string) (*ConfigurationSpec, error) {
+func (c *Configuration) GetSpecByEndpoint(endpoint string) (*WebhookSpec, error) {
 	for _, spec := range c.Specs {
 		if spec.EntrypointURL == endpoint {
 			log.Warn().Msgf("No spec found for %s endpoint", endpoint)
