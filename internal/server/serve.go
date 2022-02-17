@@ -28,18 +28,21 @@ func Serve(port int) error {
 		return fmt.Errorf("invalid port")
 	}
 
-	var api = mux.NewRouter()
+	log.Info().Msgf("Listening on port %d", port)
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), newRouter())
+}
 
+func newRouter() *mux.Router {
+	var api = mux.NewRouter()
 	for _, version := range apiVersions {
-		api.PathPrefix("/" + version.Version()).Handler(version.WebhookHandler())
+		api.Methods("POST").PathPrefix("/" + version.Version()).Handler(version.WebhookHandler())
 	}
 
 	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	log.Info().Msgf("Listening on port %d", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), api)
+	return api
 }
 
 // validPort returns true if the port is valid
