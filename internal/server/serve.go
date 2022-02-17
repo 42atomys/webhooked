@@ -4,18 +4,42 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+
+	v1alpha1 "42stellar.org/webhooks/internal/server/v1alpha1"
 )
 
-// Serve the proxy server
+type APIVersion interface {
+	Version() string
+	WebhookHandler() http.HandlerFunc
+}
+
+var (
+	// apiVersions is a list of supported API versions by the server
+	apiVersions = []APIVersion{
+		v1alpha1.Server{},
+	}
+)
+
+// Serve the proxy server on the given port for all supported API versions
 func Serve(port int) error {
 	if !validPort(port) {
 		return fmt.Errorf("invalid port")
 	}
 
-	http.HandleFunc("/", nil)
+	var api = mux.NewRouter()
+
+	for _, version := range apiVersions {
+		api.PathPrefix("/" + version.Version()).Handler(version.WebhookHandler())
+	}
+
+	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
 	log.Info().Msgf("Listening on port %d", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), api)
 }
 
 // validPort returns true if the port is valid
