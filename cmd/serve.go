@@ -19,27 +19,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package main
+package cmd
 
 import (
-	"os"
-
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cobra"
 
-	"42stellar.org/webhooks/cmd"
+	"42stellar.org/webhooks/internal/server"
+)
+
+var (
+	flagPort *int
+	// serveCmd represents the serve command
+	serveCmd = &cobra.Command{
+		Use:   "serve",
+		Short: "serve the http server",
+		Run: func(cmd *cobra.Command, args []string) {
+			log.Fatal().Err(server.Serve(*flagPort)).Msg("Error during server start")
+		},
+	}
 )
 
 func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	if os.Getenv("DEBUG") == "true" {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	}
-}
+	rootCmd.AddCommand(serveCmd)
 
-func main() {
-	cmd.Execute()
+	flagPort = serveCmd.Flags().IntP("port", "p", 8080, "port to listen on")
 }
