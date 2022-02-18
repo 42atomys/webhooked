@@ -70,6 +70,12 @@ func registerAndvalidateStorage(spec *WebhookSpec) error {
 				return err
 			}
 
+		case "postgres":
+			storage.Client, err = storages.NewPostgresStorage(storage.Specs)
+			if err != nil {
+				return err
+			}
+
 		default:
 			return fmt.Errorf("storage %s is undefined", storage.Type)
 		}
