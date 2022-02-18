@@ -36,7 +36,7 @@ var (
 		Use:   "serve",
 		Short: "serve the http server",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := config.Validate(); err != nil {
+			if err := config.Load(); err != nil {
 				log.Fatal().Err(err).Msg("invalid configuration")
 			}
 
