@@ -1,9 +1,9 @@
 package core
 
-type Storage interface {
+type IStorage interface {
 	// Get the name of the storage
 	// Will be unique across all storages
 	Name() string
-
-	// TODO: Add methods to define the storage
+	//  Method call when insert new data in the storage
+	Push(value interface{}) error
 }
