@@ -1,7 +1,7 @@
 apiVersion: v1alplha1
 specs:
-  exampleHook:
-    entrypointUrl: /webhooks/example
-    security:
-      headerCheck:
-        value: 'very-secret-value'
+- name: exampleHook
+  entrypointUrl: /webhooks/example
+  security:
+    headerCheck:
+      value: 'very-secret-value'

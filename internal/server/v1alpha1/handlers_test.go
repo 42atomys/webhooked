@@ -40,12 +40,13 @@ func TestServer_WebhookHandler(t *testing.T) {
 		testServer_WebhookHandler_Helper(t, &Server{
 			config: &config.Configuration{
 				APIVersion: "v1alpha1",
-				Specs: map[string]config.WebhookSpec{
-					"test": {
+				Specs: []*config.WebhookSpec{
+					{
+						Name:          "test",
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(spec *config.WebhookSpec) error { return expectedError },
+			webhookService: func(s *Server, spec *config.WebhookSpec) error { return expectedError },
 		}).Code,
 	)
 
@@ -54,12 +55,13 @@ func TestServer_WebhookHandler(t *testing.T) {
 		testServer_WebhookHandler_Helper(t, &Server{
 			config: &config.Configuration{
 				APIVersion: "v1alpha1",
-				Specs: map[string]config.WebhookSpec{
-					"test": {
+				Specs: []*config.WebhookSpec{
+					{
+						Name:          "test",
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(spec *config.WebhookSpec) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec) error { return nil },
 		}).Code,
 	)
 }
@@ -100,6 +102,6 @@ func Test_webhookService(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(webhookService(test.input), test.expected, "input: %d", test.input)
+		assert.Equal(webhookService(&Server{}, test.input), test.expected, "input: %d", test.input)
 	}
 }
