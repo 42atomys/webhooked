@@ -1,5 +1,8 @@
 name: Tests 🛠️
 on: 
+  pull_request:
+    types:
+    - ready_for_review
   push:
     paths-ignore:
     - .github/FUNDING.yml
