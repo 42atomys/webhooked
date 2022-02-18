@@ -1,0 +1,27 @@
+# Per default all source code is owned by @42Atomys
+* @42Atomys
+
+# ACtions pipeline is initally coded and managed by @42Atomys and @rgaiffe
+.github/workflows @42Atomys @rgaiffe
+
+# Build pipeline is initally coded and managed by @42Atomys and @rgaiffe
+build @42Atomys @rgaiffe
+
+# Internal server package is initially coded and managed by @42Atomys
+internal/server @42Atomys
+internal/server/v1alpha1 @42Atomys
+
+# core package is initially coded and managed by @42Atomys
+pkg/core @42Atomys
+
+# Webhook Entries is initially coded and managed by @42Atomys
+pkg/core/entry* @42Atomys
+pkg/entries @42Atomys
+
+# Webhook Security is initially coded and managed by @42Atomys
+pkg/core/security* @42Atomys
+pkg/security @42Atomys
+
+# Webhook Storage is initially coded and managed by @rgaiffe
+pkg/core/storage* @rgaiffe
+pkg/storages @rgaiffe
