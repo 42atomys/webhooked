@@ -1,7 +1,6 @@
 package server
 
 import (
-	"io"
 	"net/http"
 	"strings"
 
@@ -13,7 +12,7 @@ import (
 
 type Server struct {
 	config         *config.Configuration
-	webhookService func(s *Server, spec *config.WebhookSpec, data []byte) error
+	webhookService func(s *Server, spec *config.WebhookSpec) error
 	logger         zerolog.Logger
 }
 
@@ -44,13 +43,7 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 			return
 		}
 
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		if err := s.webhookService(s, spec, data); err != nil {
+		if err := s.webhookService(s, spec); err != nil {
 			s.logger.Error().Err(err).Msg("Error while processing webhook")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -58,7 +51,7 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 	}
 }
 
-func webhookService(s *Server, spec *config.WebhookSpec, data []byte) error {
+func webhookService(s *Server, spec *config.WebhookSpec) error {
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
@@ -71,12 +64,5 @@ func webhookService(s *Server, spec *config.WebhookSpec, data []byte) error {
 
 	// TODO Do the webhook storage
 	s.logger.Warn().Msg("Storage not implemented yet")
-
-	for _, storage := range spec.Storages {
-		if err := storage.Client.Push(string(data)); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
