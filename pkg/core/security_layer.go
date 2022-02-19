@@ -1,6 +1,8 @@
 package core
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type SecurityLayer interface {
 	// Get the name of the security layer
