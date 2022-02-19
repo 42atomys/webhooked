@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"42stellar.org/webhooks/internal/config"
+	"42stellar.org/webhooks/pkg/factory"
 )
 
 func TestNewServer(t *testing.T) {
@@ -46,7 +47,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec) error { return expectedError },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return expectedError },
 		}).Code,
 	)
 
@@ -61,7 +62,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
 		}).Code,
 	)
 }
@@ -97,11 +98,11 @@ func Test_webhookService(t *testing.T) {
 			Security: nil,
 		}, nil},
 		{&config.WebhookSpec{
-			Security: map[string]config.SecuritySpec{"test": {}},
+			SecurityFactories: make([]*factory.Factory, 0),
 		}, nil},
 	}
 
 	for _, test := range tests {
-		assert.Equal(webhookService(&Server{}, test.input), test.expected, "input: %d", test.input)
+		assert.Equal(webhookService(&Server{}, test.input, nil), test.expected, "input: %d", test.input)
 	}
 }
