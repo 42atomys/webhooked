@@ -13,7 +13,7 @@ func TestRedisName(t *testing.T) {
 
 func TestRedisNewRedisStorage(t *testing.T) {
 	storageSpec := map[string]interface{}{
-		"host":     "redis",
+		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
 		"key":      "LOL",
@@ -25,7 +25,7 @@ func TestRedisNewRedisStorage(t *testing.T) {
 
 func TestRedisPush(t *testing.T) {
 	newClient, err := NewRedisStorage(map[string]interface{}{
-		"host":     "redis",
+		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
 		"key":      "LOL",
