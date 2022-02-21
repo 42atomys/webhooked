@@ -1,6 +1,10 @@
 package factory
 
-import "github.com/mitchellh/mapstructure"
+import (
+	"errors"
+
+	"github.com/mitchellh/mapstructure"
+)
 
 // compareWithStaticValueConfig is the configuration for the compareWithStaticValue factory
 // @field value is the value to compare with
@@ -29,6 +33,10 @@ type compareWithStaticValueConfig struct {
 //     values: ['foo', 'bar']
 //
 func compareWithStaticValue(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+	if len(inputs) > 0 {
+		return "", errors.New("compareWithStaticValue factory does not accept additional inputs")
+	}
+
 	config := &compareWithStaticValueConfig{}
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return "", err
