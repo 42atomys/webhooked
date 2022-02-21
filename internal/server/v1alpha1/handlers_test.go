@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/assert"
 	"42stellar.org/webhooks/internal/config"
 	"42stellar.org/webhooks/pkg/factory"
 	"github.com/stretchr/testify/assert"
@@ -97,6 +99,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 }
 
 func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.ResponseRecorder {
+	server.logger = log.With().Str("apiVersion", server.Version()).Logger()
 
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 	// pass 'nil' as the third parameter.
