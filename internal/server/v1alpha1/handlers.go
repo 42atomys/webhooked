@@ -79,6 +79,10 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) error 
 }
 
 func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
+	if spec == nil {
+		return config.ErrSpecNotFound
+	}
+
 	ok, err := factory.Run(spec.SecurityFactories, func(factory *factory.Factory, lastOutput string, defaultFunc factory.RunnerFunc) (string, error) {
 		switch factory.Name {
 		case "getHeader":
