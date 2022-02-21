@@ -16,7 +16,7 @@ type PostgresSetupTestSuite struct {
 // Create Table for running test
 func (suite *PostgresSetupTestSuite) BeforeTest(suiteName, testName string) {
 	var err error
-	if suite.client, err = sql.Open("postgres", "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable"); err != nil {
+	if suite.client, err = sql.Open("postgres", "postgresql://webhook:test@postgres:5432/webhook_db?sslmode=disable"); err != nil {
 		assert.Error(suite.T(), err)
 	}
 	if _, err := suite.client.Query("CREATE TABLE test (test_field TEXT)"); err != nil {
@@ -38,7 +38,7 @@ func TestPostgresName(t *testing.T) {
 
 func TestPostgresNewPostgresStorage(t *testing.T) {
 	storageSpec := map[string]interface{}{
-		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseURL": "postgresql://webhook:test@postgres:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
 	}
@@ -49,7 +49,7 @@ func TestPostgresNewPostgresStorage(t *testing.T) {
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	newClient, err := NewPostgresStorage(map[string]interface{}{
-		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseURL": "postgresql://webhook:test@postgres:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
 	})

@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres
+        image: postgres:13.6
         env:
           POSTGRES_USER: webhook
           POSTGRES_PASSWORD: test
