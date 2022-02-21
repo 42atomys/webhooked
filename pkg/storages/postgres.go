@@ -42,7 +42,7 @@ func (c PostgresStorage) Name() string {
 }
 
 func (c PostgresStorage) Push(value interface{}) error {
-	request := fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", c.config.TableName, c.config.DataField, value)
+	request := fmt.Sprintf("INSERT INTO %s(%s) VALUES ('%s')", c.config.TableName, c.config.DataField, value)
 	if _, err := c.client.Query(request); err != nil {
 		return err
 	}
