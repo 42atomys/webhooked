@@ -23,6 +23,11 @@ type RunnerFunc func(factory *Factory, lastOutput string) (string, error)
 func Run(factories []*Factory, runnerFn RunnerExternalFunc) (bool, error) {
 	var lastOutput string
 	var err error
+
+	if (factories == nil) || (len(factories) == 0) {
+		return true, nil
+	}
+
 	for _, factory := range factories {
 		if runnerFn != nil {
 			lastOutput, err = runnerFn(factory, lastOutput, internalRunner)
