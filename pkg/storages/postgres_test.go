@@ -58,3 +58,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	err = newClient.Push("Hello")
 	assert.Nil(suite.T(), err)
 }
+
+func TestRunPostgresPush(t *testing.T) {
+	suite.Run(t, new(PostgresSetupTestSuite))
+}
