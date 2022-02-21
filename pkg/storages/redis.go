@@ -3,7 +3,6 @@ package storages
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/mitchellh/mapstructure"
@@ -16,13 +15,12 @@ type RedisStorage struct {
 }
 
 type redisConfig struct {
-	Host       string
-	Port       string
-	Database   int
-	Username   string
-	Password   string
-	Key        string
-	Expiration time.Duration
+	Host     string
+	Port     string
+	Database int
+	Username string
+	Password string
+	Key      string
 }
 
 func NewRedisStorage(config map[string]interface{}) (*RedisStorage, error) {
@@ -58,7 +56,7 @@ func (c RedisStorage) Name() string {
 }
 
 func (c RedisStorage) Push(value interface{}) error {
-	if err := c.client.RPush(c.ctx, c.config.Key, value, c.config.Expiration).Err(); err != nil {
+	if err := c.client.RPush(c.ctx, c.config.Key, value).Err(); err != nil {
 		return err
 	}
 
