@@ -19,6 +19,13 @@ jobs:
   applications-test-units:
     name: "GoLang test units"
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: webhook
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: webhook_db
     steps:
     - name: Checkout project
       uses: actions/checkout@v2
