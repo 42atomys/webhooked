@@ -29,6 +29,10 @@ jobs:
     - name: Setup PostgreSQL
       uses: harmon758/postgresql-action@v1
       with:
+        postgresql version: '11'
+        postgresql db: webhook_db
+        postgresql user: webhook
+        postgresql password: test
     - name: Setup go
       uses: actions/setup-go@v2
       with:
