@@ -26,13 +26,11 @@ jobs:
           POSTGRES_USER: webhook
           POSTGRES_PASSWORD: test
           POSTGRES_DB: webhook_db
+      redis:
+        image: redis:6
     steps:
     - name: Checkout project
       uses: actions/checkout@v2
-    - name: Start Redis
-      uses: supercharge/redis-github-action@1.4.0
-      with:
-        redis-version: 6
     - name: Setup go
       uses: actions/setup-go@v2
       with:
