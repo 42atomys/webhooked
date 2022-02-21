@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mitchellh/mapstructure"
@@ -28,10 +29,19 @@ type getHeaderConfig struct {
 //     name: "X-Request-Id"
 //
 func getHeader(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+	if len(inputs) != 1 {
+		return "", errors.New("getHeader factory requires 1 input")
+	}
+
+	header, ok := inputs[0].(http.Header)
+	if !ok {
+		return "", errors.New("getHeader factory requires input to be an http.Header object")
+	}
+
 	config := &getHeaderConfig{}
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return "", err
 	}
 
-	return inputs[0].(http.Header).Get(config.Name), nil
+	return header.Get(config.Name), nil
 }
