@@ -13,22 +13,20 @@ func TestRedisName(t *testing.T) {
 
 func TestRedisNewRedisStorage(t *testing.T) {
 	_, err := NewRedisStorage(map[string]interface{}{
-		"hostt":    "127.0.0.1",
-		"database": 0,
-		"key":      "LOL",
+		"host": []int{1},
 	})
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	_, err = NewRedisStorage(map[string]interface{}{})
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	_, err = NewRedisStorage(map[string]interface{}{
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
-		"key":      "LOL",
+		"key":      "testKey",
 	})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func TestRedisPush(t *testing.T) {
@@ -36,10 +34,10 @@ func TestRedisPush(t *testing.T) {
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
-		"key":      "LOL",
+		"key":      "testKey",
 	})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	err = newClient.Push("Hello")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
