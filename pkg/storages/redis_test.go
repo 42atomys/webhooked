@@ -38,6 +38,9 @@ func TestRedisPush(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	err = newClient.Push(func() {})
+	assert.Error(t, err)
+
 	err = newClient.Push("Hello")
 	assert.NoError(t, err)
 }
