@@ -2,17 +2,11 @@ name: Tests 🛠️
 on: 
   pull_request:
   push:
-    paths-ignore:
-    - .github/FUNDING.yml
-    - .github/issue_template/*
-    - config/*
-    - .gitignore
-    - CODE_OF_CONDUCT.md
-    - CODEOWNERS
-    - CONTRIBUTING.md
-    - LICENSE
-    - README.md
-    - pull_request_template.md
+    branches:
+    - main
+    paths:
+    - '**/*.go'
+    - '**/*.yml'
 permissions:
   contents: read
 jobs:
