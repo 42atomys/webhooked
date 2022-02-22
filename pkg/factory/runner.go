@@ -13,13 +13,32 @@ var (
 )
 
 // RunnerFunc is the function signature for the runner to compare and
-// run the factory layer
-// TODO docs
+// run by an external caller to override the internal runner
+// @param factory is the factory to run
+// @param lastOutput is the last output from the previous factory
+// @param defaultRnner is the default runner to use if you want to use the
+//                     internal runner inside your runner
+// @return the output of the factory
+// @return an error if the factory failed
 type RunnerExternalFunc func(factory *Factory, lastOutput string, defaultFn RunnerFunc) (string, error)
+
+// RunnerFunc is the function signature for the runner to compare and
+// run the factory inside the Factory Builder.
+// @param factory is the factory to run
+// @param lastOutput is the last output from the previous factory
+// @return the output of the factory
+// @return an error if the factory failed
 type RunnerFunc func(factory *Factory, lastOutput string) (string, error)
 
-// Run the factory chain for the given factories
-// TODO: Docs
+// Run the factory chain for the given factories in order
+// A run is made by calling the runner function for each factory
+// The lat output of the previous factory is passed to the next factory
+// At the end of the chain the last factory needs to be a comparator (start with compareWith)
+// @param factories is the list of factories to run
+// @param runnerFn is the runner function to use to run the factories if necessary.
+//                 If nil, the internal runner will be used
+// @return true if the chain is valid
+// @return an error if the chain fail
 func Run(factories []*Factory, runnerFn RunnerExternalFunc) (bool, error) {
 	var lastOutput string
 	var err error
