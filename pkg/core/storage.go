@@ -1,6 +1,6 @@
 package core
 
-type IStorage interface {
+type Pusher interface {
 	// Get the name of the storage
 	// Will be unique across all storages
 	Name() string

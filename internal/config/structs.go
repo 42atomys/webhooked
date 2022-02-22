@@ -19,5 +19,5 @@ type SecuritySpec struct{}
 type StorageSpec struct {
 	Type   string                 `mapstructure:"type"`
 	Specs  map[string]interface{} `mapstructure:"specs"`
-	Client core.IStorage
+	Client core.Pusher
 }
