@@ -6,10 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/assert"
 	"42stellar.org/webhooks/internal/config"
 	"42stellar.org/webhooks/pkg/factory"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
