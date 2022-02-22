@@ -51,12 +51,12 @@ func TestPostgresNewPostgresStorage(t *testing.T) {
 }
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
-	newClient, err := NewPostgresStorage(map[string]interface{}{
+	newClient, _ := NewPostgresStorage(map[string]interface{}{
 		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "Not Exist",
 		"dataField":   "Not exist",
 	})
-	err = newClient.Push("Hello")
+	err := newClient.Push("Hello")
 	assert.Error(suite.T(), err)
 
 	newClient, err = NewPostgresStorage(map[string]interface{}{
