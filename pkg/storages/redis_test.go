@@ -12,14 +12,22 @@ func TestRedisName(t *testing.T) {
 }
 
 func TestRedisNewRedisStorage(t *testing.T) {
-	storageSpec := map[string]interface{}{
+	_, err := NewRedisStorage(map[string]interface{}{
+		"hostt":    "127.0.0.1",
+		"database": 0,
+		"key":      "LOL",
+	})
+	assert.NotNil(t, err)
+
+	_, err = NewRedisStorage(map[string]interface{}{})
+	assert.NotNil(t, err)
+
+	_, err = NewRedisStorage(map[string]interface{}{
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
 		"key":      "LOL",
-	}
-
-	_, err := NewRedisStorage(storageSpec)
+	})
 	assert.Nil(t, err)
 }
 

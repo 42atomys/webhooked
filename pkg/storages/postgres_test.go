@@ -37,13 +37,11 @@ func TestPostgresName(t *testing.T) {
 }
 
 func TestPostgresNewPostgresStorage(t *testing.T) {
-	storageSpec := map[string]interface{}{
+	_, err := NewPostgresStorage(map[string]interface{}{
 		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
-	}
-
-	_, err := NewPostgresStorage(storageSpec)
+	})
 	assert.Nil(t, err)
 }
 
