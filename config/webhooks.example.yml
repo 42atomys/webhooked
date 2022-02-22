@@ -1,7 +1,10 @@
-apiVersion: v1alplha1
+apiVersion: v1alpha1
 specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
   security:
-    headerCheck:
-      value: 'very-secret-value'
+  - getHeader:
+      name: X-Hook-Secret
+  - compareWithStaticValue:
+      value: 'test'
+      values: ['foo', 'bar']
