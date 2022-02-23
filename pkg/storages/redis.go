@@ -51,10 +51,16 @@ func NewRedisStorage(config map[string]interface{}) (*RedisStorage, error) {
 	return &newClient, nil
 }
 
+// Name is the function for identified if the storage config is define in the webhooks
+// @return name of the storage
 func (c RedisStorage) Name() string {
 	return "redis"
 }
 
+// Push is the function for push data in the storage
+// A run is made from external caller
+// @param value that will be pushed
+// @return an error if the push failed
 func (c RedisStorage) Push(value interface{}) error {
 	if err := c.client.RPush(c.ctx, c.config.Key, value).Err(); err != nil {
 		return err
