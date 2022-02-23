@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"42stellar.org/webhooks/internal/config"
+	"42stellar.org/webhooks/pkg/factory"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
-
-	"42stellar.org/webhooks/internal/config"
 )
 
 func TestNewServer(t *testing.T) {
@@ -47,7 +47,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec) error { return expectedError },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return expectedError },
 		}).Code,
 	)
 
@@ -62,7 +62,37 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
+		}).Code,
+	)
+
+	assert.Equal(t,
+		http.StatusForbidden,
+		testServer_WebhookHandler_Helper(t, &Server{
+			config: &config.Configuration{
+				APIVersion: "v1alpha1",
+				Specs: []*config.WebhookSpec{
+					{
+						Name:          "test",
+						EntrypointURL: "/test",
+					}},
+			},
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return factory.ErrSecurityFailed },
+		}).Code,
+	)
+
+	assert.Equal(t,
+		http.StatusBadRequest,
+		testServer_WebhookHandler_Helper(t, &Server{
+			config: &config.Configuration{
+				APIVersion: "v0test",
+				Specs: []*config.WebhookSpec{
+					{
+						Name:          "test",
+						EntrypointURL: "/test",
+					}},
+			},
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
 		}).Code,
 	)
 }
@@ -90,20 +120,134 @@ func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.Re
 func Test_webhookService(t *testing.T) {
 	assert := assert.New(t)
 
+	req, err := http.NewRequest("POST", "/v1alpha1/test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("X-Token", "test")
+
 	var tests = []struct {
-		input    *config.WebhookSpec
-		expected error
+		name    string
+		input   *config.WebhookSpec
+		wantErr bool
 	}{
-		{nil, config.ErrSpecNotFound},
-		{&config.WebhookSpec{
+		{"no spec", nil, true},
+		{"no security", &config.WebhookSpec{
 			Security: nil,
-		}, nil},
-		{&config.WebhookSpec{
-			Security: map[string]config.SecuritySpec{"test": {}},
-		}, nil},
+		}, false},
+		{"empty security", &config.WebhookSpec{
+			SecurityFactories: make([]*factory.Factory, 0),
+		}, false},
+		{"one invalid security", &config.WebhookSpec{
+			SecurityFactories: []*factory.Factory{
+				{
+					Name: "test",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return "", nil
+					},
+				},
+			},
+		}, true},
+		{"valid security", &config.WebhookSpec{
+			SecurityFactories: []*factory.Factory{
+				{
+					Name: "getHeader",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return inputs[0].(http.Header).Get("X-Token"), nil
+					},
+				},
+				{
+					Name: "compareWithStaticValue",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return "t", nil
+					},
+				},
+			},
+		}, false},
 	}
 
 	for _, test := range tests {
-		assert.Equal(webhookService(&Server{}, test.input), test.expected, "input: %d", test.input)
+		got := webhookService(&Server{}, test.input, req)
+		if test.wantErr {
+			assert.Error(got, "input: %s", test.name)
+		} else {
+			assert.NoError(got, "input: %s", test.name)
+		}
+	}
+}
+
+func TestServer_runSecurity(t *testing.T) {
+	assert := assert.New(t)
+	var s = &Server{}
+
+	req, err := http.NewRequest("POST", "/v1alpha1/test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("X-Token", "test")
+
+	var tests = []struct {
+		name    string
+		input   *config.WebhookSpec
+		wantErr bool
+	}{
+		{"no spec", nil, true},
+		{"no security", &config.WebhookSpec{
+			Security: nil,
+		}, false},
+		{"empty security", &config.WebhookSpec{
+			SecurityFactories: make([]*factory.Factory, 0),
+		}, false},
+		{"one invalid security", &config.WebhookSpec{
+			SecurityFactories: []*factory.Factory{
+				{
+					Name: "test",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return "", nil
+					},
+				},
+			},
+		}, true},
+		{"valid security", &config.WebhookSpec{
+			SecurityFactories: []*factory.Factory{
+				{
+					Name: "getHeader",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return inputs[0].(http.Header).Get("X-Token"), nil
+					},
+				},
+				{
+					Name: "compareWithStaticValue",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return "t", nil
+					},
+				},
+			},
+		}, false},
+		{"invalid security forced", &config.WebhookSpec{
+			SecurityFactories: []*factory.Factory{
+				{
+					Name: "getHeader",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return inputs[0].(http.Header).Get("X-Token"), nil
+					},
+				},
+				{
+					Name: "compareWithStaticValue",
+					Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
+						return "f", nil
+					},
+				},
+			},
+		}, true},
+	}
+
+	for _, test := range tests {
+		got := s.runSecurity(test.input, req)
+		if test.wantErr {
+			assert.Error(got, "input: %s", test.name)
+		} else {
+			assert.NoError(got, "input: %s", test.name)
+		}
 	}
 }
