@@ -48,12 +48,6 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 			return
 		}
 
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-    
 		if err := s.webhookService(s, spec, r); err != nil {
 			switch err {
 			case factory.ErrSecurityFailed:
@@ -80,12 +74,16 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) error 
 		}
 	}
 
-	// TODO Do the webhook storage
-	s.logger.Warn().Msg("Storage not implemented yet")
-
-	for _, storage := range spec.Storages {
-		if err := storage.Client.Push(string(data)); err != nil {
+	if r.Body != nil {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
 			return err
+		}
+
+		for _, storage := range spec.Storage {
+			if err := storage.Client.Push(string(data)); err != nil {
+				return err
+			}
 		}
 	}
 

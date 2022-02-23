@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"42stellar.org/webhooks/pkg/storages"
 	"42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/storages"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -86,7 +86,7 @@ func Validate(config *Configuration) error {
 // validation
 func registerAndvalidateStorage(spec *WebhookSpec) error {
 	var err error
-	for _, storage := range spec.Storages {
+	for _, storage := range spec.Storage {
 		switch storage.Type {
 		case "redis":
 			storage.Client, err = storages.NewRedisStorage(storage.Specs)
