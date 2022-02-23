@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"42stellar.org/webhooks/pkg/storages"
+	"42stellar.org/webhooks/pkg/factory"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -21,7 +22,30 @@ func Load() error {
 		return err
 	}
 
+	for _, spec := range currentConfig.Specs {
+		if err := LoadSecurityFactory(spec); err != nil {
+			return err
+		}
+	}
+
 	return Validate(currentConfig)
+}
+
+// LoadSecurityFactory loads the security factory for the given spec
+// if an error is occured, return an error
+func LoadSecurityFactory(spec *WebhookSpec) error {
+	for _, security := range spec.Security {
+		for securityName, securityConfig := range security {
+			factoryFunc, ok := factory.GetFunctionByName(securityName)
+			if !ok {
+				return fmt.Errorf("security factory name %s is not valid in %s spec", securityName, spec.Name)
+			}
+			log.Debug().Msgf("security factory name %s is valid in %s spec", securityName, spec.Name)
+			spec.SecurityFactories = append(spec.SecurityFactories, &factory.Factory{Name: securityName, Fn: factoryFunc, Config: securityConfig})
+		}
+	}
+	log.Debug().Msgf("%d security factories loaded for spec %s", len(spec.SecurityFactories), spec.Name)
+	return nil
 }
 
 /**
@@ -52,7 +76,7 @@ func Validate(config *Configuration) error {
 		}
 	}
 
-	log.Debug().Msgf("Load %d configurations", len(config.Specs))
+	log.Info().Msgf("Load %d configurations", len(config.Specs))
 	return nil
 }
 
@@ -107,10 +131,10 @@ func (c *Configuration) GetSpec(name string) (*WebhookSpec, error) {
 func (c *Configuration) GetSpecByEndpoint(endpoint string) (*WebhookSpec, error) {
 	for _, spec := range c.Specs {
 		if spec.EntrypointURL == endpoint {
-			log.Warn().Msgf("No spec found for %s endpoint", endpoint)
 			return spec, nil
 		}
 	}
 
+	log.Warn().Msgf("No spec found for %s endpoint", endpoint)
 	return nil, ErrSpecNotFound
 }

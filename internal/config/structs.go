@@ -1,6 +1,9 @@
 package config
 
-import "42stellar.org/webhooks/pkg/core"
+import (
+  "42stellar.org/webhooks/pkg/core"
+  "42stellar.org/webhooks/pkg/factory"
+)
 
 type Configuration struct {
 	APIVersion string         `mapstructure:"apiVersion"`
@@ -8,13 +11,12 @@ type Configuration struct {
 }
 
 type WebhookSpec struct {
-	Name          string                  `mapstructure:"name"`
-	EntrypointURL string                  `mapstructure:"entrypointUrl"`
-	Security      map[string]SecuritySpec `mapstructure:"security"`
-	Storages      []*StorageSpec          `mapstructure:"storages"`
+	Name              string                              `mapstructure:"name"`
+	EntrypointURL     string                              `mapstructure:"entrypointUrl"`
+	Security          []map[string]map[string]interface{} `mapstructure:"security"`
+	SecurityFactories []*factory.Factory                  `mapstructure:"-"`
+	Storage           map[string]StorageSpec              `mapstructure:"storage"`
 }
-
-type SecuritySpec struct{}
 
 type StorageSpec struct {
 	Type   string                 `mapstructure:"type"`
