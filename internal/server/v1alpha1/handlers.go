@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -62,7 +63,7 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 	}
 }
 
-func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) error {
+func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err error) {
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
@@ -74,20 +75,21 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) error 
 		}
 	}
 
-	if r.Body != nil {
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			return err
-		}
+	if r.Body == nil {
+		return errors.New("request don't have body")
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
 
-		for _, storage := range spec.Storage {
-			if err := storage.Client.Push(string(data)); err != nil {
-				return err
-			}
+	for _, storage := range spec.Storage {
+		if err := storage.Client.Push(string(data)); err != nil {
+			return err
 		}
 	}
 
-	return nil
+	return err
 }
 
 func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
