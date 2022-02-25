@@ -26,6 +26,9 @@ func Load() error {
 		if err := LoadSecurityFactory(spec); err != nil {
 			return err
 		}
+		if err = loadStorage(spec); err != nil {
+			return fmt.Errorf("storage %s is not valid: %s", spec.Name, err.Error())
+		}
 	}
 
 	return Validate(currentConfig)
@@ -69,23 +72,17 @@ func Validate(config *Configuration) error {
 			return fmt.Errorf("entrypointUrl %s is not unique", spec.EntrypointURL)
 		}
 		uniquenessUrl[spec.EntrypointURL] = true
-
-		// Validate the storage
-		if err := registerAndvalidateStorage(spec); err != nil {
-			return fmt.Errorf("storage %s is not valid: %s", spec.Name, err.Error())
-		}
 	}
 
 	log.Info().Msgf("Load %d configurations", len(config.Specs))
 	return nil
 }
 
-// registerAndvalidateStorage registers the storage and validate it
+// loadStorage registers the storage and validate it
 // if the storage is not found or an error is occured during the
 // initialization or connection, the error is returned during the
 // validation
-func registerAndvalidateStorage(spec *WebhookSpec) error {
-	var err error
+func loadStorage(spec *WebhookSpec) (err error) {
 	for _, storage := range spec.Storage {
 		switch storage.Type {
 		case "redis":
