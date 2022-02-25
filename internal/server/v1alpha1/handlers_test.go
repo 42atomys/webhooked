@@ -121,7 +121,7 @@ func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.Re
 func Test_webhookService(t *testing.T) {
 	assert := assert.New(t)
 
-	req, err := http.NewRequest("POST", "/v1alpha1/test", nil)
+	req, err := http.NewRequest("POST", "/v1alpha1/test", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
