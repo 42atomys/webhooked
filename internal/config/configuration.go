@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/storages"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -24,6 +25,9 @@ func Load() error {
 	for _, spec := range currentConfig.Specs {
 		if err := LoadSecurityFactory(spec); err != nil {
 			return err
+		}
+		if err = loadStorage(spec); err != nil {
+			return fmt.Errorf("storage %s is not valid: %s", spec.Name, err.Error())
 		}
 	}
 
@@ -71,6 +75,32 @@ func Validate(config *Configuration) error {
 	}
 
 	log.Info().Msgf("Load %d configurations", len(config.Specs))
+	return nil
+}
+
+// loadStorage registers the storage and validate it
+// if the storage is not found or an error is occured during the
+// initialization or connection, the error is returned during the
+// validation
+func loadStorage(spec *WebhookSpec) (err error) {
+	for _, storage := range spec.Storage {
+		switch storage.Type {
+		case "redis":
+			storage.Client, err = storages.NewRedisStorage(storage.Specs)
+			if err != nil {
+				return err
+			}
+
+		case "postgres":
+			storage.Client, err = storages.NewPostgresStorage(storage.Specs)
+			if err != nil {
+				return err
+			}
+
+		default:
+			return fmt.Errorf("storage %s is undefined", storage.Type)
+		}
+	}
 	return nil
 }
 

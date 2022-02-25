@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"42stellar.org/webhooks/internal/config"
@@ -102,7 +103,7 @@ func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.Re
 
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 	// pass 'nil' as the third parameter.
-	req, err := http.NewRequest("POST", "/v1alpha1/test", nil)
+	req, err := http.NewRequest("POST", "/v1alpha1/test", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +121,7 @@ func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.Re
 func Test_webhookService(t *testing.T) {
 	assert := assert.New(t)
 
-	req, err := http.NewRequest("POST", "/v1alpha1/test", nil)
+	req, err := http.NewRequest("POST", "/v1alpha1/test", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,8 @@
 package server
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -61,7 +63,7 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 	}
 }
 
-func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) error {
+func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err error) {
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
@@ -73,9 +75,21 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) error 
 		}
 	}
 
-	// TODO Do the webhook storage
-	s.logger.Warn().Msg("Storage not implemented yet")
-	return nil
+	if r.Body == nil {
+		return errors.New("request don't have body")
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+
+	for _, storage := range spec.Storage {
+		if err := storage.Client.Push(string(data)); err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
