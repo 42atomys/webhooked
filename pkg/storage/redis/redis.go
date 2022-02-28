@@ -1,4 +1,4 @@
-package storages
+package redis
 
 import (
 	"context"
@@ -8,13 +8,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type RedisStorage struct {
+type storage struct {
 	client *redis.Client
-	config *redisConfig
+	config *config
 	ctx    context.Context
 }
 
-type redisConfig struct {
+type config struct {
 	Host     string
 	Port     string
 	Database int
@@ -23,14 +23,14 @@ type redisConfig struct {
 	Channel  string
 }
 
-func NewRedisStorage(config map[string]interface{}) (*RedisStorage, error) {
+func NewStorage(configRaw map[string]interface{}) (*storage, error) {
 
-	newClient := RedisStorage{
-		config: &redisConfig{},
+	newClient := storage{
+		config: &config{},
 		ctx:    context.Background(),
 	}
 
-	if err := mapstructure.Decode(config, &newClient.config); err != nil {
+	if err := mapstructure.Decode(configRaw, &newClient.config); err != nil {
 		return nil, err
 	}
 
@@ -53,7 +53,7 @@ func NewRedisStorage(config map[string]interface{}) (*RedisStorage, error) {
 
 // Name is the function for identified if the storage config is define in the webhooks
 // @return name of the storage
-func (c RedisStorage) Name() string {
+func (c storage) Name() string {
 	return "redis"
 }
 
@@ -61,7 +61,7 @@ func (c RedisStorage) Name() string {
 // A run is made from external caller
 // @param value that will be pushed
 // @return an error if the push failed
-func (c RedisStorage) Push(value interface{}) error {
+func (c storage) Push(value interface{}) error {
 	if err := c.client.Publish(c.ctx, c.config.Channel, value).Err(); err != nil {
 		return err
 	}

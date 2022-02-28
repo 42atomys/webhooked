@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"42stellar.org/webhooks/pkg/factory"
-	"42stellar.org/webhooks/pkg/storages"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+
+	"42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/storage"
 )
 
 var (
@@ -23,7 +24,7 @@ func Load() error {
 	}
 
 	for _, spec := range currentConfig.Specs {
-		if err := LoadSecurityFactory(spec); err != nil {
+		if err := loadSecurityFactory(spec); err != nil {
 			return err
 		}
 		if err = loadStorage(spec); err != nil {
@@ -34,9 +35,9 @@ func Load() error {
 	return Validate(currentConfig)
 }
 
-// LoadSecurityFactory loads the security factory for the given spec
+// loadSecurityFactory loads the security factory for the given spec
 // if an error is occured, return an error
-func LoadSecurityFactory(spec *WebhookSpec) error {
+func loadSecurityFactory(spec *WebhookSpec) error {
 	for _, security := range spec.Security {
 		for securityName, securityConfig := range security {
 			factoryFunc, ok := factory.GetFunctionByName(securityName)
@@ -83,25 +84,15 @@ func Validate(config *Configuration) error {
 // initialization or connection, the error is returned during the
 // validation
 func loadStorage(spec *WebhookSpec) (err error) {
-	for _, storage := range spec.Storage {
-		switch storage.Type {
-		case "redis":
-			storage.Client, err = storages.NewRedisStorage(storage.Specs)
-			if err != nil {
-				return err
-			}
-
-		case "postgres":
-			storage.Client, err = storages.NewPostgresStorage(storage.Specs)
-			if err != nil {
-				return err
-			}
-
-		default:
-			return fmt.Errorf("storage %s is undefined", storage.Type)
+	for _, s := range spec.Storage {
+		s.Client, err = storage.Load(s.Type, s.Specs)
+		if err != nil {
+			return
 		}
 	}
-	return nil
+
+	log.Debug().Msgf("%d storages loaded for spec %s", len(spec.Storage), spec.Name)
+	return
 }
 
 // Current returns the aftual configuration

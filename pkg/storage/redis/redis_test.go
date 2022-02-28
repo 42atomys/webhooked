@@ -1,4 +1,4 @@
-package storages
+package redis
 
 import (
 	"testing"
@@ -7,20 +7,20 @@ import (
 )
 
 func TestRedisName(t *testing.T) {
-	newRedis := RedisStorage{}
+	newRedis := storage{}
 	assert.Equal(t, "redis", newRedis.Name())
 }
 
-func TestRedisNewRedisStorage(t *testing.T) {
-	_, err := NewRedisStorage(map[string]interface{}{
+func TestRedisNewStorage(t *testing.T) {
+	_, err := NewStorage(map[string]interface{}{
 		"host": []int{1},
 	})
 	assert.Error(t, err)
 
-	_, err = NewRedisStorage(map[string]interface{}{})
+	_, err = NewStorage(map[string]interface{}{})
 	assert.Error(t, err)
 
-	_, err = NewRedisStorage(map[string]interface{}{
+	_, err = NewStorage(map[string]interface{}{
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
@@ -30,7 +30,7 @@ func TestRedisNewRedisStorage(t *testing.T) {
 }
 
 func TestRedisPush(t *testing.T) {
-	newClient, err := NewRedisStorage(map[string]interface{}{
+	newClient, err := NewStorage(map[string]interface{}{
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
