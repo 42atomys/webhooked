@@ -15,7 +15,7 @@ type WebhookSpec struct {
 	EntrypointURL     string                              `mapstructure:"entrypointUrl"`
 	Security          []map[string]map[string]interface{} `mapstructure:"security"`
 	SecurityFactories []*factory.Factory                  `mapstructure:"-"`
-	Storage           map[string]StorageSpec              `mapstructure:"storage"`
+	Storage           []*StorageSpec                      `mapstructure:"storage"`
 }
 
 type StorageSpec struct {

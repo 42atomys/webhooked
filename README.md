@@ -47,7 +47,7 @@ specs:
       host: redis.default.svc.cluster.local
       port: 6379
       database: 0
-      channel: example-webhook
+      key: example-webhook
 ```
 
 More informations about storages available on wiki : [Configuration/Storages](https://github.com/42Atomys/webhooked/wiki/Configuration-Storages)

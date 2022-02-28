@@ -20,7 +20,7 @@ type config struct {
 	Database int
 	Username string
 	Password string
-	Channel  string
+	Key      string
 }
 
 func NewStorage(configRaw map[string]interface{}) (*storage, error) {
@@ -62,7 +62,7 @@ func (c storage) Name() string {
 // @param value that will be pushed
 // @return an error if the push failed
 func (c storage) Push(value interface{}) error {
-	if err := c.client.Publish(c.ctx, c.config.Channel, value).Err(); err != nil {
+	if err := c.client.RPush(c.ctx, c.config.Key, value).Err(); err != nil {
 		return err
 	}
 

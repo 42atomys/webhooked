@@ -164,8 +164,8 @@ func TestLoadStorage(t *testing.T) {
 			"connection invalid must return an error",
 			&WebhookSpec{
 				Name: "test",
-				Storage: map[string]StorageSpec{
-					"redis": {
+				Storage: []*StorageSpec{
+					{
 						Type: "redis",
 						Specs: map[string]interface{}{
 							"host": "localhost",
@@ -182,7 +182,7 @@ func TestLoadStorage(t *testing.T) {
 			"",
 			&WebhookSpec{
 				Name:    "test",
-				Storage: make(map[string]StorageSpec),
+				Storage: []*StorageSpec{},
 			},
 			false,
 			false,
@@ -192,8 +192,8 @@ func TestLoadStorage(t *testing.T) {
 			"",
 			&WebhookSpec{
 				Name: "test",
-				Storage: map[string]StorageSpec{
-					"invalid": {},
+				Storage: []*StorageSpec{
+					{},
 				},
 			},
 			true,
@@ -209,7 +209,7 @@ func TestLoadStorage(t *testing.T) {
 			assert.NoError(err)
 		}
 
-		_, ok := test.input.Storage[test.storageName]
-		assert.Equal(test.wantStorage, ok)
+		s := test.input.Storage[0]
+		assert.NotNil(s)
 	}
 }
