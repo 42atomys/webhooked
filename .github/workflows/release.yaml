@@ -1,0 +1,55 @@
+name: Release 🎉
+on:
+  release:
+    types:
+    - released
+jobs:
+  gobin-releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux,windows,darwin]
+        goarch: ["386", "amd64", "arm64"]
+        exclude:
+        - goarch: "386"
+          goos: darwin
+        - goarch: arm64
+          goos: windows
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v2
+    - uses: wangyoucao577/go-release-action@v1.24
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        goversion: "1.17.6"
+        binary_name: webhooked
+        extra_files: LICENSE README.md
+  docker-image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goVersion: [ '1.17' ]
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v2
+    - name: Setup go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.goVersion }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.REGISTRY_USER }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: build/Dockerfile
+        push: true
+        tags: |
+          atomys/webhooked:${{ github.ref_name }}
+          atomys/webhooked:latest
