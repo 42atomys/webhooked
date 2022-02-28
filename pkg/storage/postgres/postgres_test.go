@@ -1,4 +1,4 @@
-package storages
+package postgres
 
 import (
 	"database/sql"
@@ -32,17 +32,17 @@ func (suite *PostgresSetupTestSuite) AfterTest(suiteName, testName string) {
 }
 
 func TestPostgresName(t *testing.T) {
-	newPostgres := PostgresStorage{}
+	newPostgres := storage{}
 	assert.Equal(t, "postgres", newPostgres.Name())
 }
 
 func TestPostgresNewPostgresStorage(t *testing.T) {
-	_, err := NewPostgresStorage(map[string]interface{}{
+	_, err := NewStorage(map[string]interface{}{
 		"databaseURL": []int{1},
 	})
 	assert.Error(t, err)
 
-	_, err = NewPostgresStorage(map[string]interface{}{
+	_, err = NewStorage(map[string]interface{}{
 		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
@@ -51,7 +51,7 @@ func TestPostgresNewPostgresStorage(t *testing.T) {
 }
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
-	newClient, _ := NewPostgresStorage(map[string]interface{}{
+	newClient, _ := NewStorage(map[string]interface{}{
 		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "Not Exist",
 		"dataField":   "Not exist",
@@ -59,7 +59,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	err := newClient.Push("Hello")
 	assert.Error(suite.T(), err)
 
-	newClient, err = NewPostgresStorage(map[string]interface{}{
+	newClient, err = NewStorage(map[string]interface{}{
 		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",

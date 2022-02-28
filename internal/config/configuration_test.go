@@ -138,12 +138,78 @@ func TestLoadSecurityFactory(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := LoadSecurityFactory(test.input)
+		err := loadSecurityFactory(test.input)
 		if test.wantErr {
 			assert.Error(err)
 		} else {
 			assert.NoError(err)
 		}
 		assert.Len(test.input.SecurityFactories, test.wantLen)
+	}
+}
+
+func TestLoadStorage(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		name        string
+		storageName string
+		input       *WebhookSpec
+		wantErr     bool
+		wantStorage bool
+	}{
+		{"no spec", "", &WebhookSpec{Name: "test"}, false, false},
+		{
+			"full valid storage",
+			"connection invalid must return an error",
+			&WebhookSpec{
+				Name: "test",
+				Storage: map[string]StorageSpec{
+					"redis": {
+						Type: "redis",
+						Specs: map[string]interface{}{
+							"host": "localhost",
+							"port": 0,
+						},
+					},
+				},
+			},
+			true,
+			false,
+		},
+		{
+			"empty storage configuration",
+			"",
+			&WebhookSpec{
+				Name:    "test",
+				Storage: make(map[string]StorageSpec),
+			},
+			false,
+			false,
+		},
+		{
+			"invalid storage name in configuration",
+			"",
+			&WebhookSpec{
+				Name: "test",
+				Storage: map[string]StorageSpec{
+					"invalid": {},
+				},
+			},
+			true,
+			false,
+		},
+	}
+
+	for _, test := range tests {
+		err := loadStorage(test.input)
+		if test.wantErr {
+			assert.Error(err)
+		} else {
+			assert.NoError(err)
+		}
+
+		_, ok := test.input.Storage[test.storageName]
+		assert.Equal(test.wantStorage, ok)
 	}
 }

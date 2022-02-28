@@ -1,8 +1,8 @@
 package config
 
 import (
-  "42stellar.org/webhooks/pkg/core"
-  "42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/storage"
 )
 
 type Configuration struct {
@@ -21,5 +21,5 @@ type WebhookSpec struct {
 type StorageSpec struct {
 	Type   string                 `mapstructure:"type"`
 	Specs  map[string]interface{} `mapstructure:"specs"`
-	Client core.Pusher
+	Client storage.Pusher
 }
