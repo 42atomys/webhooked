@@ -8,3 +8,10 @@ specs:
   - compareWithStaticValue:
       value: 'test'
       values: ['foo', 'bar']
+  storage:
+  - type: redis
+    specs:
+      host: redis
+      port: 6379
+      database: 0
+      key: example-webhook
