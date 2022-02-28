@@ -36,7 +36,7 @@ func TestPostgresName(t *testing.T) {
 	assert.Equal(t, "postgres", newPostgres.Name())
 }
 
-func TestPostgresNewPostgresStorage(t *testing.T) {
+func TestPostgresNewStorage(t *testing.T) {
 	_, err := NewStorage(map[string]interface{}{
 		"databaseURL": []int{1},
 	})

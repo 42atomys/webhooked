@@ -11,7 +11,7 @@ func TestRedisName(t *testing.T) {
 	assert.Equal(t, "redis", newRedis.Name())
 }
 
-func TestRedisNewRedisStorage(t *testing.T) {
+func TestRedisNewStorage(t *testing.T) {
 	_, err := NewStorage(map[string]interface{}{
 		"host": []int{1},
 	})
