@@ -14,4 +14,4 @@ specs:
       host: redis
       port: 6379
       database: 0
-      key: example-webhook
+      channel: example-webhook

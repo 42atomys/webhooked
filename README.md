@@ -35,7 +35,22 @@ specs:
   - compareWithStaticValue:
       value: 'test'
       values: ['foo', 'bar']
+  # Storage allows you to list where you want to store the raw payloads
+  # received by webhooked. You can add an unlimited number of storages, webhooked
+  # will store in **ALL** the listed storages
+  # 
+  # In this example we use the redis pub/sub storage and store the JSON payload
+  # on the `example-webhook` Redis Key on the Database 0
+  storage:
+  - type: redis
+    specs:
+      host: redis.default.svc.cluster.local
+      port: 6379
+      database: 0
+      channel: example-webhook
 ```
+
+More informations about storages available on wiki : [Configuration/Storages](https://github.com/42Atomys/webhooked/wiki/Configuration-Storages)
 
 ### Step 2 : Launch it 🚀
 ### With Kubernetes

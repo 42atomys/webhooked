@@ -24,7 +24,7 @@ func TestRedisNewRedisStorage(t *testing.T) {
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
-		"key":      "testKey",
+		"channel":  "testChannel",
 	})
 	assert.NoError(t, err)
 }
@@ -34,7 +34,7 @@ func TestRedisPush(t *testing.T) {
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
-		"key":      "testKey",
+		"channel":  "testChannel",
 	})
 	assert.NoError(t, err)
 

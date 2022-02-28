@@ -19,6 +19,13 @@ data:
           name: X-Hook-Secret
       - compareWithStaticValue:
           value: 'verySecretHeaderValue'
+      storage:
+      - type: redis
+        specs:
+          host: redis
+          port: 6379
+          database: 0
+          channel: example-webhook
 ---
 apiVersion: apps/v1
 kind: Deployment
