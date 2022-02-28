@@ -1,0 +1,71 @@
+---
+# Configuration Map for deployment.yaml
+# Edit it to change the configuration of your proxy
+# Don't forget to restart your proxy after changing it
+#
+# Path: examples/kubernetes/deployment.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhooked
+data:
+  webhooks.yaml: |
+    apiVersion: v1alpha1
+    specs:
+    - name: exampleHook
+      entrypointUrl: /webhooks/example
+      security:
+      - getHeader:
+          name: X-Hook-Secret
+      - compareWithStaticValue:
+          value: 'verySecretHeaderValue'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhooked
+  labels:
+    app.kubernetes.io/name: webhooked
+    app.kubernetes.io/version: '1.0'
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: webhooked
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: webhooked
+    spec:
+      containers:
+      - name: webhooked
+        image: atomys/webhooked:1.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "10m"
+          limits:
+            memory: "15Mi"
+            cpu: "20m"
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - mountPath: /config/webhooks.yaml
+          name: configuration
+          subPath: webhooks.yaml
+      volumes:
+      - name: configuration
+        configMap:
+          name: webhooked
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhooked
+spec:
+  selector:
+    app.kubernetes.io/name: webhooked
+  ports:
+  - port: 8080
+    targetPort: 8080
