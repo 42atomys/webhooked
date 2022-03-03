@@ -19,6 +19,13 @@ data:
           name: X-Hook-Secret
       - compareWithStaticValue:
           value: 'verySecretHeaderValue'
+      storage:
+      - type: redis
+        specs:
+          host: redis
+          port: '6379'
+          database: 0
+          key: foo
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,7 +33,7 @@ metadata:
   name: webhooked
   labels:
     app.kubernetes.io/name: webhooked
-    app.kubernetes.io/version: '1.0'
+    app.kubernetes.io/version: '0.1'
 spec:
   selector:
     matchLabels:
@@ -38,7 +45,7 @@ spec:
     spec:
       containers:
       - name: webhooked
-        image: atomys/webhooked:1.0
+        image: atomys/webhooked:0.1
         imagePullPolicy: IfNotPresent
         resources:
           requests:
