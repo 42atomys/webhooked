@@ -31,23 +31,23 @@ func (suite *PostgresSetupTestSuite) AfterTest(suiteName, testName string) {
 	}
 }
 
-func TestPostgresName(t *testing.T) {
+func (suite *PostgresSetupTestSuite) TestPostgresName() {
 	newPostgres := storage{}
-	assert.Equal(t, "postgres", newPostgres.Name())
+	assert.Equal(suite.T(), "postgres", newPostgres.Name())
 }
 
-func TestPostgresNewStorage(t *testing.T) {
+func (suite *PostgresSetupTestSuite) TestPostgresNewStorage() {
 	_, err := NewStorage(map[string]interface{}{
 		"databaseURL": []int{1},
 	})
-	assert.Error(t, err)
+	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{
 		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
 	})
-	assert.NoError(t, err)
+	assert.NoError(suite.T(), err)
 }
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
@@ -71,5 +71,10 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 }
 
 func TestRunPostgresPush(t *testing.T) {
+	if testing.Short() {
+		t.Skip("postgresql testing is skiped in short version of test")
+		return
+	}
+
 	suite.Run(t, new(PostgresSetupTestSuite))
 }

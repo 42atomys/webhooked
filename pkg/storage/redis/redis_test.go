@@ -4,21 +4,26 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestRedisName(t *testing.T) {
-	newRedis := storage{}
-	assert.Equal(t, "redis", newRedis.Name())
+type RedisSetupTestSuite struct {
+	suite.Suite
 }
 
-func TestRedisNewStorage(t *testing.T) {
+func (suite *RedisSetupTestSuite) TestRedisName() {
+	newRedis := storage{}
+	assert.Equal(suite.T(), "redis", newRedis.Name())
+}
+
+func (suite *RedisSetupTestSuite) TestRedisNewStorage() {
 	_, err := NewStorage(map[string]interface{}{
 		"host": []int{1},
 	})
-	assert.Error(t, err)
+	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{})
-	assert.Error(t, err)
+	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{
 		"host":     "127.0.0.1",
@@ -26,21 +31,30 @@ func TestRedisNewStorage(t *testing.T) {
 		"database": 0,
 		"key":      "testKey",
 	})
-	assert.NoError(t, err)
+	assert.NoError(suite.T(), err)
 }
 
-func TestRedisPush(t *testing.T) {
+func (suite *RedisSetupTestSuite) TestRedisPush() {
 	newClient, err := NewStorage(map[string]interface{}{
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"database": 0,
 		"key":      "testKey",
 	})
-	assert.NoError(t, err)
+	assert.NoError(suite.T(), err)
 
 	err = newClient.Push(func() {})
-	assert.Error(t, err)
+	assert.Error(suite.T(), err)
 
 	err = newClient.Push("Hello")
-	assert.NoError(t, err)
+	assert.NoError(suite.T(), err)
+}
+
+func TestRunRedisPush(t *testing.T) {
+	if testing.Short() {
+		t.Skip("redis testing is skiped in short version of test")
+		return
+	}
+
+	suite.Run(t, new(RedisSetupTestSuite))
 }
