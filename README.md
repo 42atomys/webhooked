@@ -10,6 +10,12 @@ When you start working with webhooks, it's often quite random, and sometimes wha
 
 This is exactly what `Webhooked` does !
 
+## Roadmap
+
+I am actively working on this project to release a stable version by the **end of March 2022**
+
+![Roadmap](/.github/profile/roadmap.png)
+
 ## Usage
 
 ### Step 1 : Configuration file
@@ -29,6 +35,8 @@ specs:
   # In this example we get the header `X-Hook-Secret` and compare it to a static
   # value. If the header value is equals to `test`, `foo` or `bar`, the webhook is
   # process. Else no process is handled and http server return a 401 error
+  #
+  # If you want to use insecure (not recommended), just remove security property
   security:
   - getHeader:
       name: X-Hook-Secret
