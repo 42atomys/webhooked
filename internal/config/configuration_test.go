@@ -209,7 +209,9 @@ func TestLoadStorage(t *testing.T) {
 			assert.NoError(err)
 		}
 
-		s := test.input.Storage[0]
-		assert.NotNil(s)
+		if test.wantStorage && assert.Len(test.input.Storage, 1, "no storage is loaded for test %s", test.name) {
+			s := test.input.Storage[0]
+			assert.NotNil(s)
+		}
 	}
 }
