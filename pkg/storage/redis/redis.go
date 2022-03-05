@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/mitchellh/mapstructure"
+
+	"42stellar.org/webhooks/internal/valuable"
 )
 
 type storage struct {
@@ -18,8 +19,8 @@ type config struct {
 	Host     string
 	Port     string
 	Database int
-	Username string
-	Password string
+	Username valuable.Valuable
+	Password valuable.Valuable
 	Key      string
 }
 
@@ -30,15 +31,15 @@ func NewStorage(configRaw map[string]interface{}) (*storage, error) {
 		ctx:    context.Background(),
 	}
 
-	if err := mapstructure.Decode(configRaw, &newClient.config); err != nil {
+	if err := valuable.Decode(configRaw, &newClient.config); err != nil {
 		return nil, err
 	}
 
 	newClient.client = redis.NewClient(
 		&redis.Options{
 			Addr:     fmt.Sprintf("%s:%s", newClient.config.Host, newClient.config.Port),
-			Username: newClient.config.Username,
-			Password: newClient.config.Password,
+			Username: newClient.config.Username.First(),
+			Password: newClient.config.Password.First(),
 			DB:       newClient.config.Database,
 		},
 	)

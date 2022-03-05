@@ -41,8 +41,8 @@ specs:
   - getHeader:
       name: X-Hook-Secret
   - compareWithStaticValue:
-      value: 'test'
-      values: ['foo', 'bar']
+      valueFrom:
+        envRef: SECRET_TOKEN
   # Storage allows you to list where you want to store the raw payloads
   # received by webhooked. You can add an unlimited number of storages, webhooked
   # will store in **ALL** the listed storages
