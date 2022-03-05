@@ -57,27 +57,27 @@ func SerializeValuable(data interface{}) (*Valuable, error) {
 // Get returns all values of the Valuable as a slice
 // @return the slice of values
 func (v *Valuable) Get() []string {
-	if v.Values == nil {
-		v.Values = make([]string, 0)
-	}
+	var computedValues []string
 
-	if v.Value != nil && !v.Contains(*v.Value) {
-		v.Values = append(v.Values, *v.Value)
+	computedValues = append(computedValues, v.Values...)
+
+	if v.Value != nil && !contains(computedValues, *v.Value) {
+		computedValues = append(computedValues, *v.Value)
 	}
 
 	if v.ValueFrom == nil {
-		return v.Values
+		return computedValues
 	}
 
-	if v.ValueFrom.StaticRef != nil && !v.Contains(*v.ValueFrom.StaticRef) {
-		v.appendCommaListIfAbsent(*v.ValueFrom.StaticRef)
+	if v.ValueFrom.StaticRef != nil && !contains(computedValues, *v.ValueFrom.StaticRef) {
+		computedValues = appendCommaListIfAbsent(computedValues, *v.ValueFrom.StaticRef)
 	}
 
 	if v.ValueFrom.EnvRef != nil {
-		v.appendCommaListIfAbsent(os.Getenv(*v.ValueFrom.EnvRef))
+		computedValues = appendCommaListIfAbsent(computedValues, os.Getenv(*v.ValueFrom.EnvRef))
 	}
 
-	return v.Values
+	return computedValues
 }
 
 // First returns the first value of the Valuable possible values
@@ -99,7 +99,22 @@ func (v *Valuable) First() string {
 // @param value is the value to check
 // @return true if the Valuable contains the given value
 func (v *Valuable) Contains(element string) bool {
-	for _, s := range v.Values {
+	for _, s := range v.Get() {
+		if s == element {
+			return true
+		}
+	}
+	return false
+}
+
+// contains returns true if the Valuable contains the given value.
+// This function is private to prevent stack overflow during the initialization
+// of the Valuable object.
+// @param
+// @param value is the value to check
+// @return true if the Valuable contains the given value
+func contains(slice []string, element string) bool {
+	for _, s := range slice {
 		if s == element {
 			return true
 		}
@@ -110,12 +125,13 @@ func (v *Valuable) Contains(element string) bool {
 // appendCommaListIfAbsent accept a string list separated with commas to append
 // to the Values all elements of this list only if element is absent
 // of the Values
-func (v *Valuable) appendCommaListIfAbsent(commaList string) {
+func appendCommaListIfAbsent(slice []string, commaList string) []string {
 	for _, s := range strings.Split(commaList, ",") {
-		if v.Contains(s) {
+		if contains(slice, s) {
 			continue
 		}
 
-		v.Values = append(v.Values, s)
+		slice = append(slice, s)
 	}
+	return slice
 }

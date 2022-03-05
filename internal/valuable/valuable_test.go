@@ -129,6 +129,45 @@ func (suite *TestSuiteValuable) TestValuableContains() {
 	}
 }
 
+func (suite *TestSuiteValuable) TestValuablecontains() {
+	assert := assert.New(suite.T())
+
+	tests := []struct {
+		name       string
+		input      []string
+		testString string
+		output     bool
+	}{
+		{"with nil list", nil, suite.testValue, false},
+		{"with nil value", nil, suite.testValue, false},
+		{"with empty list", []string{}, suite.testValue, false},
+		{"with not included value", []string{"invalid"}, suite.testValue, false},
+		{"with included value", []string{suite.testValue}, suite.testValue, true},
+	}
+
+	for _, test := range tests {
+		v := Valuable{Values: test.input}
+		assert.Equal(test.output, contains(v.Get(), test.testString), test.name)
+	}
+}
+
+func (suite *TestSuiteValuable) TestValuablecommaListIfAbsent() {
+	assert := assert.New(suite.T())
+
+	tests := []struct {
+		name   string
+		input  string
+		output []string
+	}{
+		{"with uniq list", "foo,bar", []string{"foo", "bar"}},
+		{"with no uniq list", "foo,foo,bar", []string{"foo", "bar"}},
+	}
+
+	for _, test := range tests {
+		assert.Equal(test.output, appendCommaListIfAbsent([]string{}, test.input), test.name)
+	}
+}
+
 func TestRunValuableSuite(t *testing.T) {
 	suite.Run(t, new(TestSuiteValuable))
 }
