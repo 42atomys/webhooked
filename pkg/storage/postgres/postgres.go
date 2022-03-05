@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
-	"github.com/mitchellh/mapstructure"
+
+	"42stellar.org/webhooks/internal/valuable"
 )
 
 // storage is the struct contains client and config
@@ -18,7 +19,7 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL string
+	DatabaseURL valuable.Valuable
 	TableName   string
 	DataField   string
 }
@@ -35,11 +36,11 @@ func NewStorage(configRaw map[string]interface{}) (*storage, error) {
 		config: &config{},
 	}
 
-	if err := mapstructure.Decode(configRaw, &newClient.config); err != nil {
+	if err := valuable.Decode(configRaw, &newClient.config); err != nil {
 		return nil, err
 	}
 
-	if newClient.client, err = sql.Open("postgres", newClient.config.DatabaseURL); err != nil {
+	if newClient.client, err = sql.Open("postgres", newClient.config.DatabaseURL.First()); err != nil {
 		return nil, err
 	}
 
