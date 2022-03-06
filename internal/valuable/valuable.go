@@ -1,9 +1,9 @@
 package valuable
 
 import (
-	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -45,10 +45,16 @@ func SerializeValuable(data interface{}) (*Valuable, error) {
 		return &Valuable{Value: &str}, nil
 	case nil:
 		return &Valuable{}, nil
+	case map[interface{}]interface{}:
+		var val *Valuable
+		if err := mapstructure.Decode(data, &val); err != nil {
+			return nil, err
+		}
+		return val, nil
 	default:
 		valuable := Valuable{}
 		if err := mapstructure.Decode(data, &valuable); err != nil {
-			return nil, errors.New("unimplemented valuable type")
+			return nil, fmt.Errorf("unimplemented valuable type %s", reflect.TypeOf(data).String())
 		}
 		return &valuable, nil
 	}

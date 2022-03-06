@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"42stellar.org/webhooks/pkg/factory"
+	factory "42stellar.org/webhooks/pkg/factory/v2"
 	"42stellar.org/webhooks/pkg/storage"
 )
 
@@ -18,15 +18,20 @@ var (
 )
 
 func Load() error {
-	err := viper.Unmarshal(&currentConfig)
+	err := viper.Unmarshal(&currentConfig, viper.DecodeHook(factory.DecodeHook))
 	if err != nil {
 		return err
 	}
 
 	for _, spec := range currentConfig.Specs {
+		// if err := loadSecurityFactory(spec); err != nil {
+		// 	return err
+		// }
+
 		if err := loadSecurityFactory(spec); err != nil {
 			return err
 		}
+
 		if err = loadStorage(spec); err != nil {
 			return fmt.Errorf("storage %s is not valid: %s", spec.Name, err.Error())
 		}
@@ -37,18 +42,40 @@ func Load() error {
 
 // loadSecurityFactory loads the security factory for the given spec
 // if an error is occured, return an error
+// func loadSecurityFactory(spec *WebhookSpec) error {
+// 	for _, security := range spec.Security {
+// 		for securityName, securityConfig := range security {
+// 			factoryFunc, ok := factory.GetFunctionByName(securityName)
+// 			if !ok {
+// 				return fmt.Errorf("security factory name %s is not valid in %s spec", securityName, spec.Name)
+// 			}
+// 			log.Debug().Msgf("security factory name %s is valid in %s spec", securityName, spec.Name)
+// 			spec.SecurityFactories = append(spec.SecurityFactories, &factory.Factory{Name: securityName, Fn: factoryFunc, Config: securityConfig})
+// 		}
+// 	}
+// 	log.Debug().Msgf("%d security factories loaded for spec %s", len(spec.SecurityFactories), spec.Name)
+// 	return nil
+// }
+
+// loadSecurityFactory loads the security factory for the given spec
+// if an error is occured, return an error
 func loadSecurityFactory(spec *WebhookSpec) error {
+	spec.SecurityPipeline = factory.NewPipeline()
 	for _, security := range spec.Security {
 		for securityName, securityConfig := range security {
-			factoryFunc, ok := factory.GetFunctionByName(securityName)
+			f, ok := factory.GetFactoryByName(securityName)
 			if !ok {
-				return fmt.Errorf("security factory name %s is not valid in %s spec", securityName, spec.Name)
+				return fmt.Errorf("security factory v2 name %s is not valid in %s spec", securityName, spec.Name)
 			}
-			log.Debug().Msgf("security factory name %s is valid in %s spec", securityName, spec.Name)
-			spec.SecurityFactories = append(spec.SecurityFactories, &factory.Factory{Name: securityName, Fn: factoryFunc, Config: securityConfig})
+
+			for _, input := range securityConfig.Inputs {
+				f.WithInput(input.Name, input)
+			}
+
+			spec.SecurityPipeline.AddFactory(f.WithID(securityConfig.ID))
 		}
 	}
-	log.Debug().Msgf("%d security factories loaded for spec %s", len(spec.SecurityFactories), spec.Name)
+	log.Debug().Msgf("%d security factories loaded for spec %s", spec.SecurityPipeline.FactoryCount(), spec.Name)
 	return nil
 }
 

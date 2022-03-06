@@ -85,68 +85,68 @@ func TestConfiguration_GeSpecByEndpoint(t *testing.T) {
 	assert.Equal(t, &testSpec, spec)
 }
 
-func TestLoadSecurityFactory(t *testing.T) {
-	assert := assert.New(t)
+// func TestLoadSecurityFactory(t *testing.T) {
+// 	assert := assert.New(t)
 
-	tests := []struct {
-		name    string
-		input   *WebhookSpec
-		wantErr bool
-		wantLen int
-	}{
-		{"no spec", &WebhookSpec{Name: "test"}, false, 0},
-		{
-			"full valid security",
-			&WebhookSpec{
-				Name: "test",
-				Security: []map[string]map[string]interface{}{
-					{
-						"getHeader": map[string]interface{}{
-							"name": "X-Token",
-						},
-						"compareWithStaticValue": map[string]interface{}{
-							"value": "test",
-						},
-					},
-				},
-			},
-			false,
-			2,
-		},
-		{
-			"empty security configuration",
-			&WebhookSpec{
-				Name:     "test",
-				Security: []map[string]map[string]interface{}{},
-			},
-			false,
-			0,
-		},
-		{
-			"invalid factory name in configuration",
-			&WebhookSpec{
-				Name: "test",
-				Security: []map[string]map[string]interface{}{
-					{
-						"invalid": map[string]interface{}{},
-					},
-				},
-			},
-			true,
-			0,
-		},
-	}
+// 	tests := []struct {
+// 		name    string
+// 		input   *WebhookSpec
+// 		wantErr bool
+// 		wantLen int
+// 	}{
+// 		{"no spec", &WebhookSpec{Name: "test"}, false, 0},
+// 		{
+// 			"full valid security",
+// 			&WebhookSpec{
+// 				Name: "test",
+// 				Security: []map[string]map[string]interface{}{
+// 					{
+// 						"getHeader": map[string]interface{}{
+// 							"name": "X-Token",
+// 						},
+// 						"compareWithStaticValue": map[string]interface{}{
+// 							"value": "test",
+// 						},
+// 					},
+// 				},
+// 			},
+// 			false,
+// 			2,
+// 		},
+// 		{
+// 			"empty security configuration",
+// 			&WebhookSpec{
+// 				Name:     "test",
+// 				Security: []map[string]map[string]interface{}{},
+// 			},
+// 			false,
+// 			0,
+// 		},
+// 		{
+// 			"invalid factory name in configuration",
+// 			&WebhookSpec{
+// 				Name: "test",
+// 				Security: []map[string]map[string]interface{}{
+// 					{
+// 						"invalid": map[string]interface{}{},
+// 					},
+// 				},
+// 			},
+// 			true,
+// 			0,
+// 		},
+// 	}
 
-	for _, test := range tests {
-		err := loadSecurityFactory(test.input)
-		if test.wantErr {
-			assert.Error(err)
-		} else {
-			assert.NoError(err)
-		}
-		assert.Len(test.input.SecurityFactories, test.wantLen)
-	}
-}
+// 	for _, test := range tests {
+// 		err := loadSecurityFactory(test.input)
+// 		if test.wantErr {
+// 			assert.Error(err)
+// 		} else {
+// 			assert.NoError(err)
+// 		}
+// 		assert.Len(test.input.SecurityFactories, test.wantLen)
+// 	}
+// }
 
 func TestLoadStorage(t *testing.T) {
 	assert := assert.New(t)

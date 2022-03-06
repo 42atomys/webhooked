@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"42stellar.org/webhooks/internal/config"
-	"42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/factory/v2"
 )
 
 type Server struct {
@@ -97,23 +97,12 @@ func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
 		return config.ErrSpecNotFound
 	}
 
-	ok, err := factory.Run(spec.SecurityFactories, func(factory *factory.Factory, lastOutput string, defaultFunc factory.RunnerFunc) (string, error) {
-		switch factory.Name {
-		case "getHeader":
-			return factory.Fn(factory.Config, "", r.Header)
-		case "compareWithStaticValue":
-			return factory.Fn(factory.Config, lastOutput)
-		}
-		return defaultFunc(factory, lastOutput)
-	})
+	pipeline := spec.SecurityPipeline
+	pipeline.Inputs["request"] = r
+	pipeline.WantResult(true).Run()
 
-	if err != nil {
-		log.Error().Err(err).Msg("Error while processing security factory")
-		return err
-	}
-
-	log.Debug().Msgf("security factory passed: %t", ok)
-	if !ok {
+	log.Debug().Msgf("security factory passed: %t", pipeline.Check())
+	if !pipeline.Check() {
 		return factory.ErrSecurityFailed
 	}
 	return nil
