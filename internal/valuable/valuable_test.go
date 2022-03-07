@@ -38,6 +38,8 @@ func (suite *TestSuiteValuable) TestSerializeValuable() {
 		{"int value", 1, []string{"1"}, false},
 		{"float value", 1.42, []string{"1.42"}, false},
 		{"boolean value", true, []string{"true"}, false},
+		{"map[interface{}]interface{} value", map[interface{}]interface{}{"value": "test"}, []string{"test"}, false},
+		{"map[interface{}]interface{} with error", map[interface{}]interface{}{"value": func() {}}, []string{}, true},
 		{"nil value", nil, []string{}, false},
 		{"simple value map interface", map[string]interface{}{
 			"value": suite.testValue,

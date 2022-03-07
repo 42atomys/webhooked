@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	factory "42stellar.org/webhooks/pkg/factory/v2"
+	factory "42stellar.org/webhooks/pkg/factory"
 	"42stellar.org/webhooks/pkg/storage"
 )
 
@@ -24,10 +24,6 @@ func Load() error {
 	}
 
 	for _, spec := range currentConfig.Specs {
-		// if err := loadSecurityFactory(spec); err != nil {
-		// 	return err
-		// }
-
 		if err := loadSecurityFactory(spec); err != nil {
 			return err
 		}
@@ -39,23 +35,6 @@ func Load() error {
 
 	return Validate(currentConfig)
 }
-
-// loadSecurityFactory loads the security factory for the given spec
-// if an error is occured, return an error
-// func loadSecurityFactory(spec *WebhookSpec) error {
-// 	for _, security := range spec.Security {
-// 		for securityName, securityConfig := range security {
-// 			factoryFunc, ok := factory.GetFunctionByName(securityName)
-// 			if !ok {
-// 				return fmt.Errorf("security factory name %s is not valid in %s spec", securityName, spec.Name)
-// 			}
-// 			log.Debug().Msgf("security factory name %s is valid in %s spec", securityName, spec.Name)
-// 			spec.SecurityFactories = append(spec.SecurityFactories, &factory.Factory{Name: securityName, Fn: factoryFunc, Config: securityConfig})
-// 		}
-// 	}
-// 	log.Debug().Msgf("%d security factories loaded for spec %s", len(spec.SecurityFactories), spec.Name)
-// 	return nil
-// }
 
 // loadSecurityFactory loads the security factory for the given spec
 // if an error is occured, return an error

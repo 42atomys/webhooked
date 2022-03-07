@@ -3,6 +3,7 @@ package factory
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 	"text/template"
@@ -46,18 +47,20 @@ func GetVar(list []*Var, name string) (*Var, bool) {
 // @param name the name of the variable
 // @param value the value of the variable
 // @return the new slice with the added variable
-func (f *Factory) with(slice []*Var, name string, value interface{}) []*Var {
+func (f *Factory) with(slice []*Var, name string, value interface{}) ([]*Var, error) {
 	v, ok := GetVar(slice, name)
 	if !ok {
-		log.Fatal().Msgf("variable %s is not registered for %s", name, f.Name)
+		log.Error().Msgf("variable %s is not registered for %s", name, f.Name)
+		return slice, fmt.Errorf("variable %s is not registered for %s", name, f.Name)
 	}
 
 	if reflect.TypeOf(value) != v.Type {
-		log.Fatal().Msgf("invalid type for %s expected %s, got %s", name, v.Type.String(), reflect.TypeOf(value).String())
+		log.Error().Msgf("invalid type for %s expected %s, got %s", name, v.Type.String(), reflect.TypeOf(value).String())
+		return slice, fmt.Errorf("invalid type for %s expected %s, got %s", name, v.Type.String(), reflect.TypeOf(value).String())
 	}
 
 	v.Value = value
-	return slice
+	return slice, nil
 }
 
 // WithPipelineInput adds the given pipeline input to the factory.
@@ -82,7 +85,7 @@ func (f *Factory) withPipelineInput(name string, value interface{}) {
 // @param value the value of the input variable
 // @return the factory
 func (f *Factory) WithInput(name string, value interface{}) *Factory {
-	f.Inputs = f.with(f.Inputs, name, value)
+	f.Inputs, _ = f.with(f.Inputs, name, value)
 	return f
 }
 
@@ -131,7 +134,7 @@ func (f *Factory) Input(name string) (v *Var, ok bool) {
 // @param value the value of the output variable
 // @return the factory
 func (f *Factory) Output(name string, value interface{}) *Factory {
-	f.Outputs = f.with(f.Outputs, name, value)
+	f.Outputs, _ = f.with(f.Outputs, name, value)
 	return f
 }
 
@@ -145,10 +148,12 @@ func (f *Factory) Identifier() string {
 }
 
 // Run executes the factory function
-func (f *Factory) Run() {
+func (f *Factory) Run() error {
 	if err := f.Fn(f, f.Config); err != nil {
-		log.Fatal().Msgf("errorduring factory run %s", err)
+		log.Error().Err(err).Msgf("error during factory %s run", f.Name)
+		return err
 	}
+	return nil
 }
 
 // processInputConfig process all input config struct to apply custom

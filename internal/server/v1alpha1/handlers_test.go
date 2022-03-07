@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"42stellar.org/webhooks/internal/config"
-	"42stellar.org/webhooks/pkg/factory/v2"
 )
 
 func TestNewServer(t *testing.T) {
@@ -79,7 +78,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return factory.ErrSecurityFailed },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return errSecurityFailed },
 		}).Code,
 	)
 
@@ -196,7 +195,7 @@ func TestServer_runSecurity(t *testing.T) {
 		{"no spec", nil, true},
 		{"no security", &config.WebhookSpec{
 			Security: nil,
-		}, false},
+		}, true},
 		// {"empty security", &config.WebhookSpec{
 		// 	SecurityFactories: make([]*factory.Factory, 0),
 		// }, false},

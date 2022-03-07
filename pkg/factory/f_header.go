@@ -33,7 +33,7 @@ func (*headerFactory) Func() RunFunc {
 		}
 
 		requestVar, ok := factory.Input("request")
-		if !ok {
+		if !ok || requestVar.Value == nil {
 			return fmt.Errorf("missing input request")
 		}
 

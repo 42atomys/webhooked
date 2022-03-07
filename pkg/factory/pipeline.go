@@ -73,7 +73,10 @@ func (p *Pipeline) Run() *Factory {
 		for _, v := range f.Inputs {
 			log.Debug().Msgf("factory %s input %s = %+v", f.Name, v.Name, v.Value)
 		}
-		f.Run()
+		if err := f.Run(); err != nil {
+			log.Error().Msgf("factory %s failed: %s", f.Name, err.Error())
+			return f
+		}
 
 		for _, v := range f.Outputs {
 			log.Debug().Msgf("factory %s output %s = %+v", f.Name, v.Name, v.Value)

@@ -99,6 +99,10 @@ func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
 	}
 
 	pipeline := spec.SecurityPipeline
+	if pipeline == nil {
+		return errors.New("no pipeline to run. security is not configured")
+	}
+
 	pipeline.Inputs["request"] = r
 	pipeline.WantResult(true).Run()
 
