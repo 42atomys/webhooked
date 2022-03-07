@@ -8,6 +8,7 @@ var (
 	// FunctionMap contains the map of function names to their respective functions
 	// This is used to validate the function name and to get the function by name
 	factoryMap = map[string]*Factory{
+		"debug":   newFactory(&debugFactory{}),
 		"header":  newFactory(&headerFactory{}),
 		"compare": newFactory(&compareFactory{}),
 	}
