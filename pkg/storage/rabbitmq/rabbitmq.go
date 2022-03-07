@@ -28,6 +28,7 @@ type config struct {
 	NoWait           bool
 	Mandatory        bool
 	Immediate        bool
+	Exchange         string
 }
 
 // NewStorage is the function for create new RabbitMQ client storage
@@ -87,7 +88,7 @@ func (c storage) Push(value interface{}) error {
 	}
 
 	if err := c.channel.Publish(
-		"",
+		c.config.Exchange,
 		c.routingKey.Name,
 		c.config.Mandatory,
 		c.config.Immediate,
