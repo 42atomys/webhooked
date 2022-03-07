@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"42stellar.org/webhooks/internal/config"
+	"42stellar.org/webhooks/internal/valuable"
+	"42stellar.org/webhooks/pkg/factory"
 )
 
 func TestNewServer(t *testing.T) {
@@ -121,11 +123,16 @@ func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.Re
 func Test_webhookService(t *testing.T) {
 	assert := assert.New(t)
 
-	req, err := http.NewRequest("POST", "/v1alpha1/test", strings.NewReader("{}"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	headerFactory, _ := factory.GetFactoryByName("header")
+	compareFactory, _ := factory.GetFactoryByName("compare")
+	validPipeline := factory.NewPipeline().AddFactory(headerFactory).AddFactory(compareFactory)
+
+	req := httptest.NewRequest("POST", "/v1alpha1/test", strings.NewReader("{}"))
 	req.Header.Set("X-Token", "test")
+	validPipeline.Inputs["request"] = req
+	validPipeline.Inputs["headerName"] = &factory.InputConfig{Name: "headerName", Valuable: valuable.Valuable{Values: []string{"X-Token"}}}
+	validPipeline.Inputs["first"] = &factory.InputConfig{Name: "headerName", Valuable: valuable.Valuable{Values: []string{"{{ .Outputs.header.value }}"}}}
+	validPipeline.Inputs["second"] = &factory.InputConfig{Name: "headerName", Valuable: valuable.Valuable{Values: []string{"test"}}}
 
 	var tests = []struct {
 		name    string
@@ -136,35 +143,13 @@ func Test_webhookService(t *testing.T) {
 		{"no security", &config.WebhookSpec{
 			Security: nil,
 		}, false},
-		// {"empty security", &config.WebhookSpec{
-		// 	SecurityFactories: make([]*factory.Factory, 0),
-		// }, false},
-		// {"one invalid security", &config.WebhookSpec{
-		// 	SecurityFactories: []*factory.Factory{
-		// 		{
-		// 			Name: "test",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return "", nil
-		// 			},
-		// 		},
-		// 	},
-		// }, true},
-		// {"valid security", &config.WebhookSpec{
-		// 	SecurityFactories: []*factory.Factory{
-		// 		{
-		// 			Name: "getHeader",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return inputs[0].(http.Header).Get("X-Token"), nil
-		// 			},
-		// 		},
-		// 		{
-		// 			Name: "compareWithStaticValue",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return "t", nil
-		// 			},
-		// 		},
-		// 	},
-		// }, false},
+		{"empty security", &config.WebhookSpec{
+			SecurityPipeline: factory.NewPipeline(),
+		}, false},
+
+		{"valid security", &config.WebhookSpec{
+			SecurityPipeline: validPipeline,
+		}, false},
 	}
 
 	for _, test := range tests {
@@ -181,11 +166,16 @@ func TestServer_runSecurity(t *testing.T) {
 	assert := assert.New(t)
 	var s = &Server{}
 
-	req, err := http.NewRequest("POST", "/v1alpha1/test", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	headerFactory, _ := factory.GetFactoryByName("header")
+	compareFactory, _ := factory.GetFactoryByName("compare")
+	validPipeline := factory.NewPipeline().AddFactory(headerFactory).AddFactory(compareFactory)
+
+	req := httptest.NewRequest("POST", "/v1alpha1/test", strings.NewReader("{}"))
 	req.Header.Set("X-Token", "test")
+	validPipeline.Inputs["request"] = req
+	validPipeline.Inputs["headerName"] = &factory.InputConfig{Name: "headerName", Valuable: valuable.Valuable{Values: []string{"X-Token"}}}
+	validPipeline.Inputs["first"] = &factory.InputConfig{Name: "headerName", Valuable: valuable.Valuable{Values: []string{"{{ .Outputs.header.value }}"}}}
+	validPipeline.Inputs["second"] = &factory.InputConfig{Name: "headerName", Valuable: valuable.Valuable{Values: []string{"test"}}}
 
 	var tests = []struct {
 		name    string
@@ -196,51 +186,13 @@ func TestServer_runSecurity(t *testing.T) {
 		{"no security", &config.WebhookSpec{
 			Security: nil,
 		}, true},
-		// {"empty security", &config.WebhookSpec{
-		// 	SecurityFactories: make([]*factory.Factory, 0),
-		// }, false},
-		// {"one invalid security", &config.WebhookSpec{
-		// 	SecurityFactories: []*factory.Factory{
-		// 		{
-		// 			Name: "test",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return "", nil
-		// 			},
-		// 		},
-		// 	},
-		// }, true},
-		// {"valid security", &config.WebhookSpec{
-		// 	SecurityFactories: []*factory.Factory{
-		// 		{
-		// 			Name: "getHeader",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return inputs[0].(http.Header).Get("X-Token"), nil
-		// 			},
-		// 		},
-		// 		{
-		// 			Name: "compareWithStaticValue",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return "t", nil
-		// 			},
-		// 		},
-		// 	},
-		// }, false},
-		// {"invalid security forced", &config.WebhookSpec{
-		// 	SecurityFactories: []*factory.Factory{
-		// 		{
-		// 			Name: "getHeader",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return inputs[0].(http.Header).Get("X-Token"), nil
-		// 			},
-		// 		},
-		// 		{
-		// 			Name: "compareWithStaticValue",
-		// 			Fn: func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
-		// 				return "f", nil
-		// 			},
-		// 		},
-		// 	},
-		// }, true},
+		{"empty security", &config.WebhookSpec{
+			SecurityPipeline: factory.NewPipeline(),
+		}, true},
+
+		{"valid security", &config.WebhookSpec{
+			SecurityPipeline: validPipeline,
+		}, false},
 	}
 
 	for _, test := range tests {
