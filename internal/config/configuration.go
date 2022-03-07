@@ -51,7 +51,7 @@ func loadSecurityFactory(spec *WebhookSpec) error {
 				f.WithInput(input.Name, input)
 			}
 
-			spec.SecurityPipeline.AddFactory(f.WithID(securityConfig.ID))
+			spec.SecurityPipeline.AddFactory(f.WithID(securityConfig.ID).WithConfig(securityConfig.Specs))
 		}
 	}
 	log.Debug().Msgf("%d security factories loaded for spec %s", spec.SecurityPipeline.FactoryCount(), spec.Name)

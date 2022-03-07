@@ -105,21 +105,21 @@ func TestLoadSecurityFactory(t *testing.T) {
 				Security: []map[string]Security{
 					{
 						"header": Security{"secretHeader", []*factory.InputConfig{
-							&factory.InputConfig{
+							{
 								Name:     "headerName",
 								Valuable: valuable.Valuable{Values: []string{"X-Token"}},
 							},
-						}},
+						}, make(map[string]interface{})},
 						"compare": Security{"", []*factory.InputConfig{
-							&factory.InputConfig{
+							{
 								Name:     "first",
 								Valuable: valuable.Valuable{Values: []string{"{{ .Outputs.secretHeader.value }}"}},
 							},
-							&factory.InputConfig{
+							{
 								Name:     "second",
 								Valuable: valuable.Valuable{Values: []string{"test"}},
 							},
-						}},
+						}, map[string]interface{}{"inverse": false}},
 					},
 				},
 			},

@@ -21,6 +21,7 @@ type WebhookSpec struct {
 type Security struct {
 	ID     string                 `mapstructure:"id"`
 	Inputs []*factory.InputConfig `mapstructure:"inputs"`
+	Specs  map[string]interface{} `mapstructure:",remain"`
 }
 
 type StorageSpec struct {
