@@ -24,6 +24,13 @@ jobs:
       uses: supercharge/redis-github-action@1.4.0
       with:
         redis-version: 6
+    - name: Setup RabbitMQ
+      uses: getong/rabbitmq-action@v1.2
+      with:
+        rabbitmq version: '3.8.2-management-alpine'
+        host port: 5672
+        rabbitmq user: 'user'
+        rabbitmq password: 'password'
     - name: Setup PostgreSQL
       uses: harmon758/postgresql-action@v1
       with:
