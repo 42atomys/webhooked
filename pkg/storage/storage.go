@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"42stellar.org/webhooks/pkg/storage/postgres"
+	"42stellar.org/webhooks/pkg/storage/rabbitmq"
 	"42stellar.org/webhooks/pkg/storage/redis"
 )
 
@@ -23,6 +24,8 @@ func Load(storageType string, storageSpecs map[string]interface{}) (pusher Pushe
 		pusher, err = redis.NewStorage(storageSpecs)
 	case "postgres":
 		pusher, err = postgres.NewStorage(storageSpecs)
+	case "rabbitmq":
+		pusher, err = rabbitmq.NewStorage(storageSpecs)
 	default:
 		err = fmt.Errorf("storage %s is undefined", storageType)
 	}
