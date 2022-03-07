@@ -36,7 +36,7 @@ func (c *compareFactory) Func() RunFunc {
 			return fmt.Errorf("missing input second")
 		}
 
-		result := c.compareSlice(
+		result := c.sliceMatches(
 			firstVar.Value.(*InputConfig).Get(),
 			secondVar.Value.(*InputConfig).Get(),
 		)
@@ -51,7 +51,8 @@ func (c *compareFactory) Func() RunFunc {
 	}
 }
 
-func (*Factory) compareSlice(slice1, slice2 []string) bool {
+// sliceMatches returns true if one element match in all slices
+func (*Factory) sliceMatches(slice1, slice2 []string) bool {
 	// Loop two times, first to find slice1 strings not in slice2,
 	// second loop to find slice2 strings not in slice1
 	for i := 0; i < 2; i++ {
