@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	factory "42stellar.org/webhooks/pkg/factory"
+	"42stellar.org/webhooks/pkg/factory"
 	"42stellar.org/webhooks/pkg/storage"
 )
 
