@@ -14,14 +14,11 @@ internal/server/v1alpha1 @42Atomys
 # core package is initially coded and managed by @42Atomys
 pkg/core @42Atomys
 
-# Webhook Entries is initially coded and managed by @42Atomys
-pkg/core/entry* @42Atomys
-pkg/entries @42Atomys
+# Webhook Factories is initially coded and managed by @42Atomys
+pkg/factory @42Atomys
 
 # Webhook Security is initially coded and managed by @42Atomys
-pkg/core/security* @42Atomys
 pkg/security @42Atomys
 
 # Webhook Storage is initially coded and managed by @rgaiffe
-pkg/core/storage* @rgaiffe
-pkg/storages @rgaiffe
+pkg/storage @rgaiffe

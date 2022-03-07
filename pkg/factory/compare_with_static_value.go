@@ -3,18 +3,8 @@ package factory
 import (
 	"errors"
 
-	"github.com/mitchellh/mapstructure"
+	"42stellar.org/webhooks/internal/valuable"
 )
-
-// compareWithStaticValueConfig is the configuration for the compareWithStaticValue factory
-// @field value is the value to compare with
-// @field values is the list of values to compare with
-type compareWithStaticValueConfig struct {
-	// Value is the value to compare with
-	Value string `mapstructure:"value"`
-	// Values is the list of values to compare with
-	Values []string `mapstructure:"values"`
-}
 
 // compareWithStaticValue will compare the last output with the given value in
 // the configuration
@@ -31,23 +21,21 @@ type compareWithStaticValueConfig struct {
 // - compareWithStaticValue:
 //     value: 'test'
 //     values: ['foo', 'bar']
+//     valueFrom:
+//       envRef: 'PRIVATE_TOKEN'
 //
 func compareWithStaticValue(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error) {
 	if len(inputs) > 0 {
 		return "", errors.New("compareWithStaticValue factory does not accept additional inputs")
 	}
 
-	config := &compareWithStaticValueConfig{}
-	if err := mapstructure.Decode(configRaw, &config); err != nil {
+	config := valuable.Valuable{}
+	if err := valuable.Decode(configRaw, &config); err != nil {
 		return "", err
 	}
 
-	config.Values = append(config.Values, config.Value)
-
-	for _, v := range config.Values {
-		if v == lastOuput {
-			return "t", nil
-		}
+	if (len(config.Get()) == 0 && lastOuput == "") || config.Contains(lastOuput) {
+		return "t", nil
 	}
 
 	return "f", nil

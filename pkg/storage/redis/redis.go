@@ -1,44 +1,45 @@
-package storages
+package redis
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/mitchellh/mapstructure"
+
+	"42stellar.org/webhooks/internal/valuable"
 )
 
-type RedisStorage struct {
+type storage struct {
 	client *redis.Client
-	config *redisConfig
+	config *config
 	ctx    context.Context
 }
 
-type redisConfig struct {
+type config struct {
 	Host     string
 	Port     string
 	Database int
-	Username string
-	Password string
+	Username valuable.Valuable
+	Password valuable.Valuable
 	Key      string
 }
 
-func NewRedisStorage(config map[string]interface{}) (*RedisStorage, error) {
+func NewStorage(configRaw map[string]interface{}) (*storage, error) {
 
-	newClient := RedisStorage{
-		config: &redisConfig{},
+	newClient := storage{
+		config: &config{},
 		ctx:    context.Background(),
 	}
 
-	if err := mapstructure.Decode(config, &newClient.config); err != nil {
+	if err := valuable.Decode(configRaw, &newClient.config); err != nil {
 		return nil, err
 	}
 
 	newClient.client = redis.NewClient(
 		&redis.Options{
 			Addr:     fmt.Sprintf("%s:%s", newClient.config.Host, newClient.config.Port),
-			Username: newClient.config.Username,
-			Password: newClient.config.Password,
+			Username: newClient.config.Username.First(),
+			Password: newClient.config.Password.First(),
 			DB:       newClient.config.Database,
 		},
 	)
@@ -53,7 +54,7 @@ func NewRedisStorage(config map[string]interface{}) (*RedisStorage, error) {
 
 // Name is the function for identified if the storage config is define in the webhooks
 // @return name of the storage
-func (c RedisStorage) Name() string {
+func (c storage) Name() string {
 	return "redis"
 }
 
@@ -61,7 +62,7 @@ func (c RedisStorage) Name() string {
 // A run is made from external caller
 // @param value that will be pushed
 // @return an error if the push failed
-func (c RedisStorage) Push(value interface{}) error {
+func (c storage) Push(value interface{}) error {
 	if err := c.client.RPush(c.ctx, c.config.Key, value).Err(); err != nil {
 		return err
 	}

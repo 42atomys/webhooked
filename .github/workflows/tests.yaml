@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        goVersion: [ '1.13', '1.14', '1.15', '1.16', '1.17' ]
+        goVersion: [ '1.16', '1.17' ]
     steps:
     - name: Checkout project
       uses: actions/checkout@v2
@@ -36,6 +36,8 @@ jobs:
       with:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
+    - name: Use example configuration for testing
+      run: cp config/webhooks.example.yml config/webhooks.yml
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2
       with:

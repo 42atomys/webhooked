@@ -11,5 +11,9 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Configuration file
+config/*.yml
+!config/webhooks.example.yml
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
