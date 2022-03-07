@@ -70,18 +70,18 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	}
 	defer s.logger.Debug().Str("entry", spec.Name).Msg("Webhook processed")
 
-	if spec.HasSecurity() {
-		if err := s.runSecurity(spec, r); err != nil {
-			return err
-		}
-	}
-
 	if r.Body == nil {
 		return errors.New("request don't have body")
 	}
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
+	}
+
+	if spec.HasSecurity() {
+		if err := s.runSecurity(spec, r, data); err != nil {
+			return err
+		}
 	}
 
 	for _, storage := range spec.Storage {
@@ -93,7 +93,7 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	return err
 }
 
-func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
+func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request, body []byte) error {
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
@@ -104,6 +104,8 @@ func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
 	}
 
 	pipeline.Inputs["request"] = r
+	pipeline.Inputs["payload"] = string(body)
+
 	pipeline.WantResult(true).Run()
 
 	log.Debug().Msgf("security factory passed: %t", pipeline.CheckResult())
