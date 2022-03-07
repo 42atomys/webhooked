@@ -48,4 +48,11 @@ func (suite *testSuiteFactoryCompare) TestRunFactory() {
 	suite.NoError(factory.Run())
 	suite.Equal(false, factory.Outputs[0].Value)
 
+	factory.
+		WithInput("first", suite.inputHelper("first", "yes")).
+		WithInput("second", suite.inputHelper("second", "no")).
+		WithConfig(map[string]interface{}{"inverse": true})
+	suite.NoError(factory.Run())
+	suite.Equal(true, factory.Outputs[0].Value)
+
 }

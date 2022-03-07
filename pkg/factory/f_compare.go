@@ -36,10 +36,17 @@ func (c *compareFactory) Func() RunFunc {
 			return fmt.Errorf("missing input second")
 		}
 
-		factory.Output("result", c.compareSlice(
+		result := c.compareSlice(
 			firstVar.Value.(*InputConfig).Get(),
 			secondVar.Value.(*InputConfig).Get(),
-		))
+		)
+
+		inverse, _ := configRaw["inverse"].(bool)
+		if inverse {
+			result = !result
+		}
+
+		factory.Output("result", result)
 		return nil
 	}
 }
