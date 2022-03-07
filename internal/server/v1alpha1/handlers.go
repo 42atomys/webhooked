@@ -11,7 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"42stellar.org/webhooks/internal/config"
-	"42stellar.org/webhooks/pkg/factory/v2"
 )
 
 type Server struct {
@@ -19,6 +18,8 @@ type Server struct {
 	webhookService func(s *Server, spec *config.WebhookSpec, r *http.Request) error
 	logger         zerolog.Logger
 }
+
+var errSecurityFailed = errors.New("security failed")
 
 func NewServer() *Server {
 	var s = &Server{
@@ -51,7 +52,7 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 
 		if err := s.webhookService(s, spec, r); err != nil {
 			switch err {
-			case factory.ErrSecurityFailed:
+			case errSecurityFailed:
 				w.WriteHeader(http.StatusForbidden)
 				return
 			default:
@@ -101,9 +102,9 @@ func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
 	pipeline.Inputs["request"] = r
 	pipeline.WantResult(true).Run()
 
-	log.Debug().Msgf("security factory passed: %t", pipeline.Check())
-	if !pipeline.Check() {
-		return factory.ErrSecurityFailed
+	log.Debug().Msgf("security factory passed: %t", pipeline.CheckResult())
+	if !pipeline.CheckResult() {
+		return errSecurityFailed
 	}
 	return nil
 }
