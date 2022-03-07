@@ -196,7 +196,7 @@ func TestServer_runSecurity(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got := s.runSecurity(test.input, req)
+		got := s.runSecurity(test.input, req, []byte("data"))
 		if test.wantErr {
 			assert.Error(got, "input: %s", test.name)
 		} else {
