@@ -11,7 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"42stellar.org/webhooks/internal/config"
-	"42stellar.org/webhooks/pkg/factory"
 )
 
 type Server struct {
@@ -19,6 +18,8 @@ type Server struct {
 	webhookService func(s *Server, spec *config.WebhookSpec, r *http.Request) error
 	logger         zerolog.Logger
 }
+
+var errSecurityFailed = errors.New("security failed")
 
 func NewServer() *Server {
 	var s = &Server{
@@ -51,7 +52,7 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 
 		if err := s.webhookService(s, spec, r); err != nil {
 			switch err {
-			case factory.ErrSecurityFailed:
+			case errSecurityFailed:
 				w.WriteHeader(http.StatusForbidden)
 				return
 			default:
@@ -69,18 +70,18 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	}
 	defer s.logger.Debug().Str("entry", spec.Name).Msg("Webhook processed")
 
-	if spec.HasSecurity() {
-		if err := s.runSecurity(spec, r); err != nil {
-			return err
-		}
-	}
-
 	if r.Body == nil {
 		return errors.New("request don't have body")
 	}
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
+	}
+
+	if spec.HasSecurity() {
+		if err := s.runSecurity(spec, r, data); err != nil {
+			return err
+		}
 	}
 
 	for _, storage := range spec.Storage {
@@ -92,29 +93,24 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	return err
 }
 
-func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request) error {
+func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request, body []byte) error {
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
 
-	ok, err := factory.Run(spec.SecurityFactories, func(factory *factory.Factory, lastOutput string, defaultFunc factory.RunnerFunc) (string, error) {
-		switch factory.Name {
-		case "getHeader":
-			return factory.Fn(factory.Config, "", r.Header)
-		case "compareWithStaticValue":
-			return factory.Fn(factory.Config, lastOutput)
-		}
-		return defaultFunc(factory, lastOutput)
-	})
-
-	if err != nil {
-		log.Error().Err(err).Msg("Error while processing security factory")
-		return err
+	pipeline := spec.SecurityPipeline
+	if pipeline == nil {
+		return errors.New("no pipeline to run. security is not configured")
 	}
 
-	log.Debug().Msgf("security factory passed: %t", ok)
-	if !ok {
-		return factory.ErrSecurityFailed
+	pipeline.Inputs["request"] = r
+	pipeline.Inputs["payload"] = string(body)
+
+	pipeline.WantResult(true).Run()
+
+	log.Debug().Msgf("security factory passed: %t", pipeline.CheckResult())
+	if !pipeline.CheckResult() {
+		return errSecurityFailed
 	}
 	return nil
 }

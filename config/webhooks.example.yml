@@ -3,11 +3,17 @@ specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
   security:
-  - getHeader:
-      name: X-Hook-Secret
-  - compareWithStaticValue:
-      valueFrom:
-        envRef: SECRET_TOKEN
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Hook-Secret
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ Outputs.header.value }}'
+      - name: second
+        valueFrom:
+          envRef: SECRET_TOKEN
   storage:
   - type: redis
     specs:

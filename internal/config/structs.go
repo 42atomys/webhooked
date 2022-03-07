@@ -11,11 +11,17 @@ type Configuration struct {
 }
 
 type WebhookSpec struct {
-	Name              string                              `mapstructure:"name"`
-	EntrypointURL     string                              `mapstructure:"entrypointUrl"`
-	Security          []map[string]map[string]interface{} `mapstructure:"security"`
-	SecurityFactories []*factory.Factory                  `mapstructure:"-"`
-	Storage           []*StorageSpec                      `mapstructure:"storage"`
+	Name             string                `mapstructure:"name"`
+	EntrypointURL    string                `mapstructure:"entrypointUrl"`
+	Security         []map[string]Security `mapstructure:"security"`
+	SecurityPipeline *factory.Pipeline     `mapstructure:"-"`
+	Storage          []*StorageSpec        `mapstructure:"storage"`
+}
+
+type Security struct {
+	ID     string                 `mapstructure:"id"`
+	Inputs []*factory.InputConfig `mapstructure:"inputs"`
+	Specs  map[string]interface{} `mapstructure:",remain"`
 }
 
 type StorageSpec struct {

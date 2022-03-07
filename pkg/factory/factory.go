@@ -1,35 +1,201 @@
 package factory
 
-// FactoryFunc is the function signature for a factory function
-// @param configRaw is the raw configuration for the factory
-// @param lastOuput is the last output from the previous factory
-// @param inputs is the list of additional inputs for the factory
-// @return the output of the factory
-// @return an error if the factory function fails or when the comparation is not valid
-type FactoryFunc func(configRaw map[string]interface{}, lastOuput string, inputs ...interface{}) (string, error)
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"reflect"
+	"strings"
+	"text/template"
 
-// Factory represents a factory function that can be used to run a simple or
-// complex chained factory run.
-type Factory struct {
-	// Name is the name of the factory function
-	Name string
-	// Fn is the factory function
-	Fn FactoryFunc
-	// Config is the configuration for the factory function
-	Config map[string]interface{}
-}
+	"github.com/rs/zerolog/log"
 
-var (
-	// FunctionMap contains the map of function names to their respective functions
-	// This is used to validate the function name and to get the function by name
-	FunctionMap = map[string]FactoryFunc{
-		"getHeader":              getHeader,
-		"compareWithStaticValue": compareWithStaticValue,
-	}
+	"42stellar.org/webhooks/internal/valuable"
 )
 
-// GetFunctionByName returns true if the function name is contained in the map
-func GetFunctionByName(name string) (FactoryFunc, bool) {
-	fn, ok := FunctionMap[name]
-	return fn, ok
+const ctxPipeline contextKey = "pipeline"
+
+// newFactory creates a new factory with the given IFactory implementation.
+// and initialize it.
+func newFactory(f IFactory) *Factory {
+	return &Factory{
+		ctx:     context.Background(),
+		Name:    f.Name(),
+		Fn:      f.Func(),
+		Config:  make(map[string]interface{}),
+		Inputs:  f.DefinedInpus(),
+		Outputs: f.DefinedOutputs(),
+	}
+}
+
+// GetVar returns the variable with the given name from the given slice.
+// @param list the Var slice to search in
+// @param name the name of the variable to search for
+// @return the variable with the given name from the given slice
+// @return true if the variable was found
+func GetVar(list []*Var, name string) (*Var, bool) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, true
+		}
+	}
+	return nil, false
+}
+
+// with adds a new variable to the given slice.
+// @param slice the slice to add the variable to
+// @param name the name of the variable
+// @param value the value of the variable
+// @return the new slice with the added variable
+func (f *Factory) with(slice []*Var, name string, value interface{}) ([]*Var, error) {
+	v, ok := GetVar(slice, name)
+	if !ok {
+		log.Error().Msgf("variable %s is not registered for %s", name, f.Name)
+		return slice, fmt.Errorf("variable %s is not registered for %s", name, f.Name)
+	}
+
+	if reflect.TypeOf(value) != v.Type {
+		log.Error().Msgf("invalid type for %s expected %s, got %s", name, v.Type.String(), reflect.TypeOf(value).String())
+		return slice, fmt.Errorf("invalid type for %s expected %s, got %s", name, v.Type.String(), reflect.TypeOf(value).String())
+	}
+
+	v.Value = value
+	return slice, nil
+}
+
+// WithPipelineInput adds the given pipeline input to the factory.
+// only if the pipeline input is matching the factory desired input.
+// Dont thow an error if the pipeline input is not matching the factory input
+//
+// @param name the name of the input variable
+// @param value the value of the input variable
+func (f *Factory) withPipelineInput(name string, value interface{}) {
+	v, ok := GetVar(f.Inputs, name)
+	if !ok {
+		return
+	}
+	if reflect.TypeOf(value) != v.Type {
+		return
+	}
+	v.Value = value
+}
+
+// WithInput adds the given input to the factory.
+// @param name the name of the input variable
+// @param value the value of the input variable
+// @return the factory
+func (f *Factory) WithInput(name string, value interface{}) *Factory {
+	f.Inputs, _ = f.with(f.Inputs, name, value)
+	return f
+}
+
+// WithID sets the id of the factory.
+// @param id the id of the factory
+// @return the factory
+func (f *Factory) WithID(id string) *Factory {
+	f.ID = id
+	return f
+}
+
+// WithConfig sets the config of the factory.
+// @param config the config of the factory
+// @return the factory
+func (f *Factory) WithConfig(config map[string]interface{}) *Factory {
+	if id, ok := config["id"]; ok {
+		f.WithID(id.(string))
+		delete(config, "id")
+	}
+
+	for k, v := range config {
+		f.Config[k] = v
+	}
+	return f
+}
+
+// Input retrieve the input variable of the given name.
+// @param name the name of the input variable
+// @return the input variable of the given name
+// @return true if the input variable was found
+func (f *Factory) Input(name string) (v *Var, ok bool) {
+	v, ok = GetVar(f.Inputs, name)
+	if !ok {
+		return nil, false
+	}
+
+	if (reflect.TypeOf(v.Value) == reflect.TypeOf(&InputConfig{})) {
+		return f.processInputConfig(v)
+	}
+
+	return v, ok
+}
+
+// Output store the output variable of the given name.
+// @param name the name of the output variable
+// @param value the value of the output variable
+// @return the factory
+func (f *Factory) Output(name string, value interface{}) *Factory {
+	f.Outputs, _ = f.with(f.Outputs, name, value)
+	return f
+}
+
+// Identifier will return the id of the factory or the name of the factory if
+// the id is not set.
+func (f *Factory) Identifier() string {
+	if f.ID != "" {
+		return f.ID
+	}
+	return f.Name
+}
+
+// Run executes the factory function
+func (f *Factory) Run() error {
+	if err := f.Fn(f, f.Config); err != nil {
+		log.Error().Err(err).Msgf("error during factory %s run", f.Name)
+		return err
+	}
+	return nil
+}
+
+// processInputConfig process all input config struct to apply custom
+// processing on the value. This is used to process the input config
+// with a go template value. Example to retrieve an output of previous
+// factory with `{{ .Outputs.ID.value }}`. The template is executed
+// with the pipeline object as data.
+//
+// @param v the input config variable
+// @return the processed input config variable
+func (f *Factory) processInputConfig(v *Var) (*Var, bool) {
+	v2 := &Var{true, reflect.TypeOf(v.Value), v.Name, &InputConfig{}}
+	input := v2.Value.(*InputConfig)
+
+	var vub = &valuable.Valuable{}
+	for _, value := range v.Value.(*InputConfig).Get() {
+		if strings.Contains(value, "{{") && strings.Contains(value, "}}") {
+			vub.Values = append(input.Values, goTemplateValue(value, f.ctx.Value(ctxPipeline)))
+		} else {
+			vub.Values = append(vub.Values, value)
+		}
+	}
+
+	input.Valuable = *vub
+	v2.Value = input
+	return v2, true
+}
+
+// goTemplateValue executes the given template with the given data.
+// @param template the template to execute
+// @param data the data to use for the template
+// @return the result of the template execution
+func goTemplateValue(tmpl string, data interface{}) string {
+	t := template.New("gotmpl")
+	t, err := t.Parse(tmpl)
+	if err != nil {
+		panic(err)
+	}
+
+	buf := new(bytes.Buffer)
+	if err := t.Execute(buf, data); err != nil {
+		panic(err)
+	}
+	return buf.String()
 }

@@ -15,10 +15,17 @@ data:
     - name: exampleHook
       entrypointUrl: /webhooks/example
       security:
-      - getHeader:
-          name: X-Hook-Secret
-      - compareWithStaticValue:
-          value: 'verySecretHeaderValue'
+      - header:
+          inputs:
+          - name: headerName
+            value: X-Hook-Secret
+      - compare:
+          inputs:
+          - name: first
+            value: '{{ Outputs.header.value }}'
+          - name: second
+            valueFrom:
+              envRef: SECRET_TOKEN
       storage:
       - type: redis
         specs:
@@ -33,7 +40,7 @@ metadata:
   name: webhooked
   labels:
     app.kubernetes.io/name: webhooked
-    app.kubernetes.io/version: '0.1'
+    app.kubernetes.io/version: '0.4'
 spec:
   selector:
     matchLabels:
@@ -45,8 +52,11 @@ spec:
     spec:
       containers:
       - name: webhooked
-        image: atomys/webhooked:0.1
+        image: atomys/webhooked:0.4
         imagePullPolicy: IfNotPresent
+        env:
+          - name: SECRET_TOKEN
+            value: verySecretToken
         resources:
           requests:
             memory: "10Mi"

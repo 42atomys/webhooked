@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"42stellar.org/webhooks/internal/valuable"
+	"42stellar.org/webhooks/pkg/factory"
 )
 
 func TestLoad(t *testing.T) {
@@ -99,14 +102,24 @@ func TestLoadSecurityFactory(t *testing.T) {
 			"full valid security",
 			&WebhookSpec{
 				Name: "test",
-				Security: []map[string]map[string]interface{}{
+				Security: []map[string]Security{
 					{
-						"getHeader": map[string]interface{}{
-							"name": "X-Token",
-						},
-						"compareWithStaticValue": map[string]interface{}{
-							"value": "test",
-						},
+						"header": Security{"secretHeader", []*factory.InputConfig{
+							{
+								Name:     "headerName",
+								Valuable: valuable.Valuable{Values: []string{"X-Token"}},
+							},
+						}, make(map[string]interface{})},
+						"compare": Security{"", []*factory.InputConfig{
+							{
+								Name:     "first",
+								Valuable: valuable.Valuable{Values: []string{"{{ .Outputs.secretHeader.value }}"}},
+							},
+							{
+								Name:     "second",
+								Valuable: valuable.Valuable{Values: []string{"test"}},
+							},
+						}, map[string]interface{}{"inverse": false}},
 					},
 				},
 			},
@@ -117,7 +130,7 @@ func TestLoadSecurityFactory(t *testing.T) {
 			"empty security configuration",
 			&WebhookSpec{
 				Name:     "test",
-				Security: []map[string]map[string]interface{}{},
+				Security: []map[string]Security{},
 			},
 			false,
 			0,
@@ -126,9 +139,9 @@ func TestLoadSecurityFactory(t *testing.T) {
 			"invalid factory name in configuration",
 			&WebhookSpec{
 				Name: "test",
-				Security: []map[string]map[string]interface{}{
+				Security: []map[string]Security{
 					{
-						"invalid": map[string]interface{}{},
+						"invalid": Security{},
 					},
 				},
 			},
@@ -144,7 +157,7 @@ func TestLoadSecurityFactory(t *testing.T) {
 		} else {
 			assert.NoError(err)
 		}
-		assert.Len(test.input.SecurityFactories, test.wantLen)
+		assert.Equal(test.input.SecurityPipeline.FactoryCount(), test.wantLen)
 	}
 }
 
