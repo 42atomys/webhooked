@@ -33,16 +33,24 @@ specs:
   # and need to be ended by a `compare` Factory.
   #
   # In this example we get the header `X-Hook-Secret` and compare it to a static
-  # value. If the header value is equals to `test`, `foo` or `bar`, the webhook is
-  # process. Else no process is handled and http server return a 401 error
+  # value. If the header value is equals to `test`, `foo` or `bar`, or the value
+  # contained in SECRET_TOKEN env variable, the webhook is process. 
+  # Else no process is handled and http server return a 401 error
   #
   # If you want to use insecure (not recommended), just remove security property
   security:
-  - getHeader:
-      name: X-Hook-Secret
-  - compareWithStaticValue:
-      valueFrom:
-        envRef: SECRET_TOKEN
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Hook-Secret
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ Outputs.header.value }}'
+      - name: second
+        values: ['foo', 'bar']
+        valueFrom:
+          envRef: SECRET_TOKEN
   # Storage allows you to list where you want to store the raw payloads
   # received by webhooked. You can add an unlimited number of storages, webhooked
   # will store in **ALL** the listed storages
