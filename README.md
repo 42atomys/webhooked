@@ -66,6 +66,8 @@ specs:
       key: example-webhook
 ```
 
+More informations about security pipeline available on wiki : [Configuration/Security](https://github.com/42Atomys/webhooked/wiki/Security)
+
 More informations about storages available on wiki : [Configuration/Storages](https://github.com/42Atomys/webhooked/wiki/Configuration-Storages)
 
 ### Step 2 : Launch it 🚀
