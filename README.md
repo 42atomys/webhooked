@@ -1,15 +1,16 @@
-# Webhooked
+<h1 align="center">Webhooked</h1>
 
-[![Release 🎉](https://github.com/42Atomys/webhooked/actions/workflows/release.yaml/badge.svg)](https://github.com/42Atomys/webhooked/actions/workflows/release.yaml)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/42atomys/webhooked?label=last%20release)
-![GitHub contributors](https://img.shields.io/github/contributors/42Atomys/webhooked?color=blueviolet)
-![GitHub Repo stars](https://img.shields.io/github/stars/42atomys/webhooked?color=blueviolet)
-[![Docker Pull](https://img.shields.io/docker/pulls/atomys/webhooked)](https://hub.docker.com/r/atomys/webhooked)
-[![Docker Pull](https://img.shields.io/docker/image-size/atomys/webhooked)](https://hub.docker.com/r/atomys/webhooked)
+<p align="center"><a href="https://github.com/42Atomys/webhooked/actions/workflows/release.yaml"><img src="https://github.com/42Atomys/webhooked/actions/workflows/release.yaml/badge.svg" alt="Release 🎉"></a>
+<img src="https://img.shields.io/github/v/release/42atomys/webhooked?label=last%20release" alt="GitHub release (latest by date)">
+<img src="https://img.shields.io/github/contributors/42Atomys/webhooked?color=blueviolet" alt="GitHub contributors">
+<img src="https://img.shields.io/github/stars/42atomys/webhooked?color=blueviolet" alt="GitHub Repo stars">
+<a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/pulls/atomys/webhooked" alt="Docker Pull"></a>
+<a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/image-size/atomys/webhooked" alt="Docker Pull"></a></p>
 
-A webhook receiver on steroids. The process is simple, receive webhook from all over the world, and send it to your favorite pub/sub to process it immediately or later without losing any received data 
+  
+<p align="center">A webhook receiver on steroids. The process is simple, receive webhook from all over the world, and send it to your favorite pub/sub to process it immediately or later without losing any received data</p>
 
-![Webhooked explained](/.github/profile/webhooked.png)
+<p align="center"><img src="/.github/profile/webhooked.png" alt="Webhooked explained"></p>
 
 ## Motivation
 
