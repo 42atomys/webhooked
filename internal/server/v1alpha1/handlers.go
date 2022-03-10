@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"42stellar.org/webhooks/internal/config"
+	"atomys.codes/webhooked/internal/config"
 )
 
 type Server struct {

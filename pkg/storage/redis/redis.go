@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"42stellar.org/webhooks/internal/valuable"
+	"atomys.codes/webhooked/internal/valuable"
 )
 
 type storage struct {

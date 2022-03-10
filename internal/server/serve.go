@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 
-	v1alpha1 "42stellar.org/webhooks/internal/server/v1alpha1"
+	v1alpha1 "atomys.codes/webhooked/internal/server/v1alpha1"
 )
 
 type APIVersion interface {

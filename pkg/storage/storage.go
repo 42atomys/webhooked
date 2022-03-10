@@ -3,9 +3,9 @@ package storage
 import (
 	"fmt"
 
-	"42stellar.org/webhooks/pkg/storage/postgres"
-	"42stellar.org/webhooks/pkg/storage/rabbitmq"
-	"42stellar.org/webhooks/pkg/storage/redis"
+	"atomys.codes/webhooked/pkg/storage/postgres"
+	"atomys.codes/webhooked/pkg/storage/rabbitmq"
+	"atomys.codes/webhooked/pkg/storage/redis"
 )
 
 type Pusher interface {
