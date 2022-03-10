@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"42stellar.org/webhooks/internal/valuable"
+	"atomys.codes/webhooked/internal/valuable"
 	"github.com/streadway/amqp"
 )
 

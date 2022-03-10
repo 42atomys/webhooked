@@ -10,9 +10,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
-	"42stellar.org/webhooks/internal/config"
-	"42stellar.org/webhooks/internal/valuable"
-	"42stellar.org/webhooks/pkg/factory"
+	"atomys.codes/webhooked/internal/config"
+	"atomys.codes/webhooked/internal/valuable"
+	"atomys.codes/webhooked/pkg/factory"
 )
 
 func TestNewServer(t *testing.T) {

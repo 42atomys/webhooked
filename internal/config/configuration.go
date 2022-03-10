@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"42stellar.org/webhooks/pkg/factory"
-	"42stellar.org/webhooks/pkg/storage"
+	"atomys.codes/webhooked/pkg/factory"
+	"atomys.codes/webhooked/pkg/storage"
 )
 
 var (

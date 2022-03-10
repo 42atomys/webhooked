@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"42stellar.org/webhooks/internal/valuable"
+	"atomys.codes/webhooked/internal/valuable"
 )
 
 // storage is the struct contains client and config
