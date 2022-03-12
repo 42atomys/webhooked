@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
 
 	v1alpha1 "atomys.codes/webhooked/internal/server/v1alpha1"
@@ -29,13 +30,17 @@ func Serve(port int) error {
 	}
 
 	log.Info().Msgf("Listening on port %d", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), newRouter())
+	router := newRouter()
+	router.Use(prometheusMiddleware)
+	router.Handle("/metrics", promhttp.Handler()).Name("metrics")
+
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 }
 
 func newRouter() *mux.Router {
 	var api = mux.NewRouter()
 	for _, version := range apiVersions {
-		api.Methods("POST").PathPrefix("/" + version.Version()).Handler(version.WebhookHandler())
+		api.Methods("POST").PathPrefix("/" + version.Version()).Handler(version.WebhookHandler()).Name(version.Version())
 	}
 
 	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
