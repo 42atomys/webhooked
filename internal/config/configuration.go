@@ -33,6 +33,7 @@ func Load() error {
 		}
 	}
 
+	log.Info().Msgf("Load %d configurations", len(currentConfig.Specs))
 	return Validate(currentConfig)
 }
 
@@ -81,7 +82,6 @@ func Validate(config *Configuration) error {
 		uniquenessUrl[spec.EntrypointURL] = true
 	}
 
-	log.Info().Msgf("Load %d configurations", len(config.Specs))
 	return nil
 }
 
@@ -129,6 +129,6 @@ func (c *Configuration) GetSpecByEndpoint(endpoint string) (*WebhookSpec, error)
 		}
 	}
 
-	log.Warn().Msgf("No spec found for %s endpoint", endpoint)
+	log.Debug().Msgf("No spec found for %s endpoint", endpoint)
 	return nil, ErrSpecNotFound
 }
