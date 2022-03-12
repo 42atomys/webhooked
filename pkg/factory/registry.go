@@ -20,7 +20,10 @@ var (
 // GetFunctionByName returns true if the function name is contained in the map
 func GetFactoryByName(name string) (*Factory, bool) {
 	fn, ok := factoryMap[name]
-	return newFactory(fn), ok
+	if ok {
+		return newFactory(fn), ok
+	}
+	return nil, false
 }
 
 // Register a new factory in the factory map with the built-in factory name
