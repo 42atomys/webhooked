@@ -6,8 +6,13 @@ import (
 )
 
 type Configuration struct {
-	APIVersion string         `mapstructure:"apiVersion"`
-	Specs      []*WebhookSpec `mapstructure:"specs"`
+	APIVersion    string         `mapstructure:"apiVersion"`
+	Observability Observability  `mapstructure:"observability"`
+	Specs         []*WebhookSpec `mapstructure:"specs"`
+}
+
+type Observability struct {
+	MetricsEnabled bool `mapstructure:"metricsEnabled"`
 }
 
 type WebhookSpec struct {

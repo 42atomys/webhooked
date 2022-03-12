@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
 
+	"atomys.codes/webhooked/internal/config"
 	v1alpha1 "atomys.codes/webhooked/internal/server/v1alpha1"
 )
 
@@ -31,8 +32,11 @@ func Serve(port int) error {
 
 	log.Info().Msgf("Listening on port %d", port)
 	router := newRouter()
-	router.Use(prometheusMiddleware)
-	router.Handle("/metrics", promhttp.Handler()).Name("metrics")
+
+	if config.Current().Observability.MetricsEnabled {
+		router.Use(prometheusMiddleware)
+		router.Handle("/metrics", promhttp.Handler()).Name("metrics")
+	}
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 }
