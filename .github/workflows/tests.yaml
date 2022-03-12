@@ -43,8 +43,6 @@ jobs:
       with:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
-    - name: Use example configuration for testing
-      run: cp config/webhooks.example.yml config/webhooks.yml
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2
       with:
