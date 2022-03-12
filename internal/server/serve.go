@@ -32,6 +32,7 @@ func Serve(port int) error {
 
 	log.Info().Msgf("Listening on port %d", port)
 	router := newRouter()
+	router.Use(loggingMiddleware)
 
 	if config.Current().Observability.MetricsEnabled {
 		router.Use(prometheusMiddleware)
