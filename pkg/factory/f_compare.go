@@ -3,6 +3,8 @@ package factory
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/rs/zerolog/log"
 )
 
 type compareFactory struct{ Factory }
@@ -46,6 +48,11 @@ func (c *compareFactory) Func() RunFunc {
 			result = !result
 		}
 
+		log.Debug().Bool("inversed", inverse).Msgf("factory compared slice %+v and %+v = %+v",
+			firstVar.Value.(*InputConfig).Get(),
+			secondVar.Value.(*InputConfig).Get(),
+			result,
+		)
 		factory.Output("result", result)
 		return nil
 	}

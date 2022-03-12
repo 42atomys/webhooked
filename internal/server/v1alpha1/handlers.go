@@ -43,7 +43,6 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 			return
 		}
 
-		log.Debug().Msgf("endpoint: %+v", strings.ReplaceAll(r.URL.Path, "/"+s.Version(), ""))
 		spec, err := s.config.GetSpecByEndpoint(strings.ReplaceAll(r.URL.Path, "/"+s.Version(), ""))
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -84,10 +83,12 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 		}
 	}
 
+	log.Debug().Msgf("store following data: %+v", string(data))
 	for _, storage := range spec.Storage {
 		if err := storage.Client.Push(string(data)); err != nil {
 			return err
 		}
+		log.Debug().Str("storage", storage.Client.Name()).Msgf("stored successfully")
 	}
 
 	return err
