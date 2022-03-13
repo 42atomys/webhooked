@@ -44,9 +44,8 @@ jobs:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@v3.1.0
       with:
-        skip-go-installation: true
         version: latest
     - name: Run Unit tests
       run: |
