@@ -30,18 +30,18 @@ func TestServer_Version(t *testing.T) {
 func TestServer_WebhookHandler(t *testing.T) {
 	assert.Equal(t,
 		http.StatusBadRequest,
-		testServer_WebhookHandler_Helper(t, &Server{config: &config.Configuration{APIVersion: "invalidVersion"}}).Code,
+		testServerWebhookHandlerHelper(t, &Server{config: &config.Configuration{APIVersion: "invalidVersion"}}).Code,
 	)
 
 	assert.Equal(t,
 		http.StatusNotFound,
-		testServer_WebhookHandler_Helper(t, &Server{config: &config.Configuration{APIVersion: "v1alpha1"}}).Code,
+		testServerWebhookHandlerHelper(t, &Server{config: &config.Configuration{APIVersion: "v1alpha1"}}).Code,
 	)
 
 	var expectedError = errors.New("err during processing webhook")
 	assert.Equal(t,
 		http.StatusInternalServerError,
-		testServer_WebhookHandler_Helper(t, &Server{
+		testServerWebhookHandlerHelper(t, &Server{
 			config: &config.Configuration{
 				APIVersion: "v1alpha1",
 				Specs: []*config.WebhookSpec{
@@ -56,7 +56,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 
 	assert.Equal(t,
 		http.StatusOK,
-		testServer_WebhookHandler_Helper(t, &Server{
+		testServerWebhookHandlerHelper(t, &Server{
 			config: &config.Configuration{
 				APIVersion: "v1alpha1",
 				Specs: []*config.WebhookSpec{
@@ -71,7 +71,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 
 	assert.Equal(t,
 		http.StatusForbidden,
-		testServer_WebhookHandler_Helper(t, &Server{
+		testServerWebhookHandlerHelper(t, &Server{
 			config: &config.Configuration{
 				APIVersion: "v1alpha1",
 				Specs: []*config.WebhookSpec{
@@ -86,7 +86,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 
 	assert.Equal(t,
 		http.StatusBadRequest,
-		testServer_WebhookHandler_Helper(t, &Server{
+		testServerWebhookHandlerHelper(t, &Server{
 			config: &config.Configuration{
 				APIVersion: "v0test",
 				Specs: []*config.WebhookSpec{
@@ -100,7 +100,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 	)
 }
 
-func testServer_WebhookHandler_Helper(t *testing.T, server *Server) *httptest.ResponseRecorder {
+func testServerWebhookHandlerHelper(t *testing.T, server *Server) *httptest.ResponseRecorder {
 	server.logger = log.With().Str("apiVersion", server.Version()).Logger()
 
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll

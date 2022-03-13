@@ -12,6 +12,8 @@ import (
 	v1alpha1 "atomys.codes/webhooked/internal/server/v1alpha1"
 )
 
+// APIVersion is the interface for all supported API versions
+// that can be served by the webhooked server
 type APIVersion interface {
 	Version() string
 	WebhookHandler() http.HandlerFunc

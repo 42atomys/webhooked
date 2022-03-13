@@ -8,6 +8,9 @@ import (
 	"atomys.codes/webhooked/pkg/storage/redis"
 )
 
+// Pusher is the interface for storage pusher
+// The name must be unique and must be the same as the storage type, the Push
+// function will be called with the receiving data
 type Pusher interface {
 	// Get the name of the storage
 	// Will be unique across all storages

@@ -24,6 +24,8 @@ type Valuable struct {
 	ValueFrom *ValueFromSource `json:"valueFrom,omitempty"`
 }
 
+// ValueFromSource represents the `valueFrom` field of a configuration entry
+// that contains a reference to a data source (file, env, etc.)
 type ValueFromSource struct {
 	// StaticRef represents the `staticRef` field of a configuration entry
 	// that contains a static value. Can contain a comma separated list

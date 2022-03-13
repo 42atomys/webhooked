@@ -1,4 +1,6 @@
 /*
+Package cmd : cobra package
+
 Copyright © 2022 42Stellar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

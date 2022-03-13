@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	// Import postgres driver
 	_ "github.com/lib/pq"
 
 	"atomys.codes/webhooked/internal/valuable"
