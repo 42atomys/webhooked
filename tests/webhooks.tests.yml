@@ -16,13 +16,4 @@ specs:
       - name: second
         valueFrom:
           envRef: SECRET_TOKEN
-  storage:
-  - type: redis
-    specs:
-      host: redis
-      port: '6379'
-      database: 0
-      password:
-        valueFrom:
-          envRef: REDIS_PASSWORD
-      key: example-webhook
+  storage: []
