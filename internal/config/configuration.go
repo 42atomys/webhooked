@@ -129,6 +129,5 @@ func (c *Configuration) GetSpecByEndpoint(endpoint string) (*WebhookSpec, error)
 		}
 	}
 
-	log.Debug().Msgf("No spec found for %s endpoint", endpoint)
 	return nil, ErrSpecNotFound
 }

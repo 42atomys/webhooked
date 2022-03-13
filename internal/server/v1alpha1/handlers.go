@@ -43,8 +43,10 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 			return
 		}
 
-		spec, err := s.config.GetSpecByEndpoint(strings.ReplaceAll(r.URL.Path, "/"+s.Version(), ""))
+		endpoint := strings.ReplaceAll(r.URL.Path, "/"+s.Version(), "")
+		spec, err := s.config.GetSpecByEndpoint(endpoint)
 		if err != nil {
+			log.Warn().Err(err).Msgf("No spec found for %s endpoint", endpoint)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -55,11 +57,12 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 				w.WriteHeader(http.StatusForbidden)
 				return
 			default:
-				s.logger.Error().Err(err).Msg("Error while processing webhook")
+				s.logger.Error().Err(err).Msg("Error during webhook processing")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 		}
+		s.logger.Debug().Str("entry", spec.Name).Msg("Webhook processed successfully")
 	}
 }
 
@@ -67,7 +70,6 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
-	defer s.logger.Debug().Str("entry", spec.Name).Msg("Webhook processed")
 
 	if r.Body == nil {
 		return errors.New("request don't have body")
@@ -109,7 +111,7 @@ func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request, body []b
 
 	pipeline.WantResult(true).Run()
 
-	log.Debug().Msgf("security factory passed: %t", pipeline.CheckResult())
+	log.Debug().Msgf("security pipeline result: %t", pipeline.CheckResult())
 	if !pipeline.CheckResult() {
 		return errSecurityFailed
 	}
