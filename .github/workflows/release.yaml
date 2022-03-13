@@ -18,8 +18,8 @@ jobs:
           goos: windows
     steps:
     - name: Checkout project
-      uses: actions/checkout@v2
-    - uses: wangyoucao577/go-release-action@v1.24
+      uses: actions/checkout@v3
+    - uses: wangyoucao577/go-release-action@v1.25
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
@@ -34,7 +34,7 @@ jobs:
         goVersion: [ '1.17' ]
     steps:
     - name: Checkout project
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Setup go
       uses: actions/setup-go@v2
       with:

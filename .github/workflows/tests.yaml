@@ -19,7 +19,7 @@ jobs:
         goVersion: [ '1.16', '1.17' ]
     steps:
     - name: Checkout project
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Start Redis
       uses: supercharge/redis-github-action@1.4.0
       with:
