@@ -14,9 +14,11 @@ import (
 
 type fakeFactory struct{}
 
-func (*fakeFactory) Name() string           { return "fake" }
-func (*fakeFactory) DefinedInpus() []*Var   { return []*Var{{false, reflect.TypeOf(""), "name", ""}} }
-func (*fakeFactory) DefinedOutputs() []*Var { return []*Var{{false, reflect.TypeOf(""), "message", ""}} }
+func (*fakeFactory) Name() string         { return "fake" }
+func (*fakeFactory) DefinedInpus() []*Var { return []*Var{{false, reflect.TypeOf(""), "name", ""}} }
+func (*fakeFactory) DefinedOutputs() []*Var {
+	return []*Var{{false, reflect.TypeOf(""), "message", ""}}
+}
 func (*fakeFactory) Func() RunFunc {
 	return func(factory *Factory, configRaw map[string]interface{}) error {
 		n, ok := factory.Input("name")
