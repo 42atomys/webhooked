@@ -28,8 +28,12 @@ func DecodeHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, 
 		}
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputConfig{
 		Valuable: *v,
 		Name:     name,
-	}, err
+	}, nil
 }

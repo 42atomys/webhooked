@@ -25,6 +25,31 @@ func (suite *TestSuiteValuable) BeforeTest(suiteName, testName string) {
 	os.Setenv(suite.testEnvName, suite.testValue)
 }
 
+func (suite *TestSuiteValuable) TestValidate() {
+	assert := assert.New(suite.T())
+
+	tests := []struct {
+		name    string
+		input   *Valuable
+		wantErr bool
+	}{
+		{"a basic value", &Valuable{Value: &suite.testValue}, false},
+		{"a basic list of values", &Valuable{Values: suite.testValues}, false},
+		{"a basic value with a basic list", &Valuable{Value: &suite.testValue, Values: suite.testValues}, false},
+		{"an empty valueFrom", &Valuable{ValueFrom: &ValueFromSource{}}, false},
+		{"an environment ref with invalid name", &Valuable{ValueFrom: &ValueFromSource{EnvRef: &suite.testInvalidEnvName}}, true},
+		{"an environment ref with valid name", &Valuable{ValueFrom: &ValueFromSource{EnvRef: &suite.testEnvName}}, false},
+	}
+
+	for _, test := range tests {
+		err := test.input.Validate()
+		if test.wantErr && assert.Error(err, "this test must be crash %s", err) {
+		} else {
+			assert.NoError(err, "cannot validate test %s", test.name)
+		}
+	}
+}
+
 func (suite *TestSuiteValuable) TestSerializeValuable() {
 	assert := assert.New(suite.T())
 

@@ -35,16 +35,29 @@ type ValueFromSource struct {
 	EnvRef *string `json:"envRef,omitempty"`
 }
 
+// Validate validates the Valuable object and returns an error if any
+// validation fails. In case of envRef, the env variable must exist.
+func (v *Valuable) Validate() error {
+	if v.ValueFrom != nil && v.ValueFrom.EnvRef != nil {
+		if _, ok := os.LookupEnv(*v.ValueFrom.EnvRef); !ok {
+			return fmt.Errorf("enviroment variable %s not found", *v.ValueFrom.EnvRef)
+		}
+	}
+
+	return nil
+}
+
 // SerializeValuable serialize anything to a Valuable
 // @param data is the data to serialize
 // @return the serialized Valuable
 func SerializeValuable(data interface{}) (*Valuable, error) {
+	var v *Valuable = &Valuable{}
 	switch t := data.(type) {
 	case string:
-		return &Valuable{Value: &t}, nil
+		v.Value = &t
 	case int, float32, float64, bool:
 		str := fmt.Sprint(t)
-		return &Valuable{Value: &str}, nil
+		v.Value = &str
 	case nil:
 		return &Valuable{}, nil
 	case map[interface{}]interface{}:
@@ -52,14 +65,20 @@ func SerializeValuable(data interface{}) (*Valuable, error) {
 		if err := mapstructure.Decode(data, &val); err != nil {
 			return nil, err
 		}
-		return val, nil
+		v = val
 	default:
 		valuable := Valuable{}
 		if err := mapstructure.Decode(data, &valuable); err != nil {
 			return nil, fmt.Errorf("unimplemented valuable type %s", reflect.TypeOf(data).String())
 		}
-		return &valuable, nil
+		v = &valuable
 	}
+
+	if err := v.Validate(); err != nil {
+		return nil, err
+	}
+
+	return v, nil
 }
 
 // Get returns all values of the Valuable as a slice
