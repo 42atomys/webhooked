@@ -13,6 +13,9 @@ import (
 	"atomys.codes/webhooked/internal/config"
 )
 
+// Server is the server instance for the v1alpha1 version
+// it will be used to handle the webhook call and store the data
+// on the configured storages for the current spec
 type Server struct {
 	// config is the current configuration of the server
 	config *config.Configuration

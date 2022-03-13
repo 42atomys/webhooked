@@ -17,6 +17,8 @@ var (
 	ErrSpecNotFound = errors.New("spec not found")
 )
 
+// Load loads the configuration from the viper configuration file
+// if an error is occurred, it will be returned
 func Load() error {
 	err := viper.Unmarshal(&currentConfig, viper.DecodeHook(factory.DecodeHook))
 	if err != nil {
@@ -59,9 +61,7 @@ func loadSecurityFactory(spec *WebhookSpec) error {
 	return nil
 }
 
-/**
- * Validate the configuration file and her content
- */
+// Validate the configuration file and her content
 func Validate(config *Configuration) error {
 	var uniquenessName = make(map[string]bool)
 	var uniquenessUrl = make(map[string]bool)
