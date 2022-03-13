@@ -15,5 +15,5 @@ specs:
         value: '{{ Outputs.header.value }}'
       - name: second
         valueFrom:
-          envRef: SECRET_TOKEN
+          staticRef: test
   storage: []
