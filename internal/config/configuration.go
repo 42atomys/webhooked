@@ -38,7 +38,7 @@ func Load() error {
 }
 
 // loadSecurityFactory loads the security factory for the given spec
-// if an error is occured, return an error
+// if an error is occurred, return an error
 func loadSecurityFactory(spec *WebhookSpec) error {
 	spec.SecurityPipeline = factory.NewPipeline()
 	for _, security := range spec.Security {
@@ -86,7 +86,7 @@ func Validate(config *Configuration) error {
 }
 
 // loadStorage registers the storage and validate it
-// if the storage is not found or an error is occured during the
+// if the storage is not found or an error is occurred during the
 // initialization or connection, the error is returned during the
 // validation
 func loadStorage(spec *WebhookSpec) (err error) {

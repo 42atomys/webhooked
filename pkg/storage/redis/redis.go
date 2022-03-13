@@ -28,7 +28,7 @@ type config struct {
 // Run is made from external caller at begins programs
 // @param config contains config define in the webhooks yaml file
 // @return RedisStorage the struct contains client connected and config
-// @return an error if the the client is not initialized succesfully
+// @return an error if the the client is not initialized successfully
 func NewStorage(configRaw map[string]interface{}) (*storage, error) {
 
 	newClient := storage{
