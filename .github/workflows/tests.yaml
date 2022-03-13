@@ -46,7 +46,7 @@ jobs:
     - name: Use example configuration for testing
       run: cp config/webhooks.example.yml config/webhooks.yml
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@v3.1.0
       with:
         skip-go-installation: true
         version: latest
