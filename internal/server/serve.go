@@ -42,6 +42,8 @@ func Serve(port int) error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 }
 
+// newRouter returns a new router with all the routes
+// for all supported API versions
 func newRouter() *mux.Router {
 	var api = mux.NewRouter()
 	for _, version := range apiVersions {

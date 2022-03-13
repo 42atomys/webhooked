@@ -14,13 +14,18 @@ import (
 )
 
 type Server struct {
-	config         *config.Configuration
+	// config is the current configuration of the server
+	config *config.Configuration
+	// webhookService is the function that will be called to process the webhook
 	webhookService func(s *Server, spec *config.WebhookSpec, r *http.Request) error
-	logger         zerolog.Logger
+	// logger is the logger used by the server
+	logger zerolog.Logger
 }
 
-var errSecurityFailed = errors.New("security failed")
+// errSecurityFailed is returned when security check failed for a webhook call
+var errSecurityFailed = errors.New("security check failed")
 
+// NewServer creates a new server instance for the v1alpha1 version
 func NewServer() *Server {
 	var s = &Server{
 		config:         config.Current(),
@@ -31,10 +36,15 @@ func NewServer() *Server {
 	return s
 }
 
+// Version returns the current version of the API
 func (s *Server) Version() string {
 	return "v1alpha1"
 }
 
+// WebhookHandler is the handler who will process the webhook call
+// it will call the webhook service function with the current configuration
+// and the request object. If an error is returned, it will be returned to the client
+// otherwise, it will return a 200 OK response
 func (s *Server) WebhookHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if s.config.APIVersion != s.Version() {
@@ -66,6 +76,9 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 	}
 }
 
+// webhookService is the function that will be called to process the webhook call
+// it will call the security pipeline if configured and store data on each configured
+// storages
 func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err error) {
 	if spec == nil {
 		return config.ErrSpecNotFound
@@ -96,6 +109,9 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	return err
 }
 
+// runSecurity will run the security pipeline for the current webhook call
+// it will check if the request is authorized by the security configuration of
+// the current spec, if the request is not authorized, it will return an error
 func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request, body []byte) error {
 	if spec == nil {
 		return config.ErrSpecNotFound
