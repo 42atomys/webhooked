@@ -45,7 +45,7 @@ func loadSecurityFactory(spec *WebhookSpec) error {
 		for securityName, securityConfig := range security {
 			f, ok := factory.GetFactoryByName(securityName)
 			if !ok {
-				return fmt.Errorf("security factory v2 name %s is not valid in %s spec", securityName, spec.Name)
+				return fmt.Errorf("security factory \"%s\" in %s specification is not a valid factory", securityName, spec.Name)
 			}
 
 			for _, input := range securityConfig.Inputs {
