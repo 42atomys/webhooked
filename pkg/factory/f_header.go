@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+
+	"github.com/rs/zerolog/log"
 )
 
 type headerFactory struct{ Factory }
@@ -37,10 +39,15 @@ func (*headerFactory) Func() RunFunc {
 			return fmt.Errorf("missing input request")
 		}
 
-		factory.Output("value",
-			requestVar.Value.(*http.Request).Header.Get(
-				nameVar.Value.(*InputConfig).First(),
-			))
+		headerValue := requestVar.Value.(*http.Request).Header.Get(
+			nameVar.Value.(*InputConfig).First(),
+		)
+
+		log.Debug().Msgf("factory header resolve %s to %s",
+			nameVar.Value.(*InputConfig).First(),
+			headerValue,
+		)
+		factory.Output("value", headerValue)
 
 		return nil
 	}

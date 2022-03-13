@@ -29,22 +29,23 @@ func Load() error {
 		}
 
 		if err = loadStorage(spec); err != nil {
-			return fmt.Errorf("storage %s is not valid: %s", spec.Name, err.Error())
+			return fmt.Errorf("configured storage for %s received an error: %s", spec.Name, err.Error())
 		}
 	}
 
+	log.Info().Msgf("Load %d configurations", len(currentConfig.Specs))
 	return Validate(currentConfig)
 }
 
 // loadSecurityFactory loads the security factory for the given spec
-// if an error is occured, return an error
+// if an error is occurred, return an error
 func loadSecurityFactory(spec *WebhookSpec) error {
 	spec.SecurityPipeline = factory.NewPipeline()
 	for _, security := range spec.Security {
 		for securityName, securityConfig := range security {
 			f, ok := factory.GetFactoryByName(securityName)
 			if !ok {
-				return fmt.Errorf("security factory v2 name %s is not valid in %s spec", securityName, spec.Name)
+				return fmt.Errorf("security factory \"%s\" in %s specification is not a valid factory", securityName, spec.Name)
 			}
 
 			for _, input := range securityConfig.Inputs {
@@ -70,30 +71,29 @@ func Validate(config *Configuration) error {
 
 		// Validate the uniqueness of all name
 		if _, ok := uniquenessName[spec.Name]; ok {
-			return fmt.Errorf("name %s is not unique", spec.Name)
+			return fmt.Errorf("specification name %s must be unique", spec.Name)
 		}
 		uniquenessName[spec.Name] = true
 
 		// Validate the uniqueness of all entrypoints
 		if _, ok := uniquenessUrl[spec.EntrypointURL]; ok {
-			return fmt.Errorf("entrypointUrl %s is not unique", spec.EntrypointURL)
+			return fmt.Errorf("specification entrypoint url %s must be unique", spec.EntrypointURL)
 		}
 		uniquenessUrl[spec.EntrypointURL] = true
 	}
 
-	log.Info().Msgf("Load %d configurations", len(config.Specs))
 	return nil
 }
 
 // loadStorage registers the storage and validate it
-// if the storage is not found or an error is occured during the
+// if the storage is not found or an error is occurred during the
 // initialization or connection, the error is returned during the
 // validation
 func loadStorage(spec *WebhookSpec) (err error) {
 	for _, s := range spec.Storage {
 		s.Client, err = storage.Load(s.Type, s.Specs)
 		if err != nil {
-			return
+			return fmt.Errorf("storage %s cannot be loaded properly: %s", s.Type, err.Error())
 		}
 	}
 
@@ -129,6 +129,5 @@ func (c *Configuration) GetSpecByEndpoint(endpoint string) (*WebhookSpec, error)
 		}
 	}
 
-	log.Warn().Msgf("No spec found for %s endpoint", endpoint)
 	return nil, ErrSpecNotFound
 }
