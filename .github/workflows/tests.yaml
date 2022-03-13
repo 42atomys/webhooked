@@ -48,7 +48,6 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3.1.0
       with:
-        skip-go-installation: true
         version: latest
     - name: Run Unit tests
       run: |
