@@ -29,7 +29,7 @@ func Load() error {
 		}
 
 		if err = loadStorage(spec); err != nil {
-			return fmt.Errorf("storage %s is not valid: %s", spec.Name, err.Error())
+			return fmt.Errorf("configured storage for %s received an error: %s", spec.Name, err.Error())
 		}
 	}
 
@@ -93,7 +93,7 @@ func loadStorage(spec *WebhookSpec) (err error) {
 	for _, s := range spec.Storage {
 		s.Client, err = storage.Load(s.Type, s.Specs)
 		if err != nil {
-			return
+			return fmt.Errorf("storage %s cannot be loaded properly: %s", s.Type, err.Error())
 		}
 	}
 
