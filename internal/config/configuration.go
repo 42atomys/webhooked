@@ -71,13 +71,13 @@ func Validate(config *Configuration) error {
 
 		// Validate the uniqueness of all name
 		if _, ok := uniquenessName[spec.Name]; ok {
-			return fmt.Errorf("name %s is not unique", spec.Name)
+			return fmt.Errorf("specification name %s must be unique", spec.Name)
 		}
 		uniquenessName[spec.Name] = true
 
 		// Validate the uniqueness of all entrypoints
 		if _, ok := uniquenessUrl[spec.EntrypointURL]; ok {
-			return fmt.Errorf("entrypointUrl %s is not unique", spec.EntrypointURL)
+			return fmt.Errorf("specification entrypoint url %s must be unique", spec.EntrypointURL)
 		}
 		uniquenessUrl[spec.EntrypointURL] = true
 	}
