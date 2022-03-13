@@ -24,6 +24,11 @@ type config struct {
 	Key      string
 }
 
+// NewStorage is the function for create new Redis storage client
+// Run is made from external caller at begins programs
+// @param config contains config define in the webhooks yaml file
+// @return RedisStorage the struct contains client connected and config
+// @return an error if the the client is not initialized succesfully
 func NewStorage(configRaw map[string]interface{}) (*storage, error) {
 
 	newClient := storage{
