@@ -39,7 +39,7 @@ jobs:
         postgresql user: webhook
         postgresql password: test
     - name: Setup go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
