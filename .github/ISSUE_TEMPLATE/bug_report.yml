@@ -1,19 +1,25 @@
----
 name: Bug report
 description: File a bug report
 title: 'fix: '
 labels: ['type/bug 🔥']
-assignees: ''
 body:
-  # Describe
   - type: markdown
+    attributes:
+      value: |
+        You have found a bug, bravo! Or rather, sorry! Send us the information about this bug so we can fix it as soon as possible.
+
+        If you feel like contributing and fixing this bug yourself, you can totally do it by adding a comment after your issue so we can assign you to it! Open a Pull Request and send it! 
+
+        🙏 Thanks in advance for your contribution  
+  # Describe
+  - type: textarea
     id: describe
     attributes:
       label: Describe the bug
       description: Thanks for taking the time to describe the bug with more details as you can
       placeholder: "A bug happened when I receive data"
   # Reproduce
-  - type: markdown
+  - type: textarea
     id: reproduce
     attributes:
       label: To Reproduce
@@ -58,7 +64,7 @@ body:
     attributes:
       label: Relevant log output
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-      render: shell
+      render: Shell
   - type: checkboxes
     id: terms
     attributes:
@@ -90,7 +96,7 @@ body:
     validations:
       required: false
   # additional context
-  - type: markdown
+  - type: textarea
     id: additional-context
     attributes:
       label: Additional context
