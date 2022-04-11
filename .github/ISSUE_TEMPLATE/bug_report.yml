@@ -18,6 +18,8 @@ body:
       label: Describe the bug
       description: Thanks for taking the time to describe the bug with more details as you can
       placeholder: "A bug happened when I receive data"
+    validations:
+      required: true
   # Reproduce
   - type: textarea
     id: reproduce
@@ -28,14 +30,15 @@ body:
         1. My config is '...'
         2. Try to store following payload '....'
         3. See error
+    validations:
+      required: true
   # What happened ?
   - type: textarea
     id: what-happened
     attributes:
       label: What happened
       description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
+      placeholder: A bug happened, send help!
     validations:
       required: true
   # Expected
