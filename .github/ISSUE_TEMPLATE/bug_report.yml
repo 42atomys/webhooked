@@ -6,11 +6,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        You have found a bug, bravo! Or rather, sorry! Send us the information about this bug so we can fix it as soon as possible.
+        _You have found a bug, bravo! Or rather, sorry! Send us the information about this bug so we can fix it as soon as possible._
 
-        If you feel like contributing and fixing this bug yourself, you can totally do it by adding a comment after your issue so we can assign you to it! Open a Pull Request and send it! 
+        _If you feel like contributing and fixing this bug yourself, you can totally do it by adding a comment after your issue so we can assign you to it! Open a Pull Request and send it!_
 
-        🙏 Thanks in advance for your contribution  
+        🙏 _Thanks in advance for your contribution_
   # Describe
   - type: textarea
     id: describe
@@ -47,17 +47,6 @@ body:
       placeholder: Maybe can response with..
     validations:
       required: false
-  # Version
-  - type: dropdown
-    id: version
-    attributes:
-      label: Version
-      description: What version of our software are you running?
-      options:
-        - '1.0'
-        - '0.5'
-    validations:
-      required: true
   # Logs
   - type: textarea
     id: logs
@@ -65,14 +54,17 @@ body:
       label: Relevant log output
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       render: Shell
-  - type: checkboxes
-    id: terms
+  # Version
+  - type: dropdown
+    id: version
     attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
+      label: Version of software
+      description: What version of our software are you running?
       options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
+        - '1.0'
+        - '0.5'
+    validations:
+      required: true
   # Environment
   - type: dropdown
     id: environment
@@ -101,3 +93,12 @@ body:
     attributes:
       label: Additional context
       description: Add any other context about the problem here
+  # Code if Conduct
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/42Atomys/webhooked/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
