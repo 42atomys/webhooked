@@ -12,7 +12,7 @@ specs:
   - compare:
       inputs:
       - name: first
-        value: '{{ Outputs.header.value }}'
+        value: '{{ .Outputs.header.value }}'
       - name: second
         valueFrom:
           envRef: SECRET_TOKEN
