@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"atomys.codes/webhooked/internal/valuable"
 	"github.com/streadway/amqp"
+
+	"atomys.codes/webhooked/internal/valuable"
 )
 
 // storage is the struct contains client and config
@@ -20,15 +21,15 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL      valuable.Valuable
-	QueueName        string
-	Durable          bool
-	DeleteWhenUnused bool
-	Exclusive        bool
-	NoWait           bool
-	Mandatory        bool
-	Immediate        bool
-	Exchange         string
+	DatabaseURL      valuable.Valuable `json:"databaseURL"`
+	QueueName        string            `json:"queueName"`
+	Durable          bool              `json:"durable"`
+	DeleteWhenUnused bool              `json:"deleteWhenUnused"`
+	Exclusive        bool              `json:"exclusive"`
+	NoWait           bool              `json:"noWait"`
+	Mandatory        bool              `json:"mandatory"`
+	Immediate        bool              `json:"immediate"`
+	Exchange         string            `json:"exchange"`
 }
 
 // NewStorage is the function for create new RabbitMQ client storage

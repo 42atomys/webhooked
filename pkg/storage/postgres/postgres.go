@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	// Import postgres driver
 	_ "github.com/lib/pq"
 
 	"atomys.codes/webhooked/internal/valuable"
@@ -20,9 +19,9 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL valuable.Valuable
-	TableName   string
-	DataField   string
+	DatabaseURL valuable.Valuable `json:"databaseURL"`
+	TableName   string            `json:"tableName"`
+	DataField   string            `json:"dataField"`
 }
 
 // NewStorage is the function for create new Postgres client storage
