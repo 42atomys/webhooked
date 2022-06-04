@@ -4,6 +4,8 @@ observability:
 specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
+  formating:
+    templateString: "{{ .Request.Body }}"
   security:
   - header:
       inputs:

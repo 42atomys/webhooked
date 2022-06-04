@@ -201,6 +201,7 @@ func TestLoadStorage(t *testing.T) {
 							"host": "localhost",
 							"port": 0,
 						},
+						Formating: &FormatingSpec{TemplateString: "null"},
 					},
 				},
 			},
