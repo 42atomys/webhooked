@@ -145,7 +145,7 @@ func loadTemplate(spec, parentSpec *FormatingSpec) (*FormatingSpec, error) {
 	if parentSpec != nil {
 		spec.Template = parentSpec.Template
 	} else {
-		spec.Template = "{{ .Request.Body }}"
+		spec.Template = "{{ .Payload }}"
 	}
 
 	return spec, nil
