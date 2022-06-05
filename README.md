@@ -2,7 +2,8 @@
 
 <p align="center"><a href="https://github.com/42Atomys/webhooked/actions/workflows/release.yaml"><img src="https://github.com/42Atomys/webhooked/actions/workflows/release.yaml/badge.svg" alt="Release 🎉"></a>
 <a href="https://goreportcard.com/report/atomys.codes/webhooked"><img src="https://goreportcard.com/badge/atomys.codes/webhooked" /></a>
-<a href="https://codecov.io/gh/42Atomys/webhooked"><img src="https://codecov.io/gh/42Atomys/webhooked/branch/main/graph/badge.svg?token=NSUZMDT9M9"/></a>
+<a href="https://codeclimate.com/github/42Atomys/webhooked"><img alt="Code Climate maintainability" src="https://img.shields.io/codeclimate/maintainability/42Atomys/webhooked"></a>
+<a href="https://codecov.io/gh/42Atomys/webhooked"><img alt="Codecov" src="https://img.shields.io/codecov/c/gh/42Atomys/webhooked?token=NSUZMDT9M9"></a>
 <img src="https://img.shields.io/github/v/release/42atomys/webhooked?label=last%20release" alt="GitHub release (latest by date)">
 <img src="https://img.shields.io/github/contributors/42Atomys/webhooked?color=blueviolet" alt="GitHub contributors">
 <img src="https://img.shields.io/github/stars/42atomys/webhooked?color=blueviolet" alt="GitHub Repo stars">
