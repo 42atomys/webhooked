@@ -22,7 +22,7 @@ data:
       - compare:
           inputs:
           - name: first
-            value: '{{ Outputs.header.value }}'
+            value: '{{ .Outputs.header.value }}'
           - name: second
             valueFrom:
               envRef: SECRET_TOKEN
@@ -40,7 +40,7 @@ metadata:
   name: webhooked
   labels:
     app.kubernetes.io/name: webhooked
-    app.kubernetes.io/version: '0.4'
+    app.kubernetes.io/version: '0.6'
 spec:
   selector:
     matchLabels:
@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: webhooked
-        image: atomys/webhooked:0.4
+        image: atomys/webhooked:0.6
         imagePullPolicy: IfNotPresent
         env:
           - name: SECRET_TOKEN
