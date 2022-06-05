@@ -9,6 +9,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// funcMap is the map of functions that can be used in templates.
+// The key is the name of the function and the value is the function itself.
+// This is required for the template.New() function to parse the function.
 func funcMap() template.FuncMap {
 	return template.FuncMap{
 		// Core functions
@@ -24,6 +27,8 @@ func funcMap() template.FuncMap {
 	}
 }
 
+// dft returns the default value if the given value is empty.
+// If the given value is not empty, it is returned as is.
 func dft(dft interface{}, given ...interface{}) interface{} {
 
 	if empty(given) || empty(given[0]) {
@@ -32,14 +37,14 @@ func dft(dft interface{}, given ...interface{}) interface{} {
 	return given[0]
 }
 
-// empty returns true if the given value has the zero value for its type.
+// empty returns true if the given value is empty.
+// It supports any type.
 func empty(given interface{}) bool {
 	g := reflect.ValueOf(given)
 	if !g.IsValid() {
 		return true
 	}
 
-	// Basically adapted from text/template.isTrue
 	switch g.Kind() {
 	default:
 		return g.IsNil()
@@ -60,7 +65,8 @@ func empty(given interface{}) bool {
 	}
 }
 
-// coalesce returns the first non-empty value.
+// coalesce returns the first value not empty in the given list.
+// If all values are empty, it returns nil.
 func coalesce(v ...interface{}) interface{} {
 	for _, val := range v {
 		if !empty(val) {
@@ -70,7 +76,8 @@ func coalesce(v ...interface{}) interface{} {
 	return nil
 }
 
-// toJson encodes an item into a JSON string
+// toJson returns the given value as a JSON string.
+// If the given value is nil, it returns an empty string.
 func toJson(v interface{}) string {
 	output, err := json.Marshal(v)
 	if err != nil {
@@ -79,7 +86,8 @@ func toJson(v interface{}) string {
 	return string(output)
 }
 
-// toPrettyJson encodes an item into a pretty (indented) JSON string
+// toPrettyJson returns the given value as a pretty JSON string indented with
+// 2 spaces. If the given value is nil, it returns an empty string.
 func toPrettyJson(v interface{}) string {
 	output, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
@@ -88,7 +96,7 @@ func toPrettyJson(v interface{}) string {
 	return string(output)
 }
 
-// ternary returns the first value if the last value is true, otherwise returns the second value.
+// ternary returns `isTrue` if `condition` is true, otherwise returns `isFalse`.
 func ternary(isTrue interface{}, isFalse interface{}, confition bool) interface{} {
 	if confition {
 		return isTrue
@@ -97,6 +105,8 @@ func ternary(isTrue interface{}, isFalse interface{}, confition bool) interface{
 	return isFalse
 }
 
+// getHeader returns the value of the given header. If the header is not found,
+// it returns an empty string.
 func getHeader(name string, headers *http.Header) string {
 	if headers == nil {
 		log.Error().Msg("headers are nil. Returning empty string")
