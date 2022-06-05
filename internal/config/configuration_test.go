@@ -170,11 +170,11 @@ func TestLoadSecurityFactory(t *testing.T) {
 	for _, test := range tests {
 		err := loadSecurityFactory(test.input)
 		if test.wantErr {
-			assert.Error(err)
+			assert.Error(err, test.name)
 		} else {
-			assert.NoError(err)
+			assert.NoError(err, test.name)
 		}
-		assert.Equal(test.input.SecurityPipeline.FactoryCount(), test.wantLen)
+		assert.Equal(test.input.SecurityPipeline.FactoryCount(), test.wantLen, test.name)
 	}
 }
 
@@ -183,15 +183,13 @@ func TestLoadStorage(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		storageName string
 		input       *WebhookSpec
 		wantErr     bool
 		wantStorage bool
 	}{
-		{"no spec", "", &WebhookSpec{Name: "test"}, false, false},
+		{"no spec", &WebhookSpec{Name: "test"}, false, false},
 		{
 			"full valid storage",
-			"connection invalid must return an error",
 			&WebhookSpec{
 				Name: "test",
 				Storage: []*StorageSpec{
@@ -210,7 +208,6 @@ func TestLoadStorage(t *testing.T) {
 		},
 		{
 			"empty storage configuration",
-			"",
 			&WebhookSpec{
 				Name:    "test",
 				Storage: []*StorageSpec{},
@@ -220,7 +217,6 @@ func TestLoadStorage(t *testing.T) {
 		},
 		{
 			"invalid storage name in configuration",
-			"",
 			&WebhookSpec{
 				Name: "test",
 				Storage: []*StorageSpec{
@@ -235,14 +231,92 @@ func TestLoadStorage(t *testing.T) {
 	for _, test := range tests {
 		err := loadStorage(test.input)
 		if test.wantErr {
-			assert.Error(err)
+			assert.Error(err, test.name)
 		} else {
-			assert.NoError(err)
+			assert.NoError(err, test.name)
 		}
 
 		if test.wantStorage && assert.Len(test.input.Storage, 1, "no storage is loaded for test %s", test.name) {
 			s := test.input.Storage[0]
-			assert.NotNil(s)
+			assert.NotNil(s, test.name)
 		}
+	}
+}
+
+func Test_loadTemplate(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        *FormatingSpec
+		parentSpec   *FormatingSpec
+		wantErr      bool
+		wantTemplate string
+	}{
+		{
+			"no template",
+			nil,
+			nil,
+			false,
+			defaultTemplate,
+		},
+		{
+			"template string",
+			&FormatingSpec{TemplateString: "{{ .Request.Method }}"},
+			nil,
+			false,
+			"{{ .Request.Method }}",
+		},
+		{
+			"template file",
+			&FormatingSpec{TemplatePath: "../../tests/simple_template.tpl"},
+			nil,
+			false,
+			"{{ .Request.Method }}",
+		},
+		{
+			"template file with template string",
+			&FormatingSpec{TemplatePath: "../../tests/simple_template.tpl", TemplateString: "{{ .Request.Path }}"},
+			nil,
+			false,
+			"{{ .Request.Path }}",
+		},
+		{
+			"no template with not loaded parent",
+			nil,
+			&FormatingSpec{TemplateString: "{{ .Request.Method }}"},
+			false,
+			"{{ .Request.Method }}",
+		},
+		{
+			"no template with loaded parent",
+			nil,
+			&FormatingSpec{Template: "{{ .Request.Method }}", TemplateString: "{{ .Request.Path }}"},
+			false,
+			"{{ .Request.Method }}",
+		},
+		{
+			"no template with unloaded parent and error",
+			nil,
+			&FormatingSpec{TemplatePath: "//invalid//path//"},
+			true,
+			"",
+		},
+		{
+			"template file not found",
+			&FormatingSpec{TemplatePath: "//invalid//path//"},
+			nil,
+			true,
+			"",
+		},
+	}
+
+	for _, test := range tests {
+		tmpl, err := loadTemplate(test.input, test.parentSpec)
+		if test.wantErr {
+			assert.Error(t, err, test.name)
+		} else {
+			assert.NoError(t, err, test.name)
+		}
+		assert.NotNil(t, tmpl, test.name)
+		assert.Equal(t, test.wantTemplate, tmpl.Template, test.name)
 	}
 }

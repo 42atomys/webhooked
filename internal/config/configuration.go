@@ -18,6 +18,9 @@ var (
 	currentConfig = &Configuration{}
 	// ErrSpecNotFound is returned when the spec is not found
 	ErrSpecNotFound = errors.New("spec not found")
+	// defaultTemplate is the default template for the payload
+	// when no template is defined
+	defaultTemplate = `{{ .Payload }}`
 )
 
 // Load loads the configuration from the viper configuration file
@@ -143,9 +146,16 @@ func loadTemplate(spec, parentSpec *FormatingSpec) (*FormatingSpec, error) {
 	}
 
 	if parentSpec != nil {
+		if parentSpec.Template == "" {
+			var err error
+			parentSpec, err = loadTemplate(parentSpec, nil)
+			if err != nil {
+				return spec, err
+			}
+		}
 		spec.Template = parentSpec.Template
 	} else {
-		spec.Template = "{{ .Payload }}"
+		spec.Template = defaultTemplate
 	}
 
 	return spec, nil
