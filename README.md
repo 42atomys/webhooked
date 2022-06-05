@@ -104,9 +104,9 @@ specs:
 
 More informations about security pipeline available on wiki : [Configuration/Security](https://github.com/42Atomys/webhooked/wiki/Security)
 
-More informations about storages available on wiki : [Configuration/Storages](https://github.com/42Atomys/webhooked/wiki/Configuration-Storages)
+More informations about storages available on wiki : [Configuration/Storages](https://github.com/42Atomys/webhooked/wiki/Storages)
 
-More informations about formatting available on wiki : [Configuration/Formatting](https://github.com/42Atomys/webhooked/wiki/Configuration-Formatting)
+More informations about formatting available on wiki : [Configuration/Formatting](https://github.com/42Atomys/webhooked/wiki/Formatting)
 
 ### Step 2 : Launch it 🚀
 ### With Kubernetes
