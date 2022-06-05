@@ -13,22 +13,22 @@ func TestWebhookSpec_HasSecurity(t *testing.T) {
 	// assert.True(t, WebhookSpec{SecurityFactories: make([]*factory.Factory, 2)}.HasSecurity())
 }
 
-func TestWebhookSpec_HasGlobalFormating(t *testing.T) {
-	assert.False(t, WebhookSpec{Formating: nil}.HasGlobalFormating())
-	assert.False(t, WebhookSpec{Formating: &FormatingSpec{}}.HasGlobalFormating())
-	assert.False(t, WebhookSpec{Formating: &FormatingSpec{TemplatePath: ""}}.HasGlobalFormating())
-	assert.False(t, WebhookSpec{Formating: &FormatingSpec{TemplateString: ""}}.HasGlobalFormating())
-	assert.False(t, WebhookSpec{Formating: &FormatingSpec{TemplatePath: "", TemplateString: ""}}.HasGlobalFormating())
-	assert.True(t, WebhookSpec{Formating: &FormatingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: ""}}.HasGlobalFormating())
-	assert.True(t, WebhookSpec{Formating: &FormatingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: "{{}}"}}.HasGlobalFormating())
+func TestWebhookSpec_HasGlobalFormatting(t *testing.T) {
+	assert.False(t, WebhookSpec{Formatting: nil}.HasGlobalFormatting())
+	assert.False(t, WebhookSpec{Formatting: &FormattingSpec{}}.HasGlobalFormatting())
+	assert.False(t, WebhookSpec{Formatting: &FormattingSpec{TemplatePath: ""}}.HasGlobalFormatting())
+	assert.False(t, WebhookSpec{Formatting: &FormattingSpec{TemplateString: ""}}.HasGlobalFormatting())
+	assert.False(t, WebhookSpec{Formatting: &FormattingSpec{TemplatePath: "", TemplateString: ""}}.HasGlobalFormatting())
+	assert.True(t, WebhookSpec{Formatting: &FormattingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: ""}}.HasGlobalFormatting())
+	assert.True(t, WebhookSpec{Formatting: &FormattingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: "{{}}"}}.HasGlobalFormatting())
 }
 
-func TestWebhookSpec_HasFormating(t *testing.T) {
-	assert.False(t, StorageSpec{Formating: nil}.HasFormating())
-	assert.False(t, StorageSpec{Formating: &FormatingSpec{}}.HasFormating())
-	assert.False(t, StorageSpec{Formating: &FormatingSpec{TemplatePath: ""}}.HasFormating())
-	assert.False(t, StorageSpec{Formating: &FormatingSpec{TemplateString: ""}}.HasFormating())
-	assert.False(t, StorageSpec{Formating: &FormatingSpec{TemplatePath: "", TemplateString: ""}}.HasFormating())
-	assert.True(t, StorageSpec{Formating: &FormatingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: ""}}.HasFormating())
-	assert.True(t, StorageSpec{Formating: &FormatingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: "{{}}"}}.HasFormating())
+func TestWebhookSpec_HasFormatting(t *testing.T) {
+	assert.False(t, StorageSpec{Formatting: nil}.HasFormatting())
+	assert.False(t, StorageSpec{Formatting: &FormattingSpec{}}.HasFormatting())
+	assert.False(t, StorageSpec{Formatting: &FormattingSpec{TemplatePath: ""}}.HasFormatting())
+	assert.False(t, StorageSpec{Formatting: &FormattingSpec{TemplateString: ""}}.HasFormatting())
+	assert.False(t, StorageSpec{Formatting: &FormattingSpec{TemplatePath: "", TemplateString: ""}}.HasFormatting())
+	assert.True(t, StorageSpec{Formatting: &FormattingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: ""}}.HasFormatting())
+	assert.True(t, StorageSpec{Formatting: &FormattingSpec{TemplatePath: "/_tmp/invalid_path", TemplateString: "{{}}"}}.HasFormatting())
 }

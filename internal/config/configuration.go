@@ -36,7 +36,7 @@ func Load() error {
 			return err
 		}
 
-		if spec.Formating, err = loadTemplate(spec.Formating, nil); err != nil {
+		if spec.Formatting, err = loadTemplate(spec.Formatting, nil); err != nil {
 			return fmt.Errorf("configured storage for %s received an error: %s", spec.Name, err.Error())
 		}
 
@@ -106,7 +106,7 @@ func loadStorage(spec *WebhookSpec) (err error) {
 			return fmt.Errorf("storage %s cannot be loaded properly: %s", s.Type, err.Error())
 		}
 
-		if s.Formating, err = loadTemplate(s.Formating, spec.Formating); err != nil {
+		if s.Formatting, err = loadTemplate(s.Formatting, spec.Formatting); err != nil {
 			return fmt.Errorf("storage %s cannot be loaded properly: %s", s.Type, err.Error())
 		}
 	}
@@ -118,9 +118,9 @@ func loadStorage(spec *WebhookSpec) (err error) {
 // loadTemplate loads the template for the given `spec`. When no spec is defined
 // we try to load the template from the parentSpec and fallback to the default
 // template if parentSpec is not given.
-func loadTemplate(spec, parentSpec *FormatingSpec) (*FormatingSpec, error) {
+func loadTemplate(spec, parentSpec *FormattingSpec) (*FormattingSpec, error) {
 	if spec == nil {
-		spec = &FormatingSpec{}
+		spec = &FormattingSpec{}
 	}
 
 	if spec.TemplateString != "" {

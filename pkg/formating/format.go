@@ -1,4 +1,4 @@
-package formating
+package formatting
 
 import (
 	"bytes"
@@ -56,7 +56,7 @@ func (d *TemplateData) WithConfig() *TemplateData {
 func (d *TemplateData) Render() (string, error) {
 	log.Debug().Msgf("rendering template: %s", d.tmplString)
 
-	t := template.New("formatingTmpl").Funcs(funcMap())
+	t := template.New("formattingTmpl").Funcs(funcMap())
 	t, err := t.Parse(d.tmplString)
 	if err != nil {
 		return "", fmt.Errorf("error in your template: %s", err.Error())

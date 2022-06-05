@@ -4,7 +4,7 @@ observability:
 specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
-  formating:
+  formatting:
     templateString: "{{ .Payload }}"
   security:
   - header:

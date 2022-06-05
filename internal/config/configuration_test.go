@@ -199,7 +199,7 @@ func TestLoadStorage(t *testing.T) {
 							"host": "localhost",
 							"port": 0,
 						},
-						Formating: &FormatingSpec{TemplateString: "null"},
+						Formatting: &FormattingSpec{TemplateString: "null"},
 					},
 				},
 			},
@@ -246,8 +246,8 @@ func TestLoadStorage(t *testing.T) {
 func Test_loadTemplate(t *testing.T) {
 	tests := []struct {
 		name         string
-		input        *FormatingSpec
-		parentSpec   *FormatingSpec
+		input        *FormattingSpec
+		parentSpec   *FormattingSpec
 		wantErr      bool
 		wantTemplate string
 	}{
@@ -260,21 +260,21 @@ func Test_loadTemplate(t *testing.T) {
 		},
 		{
 			"template string",
-			&FormatingSpec{TemplateString: "{{ .Request.Method }}"},
+			&FormattingSpec{TemplateString: "{{ .Request.Method }}"},
 			nil,
 			false,
 			"{{ .Request.Method }}",
 		},
 		{
 			"template file",
-			&FormatingSpec{TemplatePath: "../../tests/simple_template.tpl"},
+			&FormattingSpec{TemplatePath: "../../tests/simple_template.tpl"},
 			nil,
 			false,
 			"{{ .Request.Method }}",
 		},
 		{
 			"template file with template string",
-			&FormatingSpec{TemplatePath: "../../tests/simple_template.tpl", TemplateString: "{{ .Request.Path }}"},
+			&FormattingSpec{TemplatePath: "../../tests/simple_template.tpl", TemplateString: "{{ .Request.Path }}"},
 			nil,
 			false,
 			"{{ .Request.Path }}",
@@ -282,27 +282,27 @@ func Test_loadTemplate(t *testing.T) {
 		{
 			"no template with not loaded parent",
 			nil,
-			&FormatingSpec{TemplateString: "{{ .Request.Method }}"},
+			&FormattingSpec{TemplateString: "{{ .Request.Method }}"},
 			false,
 			"{{ .Request.Method }}",
 		},
 		{
 			"no template with loaded parent",
 			nil,
-			&FormatingSpec{Template: "{{ .Request.Method }}", TemplateString: "{{ .Request.Path }}"},
+			&FormattingSpec{Template: "{{ .Request.Method }}", TemplateString: "{{ .Request.Path }}"},
 			false,
 			"{{ .Request.Method }}",
 		},
 		{
 			"no template with unloaded parent and error",
 			nil,
-			&FormatingSpec{TemplatePath: "//invalid//path//"},
+			&FormattingSpec{TemplatePath: "//invalid//path//"},
 			true,
 			"",
 		},
 		{
 			"template file not found",
-			&FormatingSpec{TemplatePath: "//invalid//path//"},
+			&FormattingSpec{TemplatePath: "//invalid//path//"},
 			nil,
 			true,
 			"",

@@ -41,10 +41,10 @@ type WebhookSpec struct {
 	Security []map[string]Security `mapstructure:"security" json:"-"`
 	// Format is used to define the payload format sent by the webhook spec
 	// to all storages. Each storage can have its own format. When this
-	// configuration is empty, the default formating setting is used (body as JSON)
-	// It is defined by the user and can be empty. See HasGlobalFormating() method
+	// configuration is empty, the default formatting setting is used (body as JSON)
+	// It is defined by the user and can be empty. See HasGlobalFormatting() method
 	// to know if the webhook spec has format
-	Formating *FormatingSpec `mapstructure:"formating" json:"-"`
+	Formatting *FormattingSpec `mapstructure:"formatting" json:"-"`
 	// SecurityPipeline is the security pipeline of the webhook spec
 	// It is defined by the configuration loader. This field is not defined
 	// by the user and cannot be overridden
@@ -80,26 +80,26 @@ type StorageSpec struct {
 	// Specs is the configuration for the storage. It is defined by the user
 	// following the storage type specification
 	// NOTE: this field is hidden for json to prevent mistake of the user
-	//       when he use the custom formating option and leak credentials
+	//       when he use the custom formatting option and leak credentials
 	Specs map[string]interface{} `mapstructure:"specs" json:"-"`
 	// Format is used to define the payload format sent by the webhook spec
 	// to this storage. If not defined, the format of the webhook spec is
 	// used.
-	// It is defined by the user and can be empty. See HasFormating() method
+	// It is defined by the user and can be empty. See HasFormatting() method
 	// to know if the webhook spec has format
-	Formating *FormatingSpec `mapstructure:"formating" json:"-"`
+	Formatting *FormattingSpec `mapstructure:"formatting" json:"-"`
 	// Client is the storage client. It is defined by the configuration loader
 	// and cannot be overridden
 	Client storage.Pusher `mapstructure:"-" json:"-"`
 }
 
-// FormatingSpec is the struct contains the configuration to formating the
+// FormattingSpec is the struct contains the configuration to formatting the
 // payload of the webhook spec. The field TempalteString is prioritized
 // over the field TemplatePath when both are defined.
-type FormatingSpec struct {
-	// TemplatePath is the path to the template used to formating the payload
+type FormattingSpec struct {
+	// TemplatePath is the path to the template used to formatting the payload
 	TemplatePath string `mapstructure:"templatePath"`
-	// TemplateString is a plaintext template used to formating the payload
+	// TemplateString is a plaintext template used to formatting the payload
 	TemplateString string `mapstructure:"templateString"`
 	// ResolvedTemplate is the template after resolving the template variables
 	// It is defined by the configuration loader and cannot be overridden

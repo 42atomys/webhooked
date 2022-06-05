@@ -1,4 +1,4 @@
-package formating
+package formatting
 
 import (
 	"encoding/json"
@@ -63,7 +63,7 @@ func Test_WithPayload(t *testing.T) {
 func Test_WithSpec(t *testing.T) {
 	assert := assert.New(t)
 
-	tmpl := NewTemplateData("").WithSpec(&config.WebhookSpec{Name: "test", Formating: &config.FormatingSpec{}})
+	tmpl := NewTemplateData("").WithSpec(&config.WebhookSpec{Name: "test", Formatting: &config.FormattingSpec{}})
 	assert.NotNil(tmpl)
 	assert.Equal("", tmpl.tmplString)
 	assert.Equal(1, len(tmpl.data))
@@ -123,7 +123,7 @@ func Test_Render(t *testing.T) {
 	`).
 		WithPayload([]byte(`{"test": "test"}`)).
 		WithRequest(req).
-		WithSpec(&config.WebhookSpec{Name: "test", EntrypointURL: "/webhooks/test", Formating: &config.FormatingSpec{}}).
+		WithSpec(&config.WebhookSpec{Name: "test", EntrypointURL: "/webhooks/test", Formatting: &config.FormattingSpec{}}).
 		WithStorage(&config.StorageSpec{Type: "testing", Specs: map[string]interface{}{}}).
 		WithConfig()
 	assert.NotNil(tmpl)

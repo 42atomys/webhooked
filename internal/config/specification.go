@@ -5,12 +5,12 @@ func (s WebhookSpec) HasSecurity() bool {
 	return s.SecurityPipeline != nil && s.SecurityPipeline.HasFactories()
 }
 
-// HasGlobalFormating returns true if the spec has a global formating
-func (s WebhookSpec) HasGlobalFormating() bool {
-	return s.Formating != nil && (s.Formating.TemplatePath != "" || s.Formating.TemplateString != "")
+// HasGlobalFormatting returns true if the spec has a global formatting
+func (s WebhookSpec) HasGlobalFormatting() bool {
+	return s.Formatting != nil && (s.Formatting.TemplatePath != "" || s.Formatting.TemplateString != "")
 }
 
-// HasFormating returns true if the storage spec has a formating
-func (s StorageSpec) HasFormating() bool {
-	return s.Formating != nil && (s.Formating.TemplatePath != "" || s.Formating.TemplateString != "")
+// HasFormatting returns true if the storage spec has a formatting
+func (s StorageSpec) HasFormatting() bool {
+	return s.Formatting != nil && (s.Formatting.TemplatePath != "" || s.Formatting.TemplateString != "")
 }

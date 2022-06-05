@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"atomys.codes/webhooked/internal/config"
-	"atomys.codes/webhooked/pkg/formating"
+	"atomys.codes/webhooked/pkg/formatting"
 )
 
 // Server is the server instance for the v1alpha1 version
@@ -103,8 +103,8 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	}
 
 	for _, storage := range spec.Storage {
-		str, err := formating.
-			NewTemplateData(storage.Formating.Template).
+		str, err := formatting.
+			NewTemplateData(storage.Formatting.Template).
 			WithRequest(r).
 			WithPayload(data).
 			WithSpec(spec).
