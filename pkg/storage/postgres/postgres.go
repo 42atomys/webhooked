@@ -19,7 +19,7 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL valuable.Valuable `json:"databaseURL"`
+	DatabaseURL valuable.Valuable `json:"databaseUrl"`
 	TableName   string            `json:"tableName"`
 	DataField   string            `json:"dataField"`
 }

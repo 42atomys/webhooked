@@ -18,12 +18,12 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQName() {
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
 	_, err := NewStorage(map[string]interface{}{
-		"databaseURL": []int{1},
+		"databaseUrl": []int{1},
 	})
 	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{
-		"databaseURL":      "amqp://user:password@127.0.0.1:5672",
+		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
 		"queueName":        "hello",
 		"durable":          false,
 		"deleteWhenUnused": false,
@@ -37,7 +37,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
 	newClient, _ := NewStorage(map[string]interface{}{
-		"databaseURL":      "amqp://user:password@127.0.0.1:5672",
+		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
 		"queueName":        "hello",
 		"durable":          false,
 		"deleteWhenUnused": false,
@@ -50,7 +50,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
 	assert.Error(suite.T(), err)
 
 	newClient, err = NewStorage(map[string]interface{}{
-		"databaseURL":      "amqp://user:password@127.0.0.1:5672",
+		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
 		"queueName":        "hello",
 		"durable":          false,
 		"deleteWhenUnused": false,

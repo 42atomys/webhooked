@@ -38,12 +38,12 @@ func (suite *PostgresSetupTestSuite) TestPostgresName() {
 
 func (suite *PostgresSetupTestSuite) TestPostgresNewStorage() {
 	_, err := NewStorage(map[string]interface{}{
-		"databaseURL": []int{1},
+		"databaseUrl": []int{1},
 	})
 	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{
-		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseUrl": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
 	})
@@ -52,7 +52,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresNewStorage() {
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	newClient, _ := NewStorage(map[string]interface{}{
-		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseUrl": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "Not Exist",
 		"dataField":   "Not exist",
 	})
@@ -60,7 +60,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	assert.Error(suite.T(), err)
 
 	newClient, err = NewStorage(map[string]interface{}{
-		"databaseURL": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseUrl": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
 		"tableName":   "test",
 		"dataField":   "test_field",
 	})
