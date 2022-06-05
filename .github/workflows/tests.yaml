@@ -66,6 +66,7 @@ jobs:
             echo "Failed"
             exit 1
         fi
+    - uses: codecov/codecov-action@v2
     - name: Run Go Build
       run: |
         go build -o /tmp/applications-test-units
