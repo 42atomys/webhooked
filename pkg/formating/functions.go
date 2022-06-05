@@ -89,14 +89,18 @@ func toPrettyJson(v interface{}) string {
 }
 
 // ternary returns the first value if the last value is true, otherwise returns the second value.
-func ternary(vt interface{}, vf interface{}, v bool) interface{} {
-	if v {
-		return vt
+func ternary(isTrue interface{}, isFalse interface{}, confition bool) interface{} {
+	if confition {
+		return isTrue
 	}
 
-	return vf
+	return isFalse
 }
 
 func getHeader(name string, headers *http.Header) string {
+	if headers == nil {
+		log.Error().Msg("headers are nil. Returning empty string")
+		return ""
+	}
 	return headers.Get(name)
 }

@@ -2,6 +2,7 @@ package formating
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"text/template"
 
@@ -58,12 +59,12 @@ func (d *TemplateData) Render() (string, error) {
 	t := template.New("formatingTmpl").Funcs(funcMap())
 	t, err := t.Parse(d.tmplString)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error in your template: %s", err.Error())
 	}
 
 	buf := new(bytes.Buffer)
 	if err := t.Execute(buf, d.data); err != nil {
-		return "", err
+		return "", fmt.Errorf("error while filling your template: %s", err.Error())
 	}
 
 	return buf.String(), nil
