@@ -5,7 +5,7 @@ specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
   formating:
-    templateString: "{{ .Request.Body }}"
+    templateString: "{{ .Payload }}"
   security:
   - header:
       inputs:
