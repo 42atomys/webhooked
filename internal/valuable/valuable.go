@@ -40,7 +40,7 @@ type ValueFromSource struct {
 func (v *Valuable) Validate() error {
 	if v.ValueFrom != nil && v.ValueFrom.EnvRef != nil {
 		if _, ok := os.LookupEnv(*v.ValueFrom.EnvRef); !ok {
-			return fmt.Errorf("enviroment variable %s not found", *v.ValueFrom.EnvRef)
+			return fmt.Errorf("environment variable %s not found", *v.ValueFrom.EnvRef)
 		}
 	}
 

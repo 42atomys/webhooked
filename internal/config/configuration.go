@@ -1,8 +1,11 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -15,6 +18,9 @@ var (
 	currentConfig = &Configuration{}
 	// ErrSpecNotFound is returned when the spec is not found
 	ErrSpecNotFound = errors.New("spec not found")
+	// defaultTemplate is the default template for the payload
+	// when no template is defined
+	defaultTemplate = `{{ .Payload }}`
 )
 
 // Load loads the configuration from the viper configuration file
@@ -28,6 +34,10 @@ func Load() error {
 	for _, spec := range currentConfig.Specs {
 		if err := loadSecurityFactory(spec); err != nil {
 			return err
+		}
+
+		if spec.Formatting, err = loadTemplate(spec.Formatting, nil); err != nil {
+			return fmt.Errorf("configured storage for %s received an error: %s", spec.Name, err.Error())
 		}
 
 		if err = loadStorage(spec); err != nil {
@@ -95,10 +105,60 @@ func loadStorage(spec *WebhookSpec) (err error) {
 		if err != nil {
 			return fmt.Errorf("storage %s cannot be loaded properly: %s", s.Type, err.Error())
 		}
+
+		if s.Formatting, err = loadTemplate(s.Formatting, spec.Formatting); err != nil {
+			return fmt.Errorf("storage %s cannot be loaded properly: %s", s.Type, err.Error())
+		}
 	}
 
 	log.Debug().Msgf("%d storages loaded for spec %s", len(spec.Storage), spec.Name)
 	return
+}
+
+// loadTemplate loads the template for the given `spec`. When no spec is defined
+// we try to load the template from the parentSpec and fallback to the default
+// template if parentSpec is not given.
+func loadTemplate(spec, parentSpec *FormattingSpec) (*FormattingSpec, error) {
+	if spec == nil {
+		spec = &FormattingSpec{}
+	}
+
+	if spec.TemplateString != "" {
+		spec.Template = spec.TemplateString
+		return spec, nil
+	}
+
+	if spec.TemplatePath != "" {
+		file, err := os.OpenFile(spec.TemplatePath, os.O_RDONLY, 0666)
+		if err != nil {
+			return spec, err
+		}
+		defer file.Close()
+
+		var buffer bytes.Buffer
+		_, err = io.Copy(&buffer, file)
+		if err != nil {
+			return spec, err
+		}
+
+		spec.Template = buffer.String()
+		return spec, nil
+	}
+
+	if parentSpec != nil {
+		if parentSpec.Template == "" {
+			var err error
+			parentSpec, err = loadTemplate(parentSpec, nil)
+			if err != nil {
+				return spec, err
+			}
+		}
+		spec.Template = parentSpec.Template
+	} else {
+		spec.Template = defaultTemplate
+	}
+
+	return spec, nil
 }
 
 // Current returns the aftual configuration
