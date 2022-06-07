@@ -59,8 +59,8 @@ func (c storage) Name() string {
 // @param value that will be pushed
 // @return an error if the push failed
 func (c storage) Push(value interface{}) error {
-	request := fmt.Sprintf("INSERT INTO %s(%s) VALUES ('%s')", c.config.TableName, c.config.DataField, value)
-	if _, err := c.client.Query(request); err != nil {
+	request := fmt.Sprintf("INSERT INTO %s(%s) VALUES ($1)", c.config.TableName, c.config.DataField)
+	if _, err := c.client.Query(request, value); err != nil {
 		return err
 	}
 
