@@ -33,6 +33,11 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
 		"immediate":        false,
 	})
 	assert.NoError(suite.T(), err)
+
+	_, err = NewStorage(map[string]interface{}{
+		"databaseUrl": "amqp://user:",
+	})
+	assert.Error(suite.T(), err)
 }
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
