@@ -42,7 +42,12 @@ var (
 				log.Fatal().Err(err).Msg("invalid configuration")
 			}
 
-			log.Fatal().Err(server.Serve(*flagPort)).Msg("Error during server start")
+			srv, err := server.NewServer(*flagPort)
+			if err != nil {
+				log.Fatal().Err(err).Msg("failed to create server")
+			}
+
+			log.Fatal().Err(srv.Serve()).Msg("Error during server start")
 		},
 	}
 )

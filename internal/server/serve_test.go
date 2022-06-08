@@ -1,10 +1,34 @@
 package server
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func Test_NewServer(t *testing.T) {
+	srv, err := NewServer(8080)
+	assert.NoError(t, err)
+	assert.NotNil(t, srv)
+
+	srv, err = NewServer(0)
+	assert.Error(t, err)
+	assert.Nil(t, srv)
+}
+
+func Test_Serve(t *testing.T) {
+	srv, err := NewServer(8080)
+	assert.NoError(t, err)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		assert.NoError(t, srv.Shutdown(context.Background()))
+	}()
+
+	assert.NoError(t, srv.Serve())
+}
 
 func Test_validPort(t *testing.T) {
 	assert := assert.New(t)
