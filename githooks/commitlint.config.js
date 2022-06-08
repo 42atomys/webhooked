@@ -33,15 +33,13 @@ const Configuration = {
     ]],
     'scope-case': [2, 'always', 'lowerCase'],
     'scope-enum': [2, 'always', [
-      'github/actions',
-      'github/codeowners',
-      'github',
       'handler',
       'security',
       'formatting',
       'storage',
       'configuration',
       'go',
+      'github',
       'git'
     ]],
     'scope-empty': [1, 'never'],

@@ -19,6 +19,10 @@ type APIVersion interface {
 	WebhookHandler() http.HandlerFunc
 }
 
+type Server struct {
+	*http.Server
+}
+
 var (
 	// apiVersions is a list of supported API versions by the server
 	apiVersions = []APIVersion{
@@ -26,13 +30,22 @@ var (
 	}
 )
 
-// Serve the proxy server on the given port for all supported API versions
-func Serve(port int) error {
+// NewServer create a new server instance with the given port
+func NewServer(port int) (*Server, error) {
 	if !validPort(port) {
-		return fmt.Errorf("invalid port")
+		return nil, fmt.Errorf("invalid port")
 	}
 
-	log.Info().Msgf("Listening on port %d", port)
+	return &Server{
+		Server: &http.Server{
+			Addr:    fmt.Sprintf(":%d", port),
+			Handler: nil,
+		},
+	}, nil
+}
+
+// Serve the proxy server on the given port for all supported API versions
+func (s *Server) Serve() error {
 	router := newRouter()
 	router.Use(loggingMiddleware)
 
@@ -41,7 +54,9 @@ func Serve(port int) error {
 		router.Handle("/metrics", promhttp.Handler()).Name("metrics")
 	}
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), router)
+	s.Handler = router
+	log.Info().Msgf("Listening on %s", s.Addr)
+	return s.ListenAndServe()
 }
 
 // newRouter returns a new router with all the routes
