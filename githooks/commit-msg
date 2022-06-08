@@ -17,4 +17,4 @@ then
     npm install -g @commitlint/config-conventional
 fi
 
-commitlint -g githooks/commitlint.config.js -V --edit "$1"
+commitlint -g $(git config core.hooksPath)/commitlint.config.js -x $(npm root -g)/@commitlint/config-conventional -V --edit "$1"
