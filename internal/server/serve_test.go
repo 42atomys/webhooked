@@ -20,15 +20,15 @@ func Test_NewServer(t *testing.T) {
 }
 
 func Test_Serve(t *testing.T) {
-	srv, err := NewServer(8080)
+	srv, err := NewServer(38081)
 	assert.NoError(t, err)
 
 	go func() {
-		time.Sleep(3 * time.Second)
+		time.Sleep(2 * time.Second)
 		assert.ErrorIs(t, srv.Shutdown(context.Background()), http.ErrServerClosed)
 	}()
 
-	assert.NoError(t, srv.Serve())
+	assert.ErrorIs(t, srv.Serve(), http.ErrServerClosed)
 }
 
 func Test_validPort(t *testing.T) {
