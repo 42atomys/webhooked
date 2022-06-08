@@ -24,7 +24,7 @@ func Test_Serve(t *testing.T) {
 	assert.NoError(t, err)
 
 	go func() {
-		time.Sleep(1 * time.Second)
+		time.Sleep(3 * time.Second)
 		assert.ErrorIs(t, srv.Shutdown(context.Background()), http.ErrServerClosed)
 	}()
 
