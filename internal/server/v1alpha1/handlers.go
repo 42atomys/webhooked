@@ -29,6 +29,9 @@ type Server struct {
 // errSecurityFailed is returned when security check failed for a webhook call
 var errSecurityFailed = errors.New("security check failed")
 
+// errRequestBodyMissing is returned when the request body is missing
+var errRequestBodyMissing = errors.New("request body is missing")
+
 // NewServer creates a new server instance for the v1alpha1 version
 func NewServer() *Server {
 	var s = &Server{
@@ -89,7 +92,7 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	}
 
 	if r.Body == nil {
-		return errors.New("request don't have body")
+		return errRequestBodyMissing
 	}
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
