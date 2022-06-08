@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ func Test_Serve(t *testing.T) {
 
 	go func() {
 		time.Sleep(1 * time.Second)
-		assert.NoError(t, srv.Shutdown(context.Background()))
+		assert.ErrorIs(t, srv.Shutdown(context.Background()), http.ErrServerClosed)
 	}()
 
 	assert.NoError(t, srv.Serve())
