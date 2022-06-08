@@ -32,7 +32,18 @@ const Configuration = {
       'test'
     ]],
     'scope-case': [2, 'always', 'lowerCase'],
-    'scope-enum': [2, 'always', []],
+    'scope-enum': [2, 'always', [
+      'github/actions',
+      'github/codeowners',
+      'github',
+      'handler',
+      'security',
+      'formatting',
+      'storage',
+      'configuration',
+      'go',
+      'git'
+    ]],
     'scope-empty': [1, 'never'],
 
     'subject-case': [2, 'always', 'sentence-case'],
