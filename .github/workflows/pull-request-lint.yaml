@@ -1,0 +1,21 @@
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - ready_for_review
+
+jobs:
+  lint_title:
+    name: Lint pull request title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && !contains(fromJson('["skip-commit-lint"]'), github.event.pull_request.labels)
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Install Dependencies
+      run: npm install @commitlint/cli @commitlint/config-conventional
+    - uses: JulienKode/pull-request-name-linter-action@v0.5.0
+      with:
+        configuration-path: githooks/commitlint.config.js
