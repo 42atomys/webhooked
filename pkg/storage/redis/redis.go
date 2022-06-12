@@ -16,12 +16,12 @@ type storage struct {
 }
 
 type config struct {
-	Host     string            `json:"host"`
-	Port     string            `json:"port"`
-	Database int               `json:"database"`
-	Username valuable.Valuable `json:"username"`
-	Password valuable.Valuable `json:"password"`
-	Key      string            `json:"key"`
+	Host     string            `mapstructure:"host" json:"host"`
+	Port     string            `mapstructure:"port" json:"port"`
+	Database int               `mapstructure:"database" json:"database"`
+	Username valuable.Valuable `mapstructure:"username" json:"username"`
+	Password valuable.Valuable `mapstructure:"password" json:"password"`
+	Key      string            `mapstructure:"key" json:"key"`
 }
 
 // NewStorage is the function for create new Redis storage client

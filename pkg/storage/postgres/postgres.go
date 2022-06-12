@@ -19,9 +19,9 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL valuable.Valuable `json:"databaseUrl"`
-	TableName   string            `json:"tableName"`
-	DataField   string            `json:"dataField"`
+	DatabaseURL valuable.Valuable `mapstructure:"databaseUrl" json:"databaseUrl"`
+	TableName   string            `mapstructure:"tableName" json:"tableName"`
+	DataField   string            `mapstructure:"dataField" json:"dataField"`
 }
 
 // NewStorage is the function for create new Postgres client storage
