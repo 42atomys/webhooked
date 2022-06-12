@@ -41,21 +41,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
 }
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
-	newClient, _ := NewStorage(map[string]interface{}{
-		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
-		"queueName":        "hello",
-		"contentType":      "application/json",
-		"durable":          false,
-		"deleteWhenUnused": false,
-		"exclusive":        false,
-		"noWait":           false,
-		"mandatory":        false,
-		"immediate":        false,
-	})
-	err := newClient.Push(func() {})
-	assert.Error(suite.T(), err)
-
-	newClient, err = NewStorage(map[string]interface{}{
+	newClient, err := NewStorage(map[string]interface{}{
 		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
 		"queueName":        "hello",
 		"contentType":      "text/plain",
