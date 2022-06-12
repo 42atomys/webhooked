@@ -18,7 +18,7 @@ const Configuration = {
    * Any rules defined here will override rules from @commitlint/config-conventional
    */
   rules: {
-    'type-case': [2, 'always', 'lowerCase'],
+    'type-case': [2, 'always', 'lower-case'],
     'type-enum': [2, 'always', [
       'build',
       'chore',
@@ -31,20 +31,21 @@ const Configuration = {
       'style',
       'test'
     ]],
-    'scope-case': [2, 'always', 'lowerCase'],
+    'scope-case': [2, 'always', 'lower-case'],
     'scope-enum': [2, 'always', [
       'handler',
       'security',
       'formatting',
       'storage',
       'configuration',
+      'deps',
       'go',
       'github',
       'git'
     ]],
     'scope-empty': [1, 'never'],
 
-    'subject-case': [2, 'always', 'sentence-case'],
+    'subject-case': [2, 'always', 'lower-case'],
     'header-max-length': [2, 'always', 142],
   },
   /*
