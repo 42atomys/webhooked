@@ -14,7 +14,6 @@ jobs:
     name: "GoLang test units"
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         goVersion: [ '1.16', '1.17', '1.18' ]
     steps:
