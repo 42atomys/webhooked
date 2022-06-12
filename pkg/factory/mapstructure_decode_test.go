@@ -43,7 +43,7 @@ func (suite *TestSuiteInputConfigDecode) BeforeTest(suiteName, testName string) 
 func (suite *TestSuiteInputConfigDecode) TestDecodeInvalidOutput() {
 	assert := assert.New(suite.T())
 
-	err := suite.decodeFunc(map[string]interface{}{"value": suite.testValue}, nil)
+	err := suite.decodeFunc(map[interface{}]interface{}{"value": suite.testValue}, nil)
 	assert.Error(err)
 }
 
@@ -51,7 +51,7 @@ func (suite *TestSuiteInputConfigDecode) TestDecodeInvalidInput() {
 	assert := assert.New(suite.T())
 
 	output := struct{}{}
-	err := suite.decodeFunc(map[string]interface{}{"value": true}, &output)
+	err := suite.decodeFunc(map[interface{}]interface{}{"value": true}, &output)
 	assert.NoError(err)
 }
 
