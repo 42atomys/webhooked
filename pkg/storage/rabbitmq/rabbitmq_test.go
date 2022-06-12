@@ -44,6 +44,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
 	newClient, _ := NewStorage(map[string]interface{}{
 		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
 		"queueName":        "hello",
+		"contentType":      "application/json",
 		"durable":          false,
 		"deleteWhenUnused": false,
 		"exclusive":        false,
@@ -57,6 +58,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
 	newClient, err = NewStorage(map[string]interface{}{
 		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
 		"queueName":        "hello",
+		"contentType":      "text/plain",
 		"durable":          false,
 		"deleteWhenUnused": false,
 		"exclusive":        false,
@@ -77,4 +79,10 @@ func TestRunRabbitMQPush(t *testing.T) {
 	}
 
 	suite.Run(t, new(RabbitMQSetupTestSuite))
+}
+
+func TestContentType(t *testing.T) {
+	assert.Equal(t, "text/plain", config{}.ContentType())
+	assert.Equal(t, "text/plain", config{DefinedContentType: ""}.ContentType())
+	assert.Equal(t, "application/json", config{DefinedContentType: "application/json"}.ContentType())
 }
