@@ -4,8 +4,6 @@ observability:
 specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
-  formatting:
-    templateString: "{{ .Payload }}"
   security:
   - header:
       inputs:
@@ -14,8 +12,20 @@ specs:
   - compare:
       inputs:
       - name: first
-        value: '{{ Outputs.header.value }}'
+        value: '{{ .Outputs.header.value }}'
       - name: second
         valueFrom:
           staticRef: test
+  formatting:
+    templateString: |
+      {
+        "config": "{{ toJson .Config }}",
+        "storage": {{ toJson .Storage }},
+        "metadata": {
+          "model": "{{ .Request.Header | getHeader "X-Model" }}",
+          "event": "{{ .Request.Header | getHeader "X-Event" }}",
+          "deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
+        },
+        "payload": {{ .Payload }}
+      }
   storage: []
