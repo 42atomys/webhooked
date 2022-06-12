@@ -21,16 +21,16 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL        valuable.Valuable `json:"databaseUrl"`
-	QueueName          string            `json:"queueName"`
-	DefinedContentType string            `json:"contentType"`
-	Durable            bool              `json:"durable"`
-	DeleteWhenUnused   bool              `json:"deleteWhenUnused"`
-	Exclusive          bool              `json:"exclusive"`
-	NoWait             bool              `json:"noWait"`
-	Mandatory          bool              `json:"mandatory"`
-	Immediate          bool              `json:"immediate"`
-	Exchange           string            `json:"exchange"`
+	DatabaseURL        valuable.Valuable `mapstructure:"databaseUrl" json:"databaseUrl"`
+	QueueName          string            `mapstructure:"queueName" json:"queueName"`
+	DefinedContentType string            `mapstructure:"contentType" json:"contentType"`
+	Durable            bool              `mapstructure:"durable" json:"durable"`
+	DeleteWhenUnused   bool              `mapstructure:"deleteWhenUnused" json:"deleteWhenUnused"`
+	Exclusive          bool              `mapstructure:"exclusive" json:"exclusive"`
+	NoWait             bool              `mapstructure:"noWait" json:"noWait"`
+	Mandatory          bool              `mapstructure:"mandatory" json:"mandatory"`
+	Immediate          bool              `mapstructure:"immediate" json:"immediate"`
+	Exchange           string            `mapstructure:"exchange" json:"exchange"`
 }
 
 // ContentType is the function for get content type used to push data in the
