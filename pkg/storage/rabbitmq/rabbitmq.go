@@ -21,15 +21,27 @@ type storage struct {
 // config is the struct contains config for connect client
 // Run is made from internal caller
 type config struct {
-	DatabaseURL      valuable.Valuable `json:"databaseUrl"`
-	QueueName        string            `json:"queueName"`
-	Durable          bool              `json:"durable"`
-	DeleteWhenUnused bool              `json:"deleteWhenUnused"`
-	Exclusive        bool              `json:"exclusive"`
-	NoWait           bool              `json:"noWait"`
-	Mandatory        bool              `json:"mandatory"`
-	Immediate        bool              `json:"immediate"`
-	Exchange         string            `json:"exchange"`
+	DatabaseURL        valuable.Valuable `json:"databaseUrl"`
+	QueueName          string            `json:"queueName"`
+	DefinedContentType string            `json:"contentType"`
+	Durable            bool              `json:"durable"`
+	DeleteWhenUnused   bool              `json:"deleteWhenUnused"`
+	Exclusive          bool              `json:"exclusive"`
+	NoWait             bool              `json:"noWait"`
+	Mandatory          bool              `json:"mandatory"`
+	Immediate          bool              `json:"immediate"`
+	Exchange           string            `json:"exchange"`
+}
+
+// ContentType is the function for get content type used to push data in the
+// storage. When no content type is defined, the default one is used instead
+// Default: text/plain
+func (c config) ContentType() string {
+	if c.DefinedContentType != "" {
+		return c.DefinedContentType
+	}
+
+	return "text/plain"
 }
 
 // NewStorage is the function for create new RabbitMQ client storage
@@ -94,7 +106,7 @@ func (c storage) Push(value interface{}) error {
 		c.config.Mandatory,
 		c.config.Immediate,
 		amqp.Publishing{
-			ContentType: "text/plain",
+			ContentType: c.config.ContentType(),
 			Body:        []byte(buf.Bytes()),
 		}); err != nil {
 		return err
