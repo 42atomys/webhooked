@@ -1,8 +1,7 @@
 package rabbitmq
 
 import (
-	"bytes"
-	"encoding/gob"
+	"fmt"
 
 	"github.com/streadway/amqp"
 
@@ -93,13 +92,6 @@ func (c storage) Name() string {
 // @param value that will be pushed
 // @return an error if the push failed
 func (c storage) Push(value interface{}) error {
-	var buf bytes.Buffer
-
-	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(value); err != nil {
-		return err
-	}
-
 	if err := c.channel.Publish(
 		c.config.Exchange,
 		c.routingKey.Name,
@@ -107,7 +99,7 @@ func (c storage) Push(value interface{}) error {
 		c.config.Immediate,
 		amqp.Publishing{
 			ContentType: c.config.ContentType(),
-			Body:        []byte(buf.Bytes()),
+			Body:        []byte(fmt.Sprintf("%v", value)),
 		}); err != nil {
 		return err
 	}
