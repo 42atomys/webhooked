@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        goVersion: [ '1.16', '1.17', '1.18' ]
+        goVersion: [ '1.17', '1.18' ]
     steps:
     - name: Checkout project
       uses: actions/checkout@v3
@@ -48,7 +48,6 @@ jobs:
       uses: golangci/golangci-lint-action@v3.2.0
       with:
         version: latest
-        skip-cache: true
     - name: Run Unit tests
       run: |
         go test ./... -coverprofile coverage.out -covermode count
