@@ -15,6 +15,18 @@ func NewPipeline() *Pipeline {
 	}
 }
 
+// DeepCopy creates a deep copy of the pipeline.
+func (p *Pipeline) DeepCopy() *Pipeline {
+	deepCopy := NewPipeline()
+	for _, f := range p.factories {
+		deepCopy.AddFactory(f)
+	}
+	for k, v := range p.Inputs {
+		deepCopy.WithInput(k, v)
+	}
+	return deepCopy
+}
+
 // AddFactory adds a new factory to the pipeline. New Factory is added to the
 // end of the pipeline.
 func (p *Pipeline) AddFactory(f *Factory) *Pipeline {
@@ -80,17 +92,12 @@ func (p *Pipeline) Run() *Factory {
 			log.Debug().Msgf("factory %s output %s = %+v", f.Name, v.Name, v.Value)
 		}
 
-		var key = f.Identifier()
-		if p.Outputs[key] == nil {
-			p.Outputs[key] = make(map[string]interface{})
-		}
-
 		if p.Result != nil {
 			p.LastResults = make([]interface{}, 0)
 		}
 
 		for _, v := range f.Outputs {
-			p.Outputs[key][v.Name] = v.Value
+			p.writeOutputSafely(f.Identifier(), v.Name, v.Value)
 
 			if p.Result != nil {
 				p.LastResults = append(p.LastResults, v.Value)
@@ -103,4 +110,29 @@ func (p *Pipeline) Run() *Factory {
 	}
 
 	return nil
+}
+
+// WithInput adds a new input to the pipeline. The input is added safely to prevent
+// concurrent map writes error.
+func (p *Pipeline) WithInput(name string, value interface{}) *Pipeline {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.Inputs[name] = value
+	return p
+}
+
+// writeOutputSafely writes the output to the pipeline output map. If the key
+// already exists, the value is overwritten. This is principally used to
+// write on the map withtout create a new map or PANIC due to concurrency map writes.
+func (p *Pipeline) writeOutputSafely(factoryIdentifier, factoryOutputName string, value interface{}) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	// Ensure the factory output map exists
+	if p.Outputs[factoryIdentifier] == nil {
+		p.Outputs[factoryIdentifier] = make(map[string]interface{})
+	}
+
+	p.Outputs[factoryIdentifier][factoryOutputName] = value
 }

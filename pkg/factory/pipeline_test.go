@@ -70,6 +70,13 @@ func (suite *testSuitePipeline) TestPipelineRun() {
 	suite.Equal(wantedResult, pipeline.Outputs["fake"]["message"])
 }
 
+func (suite *testSuitePipeline) TestPipelineWithInput() {
+	var pipeline = NewPipeline()
+	pipeline.WithInput("test", true)
+
+	suite.True(pipeline.Inputs["test"].(bool))
+}
+
 func (suite *testSuitePipeline) TestPipelineResultWithInvalidType() {
 	var pipeline = NewPipeline()
 
@@ -100,5 +107,4 @@ func (suite *testSuitePipeline) TestPipelineFailedDueToFactoryErr() {
 	pipeline.AddFactory(factory).AddFactory(factory2)
 	ret := pipeline.Run()
 	suite.Equal(factory, ret)
-
 }

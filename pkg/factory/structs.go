@@ -3,6 +3,7 @@ package factory
 import (
 	"context"
 	"reflect"
+	"sync"
 
 	"atomys.codes/webhooked/internal/valuable"
 )
@@ -24,6 +25,7 @@ type InputConfig struct {
 // It is used to store the inputs and outputs of all factories executed
 // by the pipeline and secure the result of the pipeline.
 type Pipeline struct {
+	mu        sync.RWMutex
 	factories []*Factory
 
 	Result      interface{}
