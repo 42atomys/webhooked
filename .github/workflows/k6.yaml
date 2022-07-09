@@ -1,11 +1,11 @@
 name: K6 🛠️
-on: 
+on:
   pull_request:
     types:
-    - ready_for_review
+      - ready_for_review
   push:
     branches:
-    - main
+      - main
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        goVersion: [ '1.18', '1.19', '1.20' ]
+        goVersion: ["1.18", "1.19", "1.20"]
     steps:
     - name: Checkout project
       uses: actions/checkout@v4
