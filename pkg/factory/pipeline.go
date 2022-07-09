@@ -10,10 +10,8 @@ import (
 // NewPipeline initializes a new pipeline
 func NewPipeline() *Pipeline {
 	return &Pipeline{
-		Outputs:   make(map[string]map[string]interface{}),
-		Variables: make(map[string]interface{}),
-		Config:    make(map[string]interface{}),
-		Inputs:    make(map[string]interface{}),
+		Outputs: make(map[string]map[string]interface{}),
+		Inputs:  make(map[string]interface{}),
 	}
 }
 

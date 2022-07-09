@@ -29,7 +29,7 @@ type Pipeline struct {
 	Result      interface{}
 	LastResults []interface{}
 
-	Variables, Config, Inputs map[string]interface{}
+	Inputs map[string]interface{}
 
 	Outputs map[string]map[string]interface{}
 }
