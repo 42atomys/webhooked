@@ -28,8 +28,8 @@ type Pipeline struct {
 	mu        sync.RWMutex
 	factories []*Factory
 
-	Result      interface{}
-	LastResults []interface{}
+	WantedResult interface{}
+	LastResults  []interface{}
 
 	Inputs map[string]interface{}
 

@@ -17,7 +17,7 @@ func NewPipeline() *Pipeline {
 
 // DeepCopy creates a deep copy of the pipeline.
 func (p *Pipeline) DeepCopy() *Pipeline {
-	deepCopy := NewPipeline()
+	deepCopy := NewPipeline().WantResult(p.WantedResult)
 	for _, f := range p.factories {
 		deepCopy.AddFactory(f)
 	}
@@ -48,7 +48,7 @@ func (p *Pipeline) FactoryCount() int {
 // the result is compared to the last result of the pipeline.
 // type and value of the result must be the same as the last result
 func (p *Pipeline) WantResult(result interface{}) *Pipeline {
-	p.Result = result
+	p.WantedResult = result
 	return p
 }
 
@@ -56,11 +56,11 @@ func (p *Pipeline) WantResult(result interface{}) *Pipeline {
 // type and value of the result must be the same as the last result
 func (p *Pipeline) CheckResult() bool {
 	for _, lr := range p.LastResults {
-		if reflect.TypeOf(lr) != reflect.TypeOf(p.Result) {
+		if reflect.TypeOf(lr) != reflect.TypeOf(p.WantedResult) {
 			log.Warn().Msgf("pipeline result is not the same type as wanted result")
 			return false
 		}
-		if lr == p.Result {
+		if lr == p.WantedResult {
 			return true
 		}
 	}
@@ -92,14 +92,14 @@ func (p *Pipeline) Run() *Factory {
 			log.Debug().Msgf("factory %s output %s = %+v", f.Name, v.Name, v.Value)
 		}
 
-		if p.Result != nil {
+		if p.WantedResult != nil {
 			p.LastResults = make([]interface{}, 0)
 		}
 
 		for _, v := range f.Outputs {
 			p.writeOutputSafely(f.Identifier(), v.Name, v.Value)
 
-			if p.Result != nil {
+			if p.WantedResult != nil {
 				p.LastResults = append(p.LastResults, v.Value)
 			}
 		}

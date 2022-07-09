@@ -108,3 +108,17 @@ func (suite *testSuitePipeline) TestPipelineFailedDueToFactoryErr() {
 	ret := pipeline.Run()
 	suite.Equal(factory, ret)
 }
+
+func (suite *testSuitePipeline) TestPipelineDeepCopy() {
+	var pipeline = NewPipeline()
+	var factory = newFactory(&fakeFactory{})
+	var factory2 = newFactory(&fakeFactory{})
+	factory.Inputs = make([]*Var, 0)
+
+	pipeline.AddFactory(factory).AddFactory(factory2)
+	pipeline.Inputs["name"] = "test"
+	pipeline.WantResult("test")
+
+	var pipeline2 = pipeline.DeepCopy()
+	suite.Equal(pipeline, pipeline2)
+}
