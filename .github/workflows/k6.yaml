@@ -30,5 +30,5 @@ jobs:
         curl https://github.com/loadimpact/k6/releases/download/v0.39.0/k6-v0.39.0-linux64.tar.gz -L | tar xvz --strip-components 1
     - name: Start application and run K6
       run: |
-        go run main.go serve
+        go run main.go serve --config tests/webhooks.tests.yml &
         ./k6 run tests/k6-load-script.js
