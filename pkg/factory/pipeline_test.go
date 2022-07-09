@@ -120,5 +120,5 @@ func (suite *testSuitePipeline) TestPipelineDeepCopy() {
 	pipeline.WantResult("test")
 
 	var pipeline2 = pipeline.DeepCopy()
-	suite.Equal(pipeline, pipeline2)
+	suite.NotSame(pipeline, pipeline2)
 }

@@ -60,36 +60,6 @@ func Test_WithPayload(t *testing.T) {
 	assert.JSONEq(`{"test":"test"}`, tmpl.data["Payload"].(string))
 }
 
-func Test_WithSpec(t *testing.T) {
-	assert := assert.New(t)
-
-	tmpl := NewTemplateData("").WithSpec(&config.WebhookSpec{Name: "test", Formatting: &config.FormattingSpec{}})
-	assert.NotNil(tmpl)
-	assert.Equal("", tmpl.tmplString)
-	assert.Equal(1, len(tmpl.data))
-	assert.Equal("test", tmpl.data["Spec"].(*config.WebhookSpec).Name)
-}
-
-func Test_WithStorage(t *testing.T) {
-	assert := assert.New(t)
-
-	tmpl := NewTemplateData("").WithStorage(&config.StorageSpec{Type: "testing"})
-	assert.NotNil(tmpl)
-	assert.Equal("", tmpl.tmplString)
-	assert.Equal(1, len(tmpl.data))
-	assert.Equal("testing", tmpl.data["Storage"].(*config.StorageSpec).Type)
-}
-
-func Test_WithConfig(t *testing.T) {
-	assert := assert.New(t)
-
-	tmpl := NewTemplateData("").WithConfig()
-	assert.NotNil(tmpl)
-	assert.Equal("", tmpl.tmplString)
-	assert.Equal(1, len(tmpl.data))
-	assert.NotNil(tmpl.data["Config"])
-}
-
 func Test_Render(t *testing.T) {
 	assert := assert.New(t)
 
@@ -123,9 +93,9 @@ func Test_Render(t *testing.T) {
 	`).
 		WithPayload([]byte(`{"test": "test"}`)).
 		WithRequest(req).
-		WithSpec(&config.WebhookSpec{Name: "test", EntrypointURL: "/webhooks/test", Formatting: &config.FormattingSpec{}}).
-		WithStorage(&config.StorageSpec{Type: "testing", Specs: map[string]interface{}{}}).
-		WithConfig()
+		WithData("Spec", &config.WebhookSpec{Name: "test", EntrypointURL: "/webhooks/test", Formatting: &config.FormattingSpec{}}).
+		WithData("Storage", &config.StorageSpec{Type: "testing", Specs: map[string]interface{}{}}).
+		WithData("Config", config.Current())
 	assert.NotNil(tmpl)
 
 	str, err = tmpl.Render()

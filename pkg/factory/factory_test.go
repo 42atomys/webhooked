@@ -161,3 +161,10 @@ func (suite *testSuiteFactory) TestGoTempalteValue() {
 	ret := goTemplateValue("{{ .test }}", map[string]interface{}{"test": "testValue"})
 	suite.Equal("testValue", ret)
 }
+
+func (suite *testSuiteFactory) TestFactoryDeepCopy() {
+	var factory = newFactory(&fakeFactory{})
+	var factory2 = factory.DeepCopy()
+
+	suite.NotSame(factory, factory2)
+}

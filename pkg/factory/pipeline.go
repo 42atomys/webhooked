@@ -19,7 +19,7 @@ func NewPipeline() *Pipeline {
 func (p *Pipeline) DeepCopy() *Pipeline {
 	deepCopy := NewPipeline().WantResult(p.WantedResult)
 	for _, f := range p.factories {
-		deepCopy.AddFactory(f)
+		deepCopy.AddFactory(f.DeepCopy())
 	}
 	for k, v := range p.Inputs {
 		deepCopy.WithInput(k, v)
@@ -108,6 +108,10 @@ func (p *Pipeline) Run() *Factory {
 	if p.HasFactories() {
 		return p.factories[len(p.factories)-1]
 	}
+
+	// Clean up the pipeline
+	p.Inputs = make(map[string]interface{})
+	p.Outputs = make(map[string]map[string]interface{})
 
 	return nil
 }
