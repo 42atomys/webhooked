@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"text/template"
 
 	"github.com/rs/zerolog/log"
@@ -20,12 +21,35 @@ const ctxPipeline contextKey = "pipeline"
 func newFactory(f IFactory) *Factory {
 	return &Factory{
 		ctx:     context.Background(),
+		mu:      sync.RWMutex{},
 		Name:    f.Name(),
 		Fn:      f.Func(),
 		Config:  make(map[string]interface{}),
 		Inputs:  f.DefinedInpus(),
 		Outputs: f.DefinedOutputs(),
 	}
+}
+
+// DeepCopy creates a deep copy of the pipeline.
+func (f *Factory) DeepCopy() *Factory {
+	deepCopy := &Factory{
+		ctx:     f.ctx,
+		mu:      sync.RWMutex{},
+		Name:    f.Name,
+		Fn:      f.Fn,
+		Config:  make(map[string]interface{}),
+		Inputs:  make([]*Var, len(f.Inputs)),
+		Outputs: make([]*Var, len(f.Outputs)),
+	}
+
+	copy(deepCopy.Inputs, f.Inputs)
+	copy(deepCopy.Outputs, f.Outputs)
+
+	for k, v := range f.Config {
+		deepCopy.Config[k] = v
+	}
+
+	return deepCopy
 }
 
 // GetVar returns the variable with the given name from the given slice.
@@ -85,6 +109,9 @@ func (f *Factory) withPipelineInput(name string, value interface{}) {
 // @param value the value of the input variable
 // @return the factory
 func (f *Factory) WithInput(name string, value interface{}) *Factory {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	f.Inputs, _ = f.with(f.Inputs, name, value)
 	return f
 }
@@ -101,6 +128,9 @@ func (f *Factory) WithID(id string) *Factory {
 // @param config the config of the factory
 // @return the factory
 func (f *Factory) WithConfig(config map[string]interface{}) *Factory {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	if id, ok := config["id"]; ok {
 		f.WithID(id.(string))
 		delete(config, "id")

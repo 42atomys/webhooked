@@ -51,6 +51,8 @@ type Factory struct {
 	ID string
 	// Fn is the factory function
 	Fn RunFunc
+	// Protect following fields
+	mu sync.RWMutex
 	// Config is the configuration for the factory function
 	Config map[string]interface{}
 	// Inputs is the inputs of the factory

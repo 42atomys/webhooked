@@ -94,6 +94,8 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 	if r.Body == nil {
 		return errRequestBodyMissing
 	}
+	defer r.Body.Close()
+
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
@@ -110,9 +112,9 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 			NewTemplateData(storage.Formatting.Template).
 			WithRequest(r).
 			WithPayload(data).
-			WithSpec(spec).
-			WithStorage(storage).
-			WithConfig().
+			WithData("Spec", spec).
+			WithData("Storage", storage).
+			WithData("Config", config.Current()).
 			Render()
 		if err != nil {
 			return err

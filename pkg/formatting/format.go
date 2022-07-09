@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"sync"
 	"text/template"
 
 	"github.com/rs/zerolog/log"
-
-	"atomys.codes/webhooked/internal/config"
 )
 
 type TemplateData struct {
 	tmplString string
-	data       map[string]interface{}
+
+	mu   sync.RWMutex // protect following field amd template parsing
+	data map[string]interface{}
 }
 
 // NewTemplateData returns a new TemplateData instance. It takes the template
@@ -24,12 +25,16 @@ func NewTemplateData(tmplString string) *TemplateData {
 	return &TemplateData{
 		tmplString: tmplString,
 		data:       make(map[string]interface{}),
+		mu:         sync.RWMutex{},
 	}
 }
 
 // WithData adds a key-value pair to the data map. The key is the name of the
 // variable and the value is the value of the variable.
 func (d *TemplateData) WithData(name string, data interface{}) *TemplateData {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	d.data[name] = data
 	return d
 }
@@ -48,31 +53,14 @@ func (d *TemplateData) WithPayload(payload []byte) *TemplateData {
 	return d
 }
 
-// WithSpec adds a webhookspec to the data map. The key of spec is "Spec".
-func (d *TemplateData) WithSpec(spec *config.WebhookSpec) *TemplateData {
-	d.WithData("Spec", spec)
-	return d
-}
-
-// WithStorage adds a storage spec to the data map.
-// The key of storage is "Storage".
-func (d *TemplateData) WithStorage(spec *config.StorageSpec) *TemplateData {
-	d.WithData("Storage", spec)
-	return d
-}
-
-// WithConfig adds the current config to the data map.
-// The key of config is "Config".
-func (d *TemplateData) WithConfig() *TemplateData {
-	d.WithData("Config", config.Current())
-	return d
-}
-
 // Render returns the rendered template string. It takes the template string
 // from the TemplateData instance and the data stored in the TemplateData
 // instance. It returns an error if the template string is invalid or when
 // rendering the template fails.
 func (d *TemplateData) Render() (string, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	log.Debug().Msgf("rendering template: %s", d.tmplString)
 
 	t := template.New("formattingTmpl").Funcs(funcMap())
