@@ -136,15 +136,16 @@ func (s *Server) runSecurity(spec *config.WebhookSpec, r *http.Request, body []b
 		return config.ErrSpecNotFound
 	}
 
-	pipeline := spec.SecurityPipeline
-	if pipeline == nil {
+	if spec.SecurityPipeline == nil {
 		return errors.New("no pipeline to run. security is not configured")
 	}
 
-	pipeline.Inputs["request"] = r
-	pipeline.Inputs["payload"] = string(body)
-
-	pipeline.WantResult(true).Run()
+	pipeline := spec.SecurityPipeline.DeepCopy()
+	pipeline.
+		WithInput("request", r).
+		WithInput("payload", string(body)).
+		WantResult(true).
+		Run()
 
 	log.Debug().Msgf("security pipeline result: %t", pipeline.CheckResult())
 	if !pipeline.CheckResult() {
