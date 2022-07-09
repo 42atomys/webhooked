@@ -164,7 +164,7 @@ func (suite *testSuiteFactory) TestGoTempalteValue() {
 
 func (suite *testSuiteFactory) TestFactoryDeepCopy() {
 	var factory = newFactory(&fakeFactory{})
-	var factory2 = factory.DeepCopy()
+	factory.WithConfig(map[string]interface{}{"name": "test"})
 
-	suite.NotSame(factory, factory2)
+	suite.NotSame(factory, factory.DeepCopy())
 }
