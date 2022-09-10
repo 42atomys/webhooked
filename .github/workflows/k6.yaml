@@ -29,6 +29,7 @@ jobs:
       run: |
         curl https://github.com/grafana/k6/releases/download/v0.39.0/k6-v0.39.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
     - name: Start application and run K6
+      continue-on-error: true
       run: |
         go run main.go serve --config tests/webhooks.tests.yml >/dev/null 2>&1 &
         sleep 20
