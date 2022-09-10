@@ -35,6 +35,8 @@ type config struct {
 	Exchange           string            `mapstructure:"exchange" json:"exchange"`
 }
 
+const maxAttempt = 5
+
 // ContentType is the function for get content type used to push data in the
 // storage. When no content type is defined, the default one is used instead
 // Default: text/plain
@@ -104,7 +106,7 @@ func (c *storage) Name() string {
 // @param value that will be pushed
 // @return an error if the push failed
 func (c *storage) Push(value interface{}) error {
-	for {
+	for attempt := 0; attempt < maxAttempt; attempt++ {
 		err := c.channel.Publish(
 			c.config.Exchange,
 			c.routingKey.Name,
@@ -124,10 +126,10 @@ func (c *storage) Push(value interface{}) error {
 				return err
 			}
 		}
-		break
+		return nil
 	}
 
-	return nil
+	return errors.New("max attempt to publish reached")
 }
 
 // reconnect is the function to reconnect to the amqp server if the connection
