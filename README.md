@@ -8,8 +8,8 @@
 <img src="https://img.shields.io/github/contributors/42Atomys/webhooked?color=blueviolet" alt="GitHub contributors">
 <img src="https://img.shields.io/github/stars/42atomys/webhooked?color=blueviolet" alt="GitHub Repo stars">
 <a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/pulls/atomys/webhooked" alt="Docker Pull"></a>
-<a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/image-size/atomys/webhooked" alt="Docker Pull"></a></p>
-
+<a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/image-size/atomys/webhooked" alt="Docker Pull"></a>
+<a href="https://pkg.go.dev/atomys.codes/webhooked"><img src="https://pkg.go.dev/badge/atomys.codes/webhooked.svg" alt="Go Reference"></a></p>
   
 <p align="center">A webhook receiver on steroids. The process is simple, receive webhook from all over the world, and send it to your favorite pub/sub to process it immediately or later without losing any received data</p>
 
