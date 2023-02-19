@@ -22,7 +22,7 @@ jobs:
     - name: Checkout project
       uses: actions/checkout@v3
     - name: Start Redis
-      uses: supercharge/redis-github-action@1.4.0
+      uses: supercharge/redis-github-action@1.5.0
       with:
         redis-version: 6
     - name: Setup RabbitMQ
