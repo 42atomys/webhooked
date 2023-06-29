@@ -1,0 +1,31 @@
+apiVersion: v1alpha1
+observability:
+  metricsEnabled: true
+specs:
+- name: exampleHook
+  entrypointUrl: /webhooks/example
+  security:
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Hook-Secret
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ .Outputs.header.value }}'
+      - name: second
+        valueFrom:
+          staticRef: test
+  formatting:
+    templateString: |
+      {
+        "config": "{{ toJson .Config }}",
+        "storage": {{ toJson .Storage }},
+        "metadata": {
+          "model": "{{ .Request.Header | getHeader "X-Model" }}",
+          "event": "{{ .Request.Header | getHeader "X-Event" }}",
+          "deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
+        },
+        "payload": {{ .Payload }}
+      }
+  storage: []

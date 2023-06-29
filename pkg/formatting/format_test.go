@@ -88,10 +88,14 @@ func Test_Render(t *testing.T) {
 			"testID": "{{ .Request.Header | getHeader "X-Test" }}",
 			"deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
 		},
-		"payload": {{ .Payload }}
+		{{ with $payload := fromJson .Payload }}
+		"payload": {
+			"foo_exists" : {{ $payload.test.foo | toJson }}
+		}
+		{{ end }} 
 	}
 	`).
-		WithPayload([]byte(`{"test": "test"}`)).
+		WithPayload([]byte(`{"test": {"foo": true}}`)).
 		WithRequest(req).
 		WithData("Spec", &config.WebhookSpec{Name: "test", EntrypointURL: "/webhooks/test", Formatting: &config.FormattingSpec{}}).
 		WithData("Storage", &config.StorageSpec{Type: "testing", Specs: map[string]interface{}{}}).
@@ -120,7 +124,7 @@ func Test_Render(t *testing.T) {
 			"deliveryID": "unknown"
 		},
 		"payload": {
-			"test": "test"
+			"foo_exists": true
 		}
 	}`, str)
 

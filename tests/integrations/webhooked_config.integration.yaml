@@ -1,0 +1,111 @@
+apiVersion: v1alpha1
+observability:
+  metricsEnabled: true
+specs:
+- name: basic-usage
+  entrypointUrl: /integration/basic-usage
+  security:
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Token
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ .Outputs.header.value }}'
+      - name: second
+        valueFrom:
+          staticRef: integration-test
+  storage:
+  - type: redis
+    specs:
+      host:
+        valueFrom:
+          envRef: REDIS_HOST
+      # Port of the Redis Server
+      port: '6379'
+      # In which database do you want to store your data
+      database: 0
+      # The key where you want to send the data
+      key: integration:basic-usage
+
+- name: basic-formatted-usage
+  entrypointUrl: /integration/basic-formatted-usage
+  security:
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Token
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ .Outputs.header.value }}'
+      - name: second
+        valueFrom:
+          staticRef: integration-test
+  formatting:
+    templateString: |
+      {
+        "contentType": "{{ .Request.Header | getHeader "Content-Type" }}",
+        "data": {{ .Payload }}
+      }
+  storage:
+  - type: redis
+    specs:
+      host:
+        valueFrom:
+          envRef: REDIS_HOST
+      # Port of the Redis Server
+      port: '6379'
+      # In which database do you want to store your data
+      database: 0
+      # The key where you want to send the data
+      key: integration:basic-formatted-usage
+
+- name: advanced-formatted-usage
+  entrypointUrl: /integration/advanced-formatted-usage
+  security:
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Token
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ .Outputs.header.value }}'
+      - name: second
+        valueFrom:
+          staticRef: integration-test
+  formatting:
+    templateString: |
+      {{ with $payload := fromJson .Payload }}
+      {
+        "user": {
+          "id": {{ $payload.id }},
+          "name": {{ $payload.name | toJson }}
+        },
+        "hasNotes": {{ not (empty $payload.notes) }},
+        "hasChildrens": {{ not (empty $payload.childrens) }},
+        "hasPets": {{ not (empty $payload.pets) }},
+        {{- with $fc := $payload.favoriteColors }}
+        "favoriteColor": {{ coalesce $fc.primary $fc.secondary "black" | toJson }},
+        {{- end }}
+        "childrenNames": [
+          {{- range $index, $child := $payload.childrens -}} {{ $child.name | toJson }}
+          {{- if lt $index (toInt (sub (len $payload.childrens) 1)) -}},{{- end -}}
+          {{- end -}}
+        ]
+      }
+      {{ end }}
+  storage:
+  - type: redis
+    specs:
+      host:
+        valueFrom:
+          envRef: REDIS_HOST
+      # Port of the Redis Server
+      port: '6379'
+      # In which database do you want to store your data
+      database: 0
+      # The key where you want to send the data
+      key: integration:advanced-formatted-usage
