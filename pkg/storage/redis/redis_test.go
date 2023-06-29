@@ -28,7 +28,7 @@ func (suite *RedisSetupTestSuite) TestRedisNewStorage() {
 
 	_, err = NewStorage(map[string]interface{}{
 		"host":     os.Getenv("REDIS_HOST"),
-		"port":     os.Getenv("REDIS_HOST"),
+		"port":     os.Getenv("REDIS_PORT"),
 		"database": 0,
 		"key":      "testKey",
 	})
@@ -38,7 +38,7 @@ func (suite *RedisSetupTestSuite) TestRedisNewStorage() {
 func (suite *RedisSetupTestSuite) TestRedisPush() {
 	newClient, err := NewStorage(map[string]interface{}{
 		"host":     os.Getenv("REDIS_HOST"),
-		"port":     os.Getenv("REDIS_HOST"),
+		"port":     os.Getenv("REDIS_PORT"),
 		"database": 0,
 		"key":      "testKey",
 	})
