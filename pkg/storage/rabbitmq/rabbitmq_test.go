@@ -1,6 +1,8 @@
 package rabbitmq
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,11 +11,23 @@ import (
 
 type RabbitMQSetupTestSuite struct {
 	suite.Suite
+	amqpUrl string
 }
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQName() {
 	newRabbitMQ := storage{}
 	assert.Equal(suite.T(), "rabbitmq", newRabbitMQ.Name())
+}
+
+// Create Table for running test
+func (suite *RabbitMQSetupTestSuite) BeforeTest(suiteName, testName string) {
+	suite.amqpUrl = fmt.Sprintf(
+		"amqp://%s:%s@%s:%s",
+		os.Getenv("RABBITMQ_USER"),
+		os.Getenv("RABBITMQ_PASSWORD"),
+		os.Getenv("RABBITMQ_HOST"),
+		os.Getenv("RABBITMQ_PORT"),
+	)
 }
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
@@ -23,7 +37,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
 	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{
-		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
+		"databaseUrl":      suite.amqpUrl,
 		"queueName":        "hello",
 		"durable":          false,
 		"deleteWhenUnused": false,
@@ -42,7 +56,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQNewStorage() {
 
 func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
 	newClient, err := NewStorage(map[string]interface{}{
-		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
+		"databaseUrl":      suite.amqpUrl,
 		"queueName":        "hello",
 		"contentType":      "text/plain",
 		"durable":          false,
@@ -73,14 +87,14 @@ func TestContentType(t *testing.T) {
 	assert.Equal(t, "application/json", (&config{DefinedContentType: "application/json"}).ContentType())
 }
 
-func TestReconnect(t *testing.T) {
+func (suite *RabbitMQSetupTestSuite) TestReconnect() {
 	if testing.Short() {
-		t.Skip("rabbitmq testing is skiped in short version of test")
+		suite.T().Skip("rabbitmq testing is skiped in short version of test")
 		return
 	}
 
 	newClient, err := NewStorage(map[string]interface{}{
-		"databaseUrl":      "amqp://user:password@127.0.0.1:5672",
+		"databaseUrl":      suite.amqpUrl,
 		"queueName":        "hello",
 		"contentType":      "text/plain",
 		"durable":          false,
@@ -90,11 +104,11 @@ func TestReconnect(t *testing.T) {
 		"mandatory":        false,
 		"immediate":        false,
 	})
-	assert.NoError(t, err)
+	assert.NoError(suite.T(), err)
 
-	assert.NoError(t, newClient.Push("Hello"))
-	assert.NoError(t, newClient.client.Close())
-	assert.NoError(t, newClient.Push("Hello"))
-	assert.NoError(t, newClient.channel.Close())
-	assert.NoError(t, newClient.Push("Hello"))
+	assert.NoError(suite.T(), newClient.Push("Hello"))
+	assert.NoError(suite.T(), newClient.client.Close())
+	assert.NoError(suite.T(), newClient.Push("Hello"))
+	assert.NoError(suite.T(), newClient.channel.Close())
+	assert.NoError(suite.T(), newClient.Push("Hello"))
 }

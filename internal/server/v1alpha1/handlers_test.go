@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -191,8 +192,8 @@ func TestServer_webhokServiceStorage(t *testing.T) {
 	}
 
 	pusher, err := storage.Load("redis", map[string]interface{}{
-		"host":     "127.0.0.1",
-		"port":     "6379",
+		"host":     os.Getenv("REDIS_HOST"),
+		"port":     os.Getenv("REDIS_PORT"),
 		"database": 0,
 		"key":      "testKey",
 	})

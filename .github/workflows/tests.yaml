@@ -18,6 +18,19 @@ jobs:
       fail-fast: false
       matrix:
         goVersion: [ '1.17', '1.18' ]
+    env:
+      REDIS_HOST: '127.0.0.1'
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ''
+      RABBITMQ_HOST: '127.0.0.1'
+      RABBITMQ_PORT: '5672'
+      RABBITMQ_USER: 'rabbitmq'
+      RABBITMQ_PASSWORD: 'rabbitmq'
+      POSTGRES_HOST: '127.0.0.1'
+      POSTGRES_PORT: '5432'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'postgres'
     steps:
     - name: Checkout project
       uses: actions/checkout@v3
@@ -30,15 +43,15 @@ jobs:
       with:
         rabbitmq version: '3.8.2-management-alpine'
         host port: 5672
-        rabbitmq user: 'user'
-        rabbitmq password: 'password'
+        rabbitmq user: 'rabbitmq'
+        rabbitmq password: 'rabbitmq'
     - name: Setup PostgreSQL
       uses: harmon758/postgresql-action@v1
       with:
         postgresql version: '11'
-        postgresql db: webhook_db
-        postgresql user: webhook
-        postgresql password: test
+        postgresql db: postgres
+        postgresql user: postgres
+        postgresql password: postgres
     - name: Setup go
       uses: actions/setup-go@v4
       with:
