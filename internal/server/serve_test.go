@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -23,12 +22,23 @@ func Test_Serve(t *testing.T) {
 	srv, err := NewServer(38081)
 	assert.NoError(t, err)
 
+	var chanExit = make(chan struct{})
+	var chanError = make(chan error)
+
+	srv.RegisterOnShutdown(func() {
+		<-chanExit
+	})
+
 	go func() {
-		time.Sleep(2 * time.Second)
-		assert.ErrorIs(t, srv.Shutdown(context.Background()), http.ErrServerClosed)
+		assert.NoError(t, srv.Shutdown(context.Background()))
 	}()
 
-	assert.ErrorIs(t, srv.Serve(), http.ErrServerClosed)
+	go func() {
+		chanError <- srv.Serve()
+	}()
+
+	chanExit <- struct{}{}
+	assert.ErrorIs(t, <-chanError, http.ErrServerClosed)
 }
 
 func Test_validPort(t *testing.T) {
