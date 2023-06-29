@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        goVersion: [ '1.18' ]
+        goVersion: [ '1.18', '1.19', '1.20' ]
     steps:
     - name: Checkout project
       uses: actions/checkout@v3

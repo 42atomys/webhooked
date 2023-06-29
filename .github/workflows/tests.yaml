@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        goVersion: [ '1.17', '1.18' ]
+        goVersion: [ '1.18', '1.19', '1.20' ]
     env:
       REDIS_HOST: '127.0.0.1'
       REDIS_PORT: '6379'
