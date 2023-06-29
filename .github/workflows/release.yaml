@@ -24,14 +24,14 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
-        goversion: "1.17.6"
+        goversion: "1.20"
         binary_name: webhooked
         extra_files: LICENSE README.md
   docker-image:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goVersion: [ '1.18' ]
+        goVersion: [ '1.20' ]
     steps:
     - name: Checkout project
       uses: actions/checkout@v3

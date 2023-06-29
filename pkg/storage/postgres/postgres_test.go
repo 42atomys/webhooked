@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,13 +12,24 @@ import (
 
 type PostgresSetupTestSuite struct {
 	suite.Suite
-	client *sql.DB
+	client      *sql.DB
+	databaseUrl string
 }
 
 // Create Table for running test
 func (suite *PostgresSetupTestSuite) BeforeTest(suiteName, testName string) {
 	var err error
-	if suite.client, err = sql.Open("postgres", "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable"); err != nil {
+
+	suite.databaseUrl = fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_DB"),
+	)
+
+	if suite.client, err = sql.Open("postgres", suite.databaseUrl); err != nil {
 		suite.T().Error(err)
 	}
 	if _, err := suite.client.Query("CREATE TABLE test (test_field TEXT)"); err != nil {
@@ -43,7 +56,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresNewStorage() {
 	assert.Error(suite.T(), err)
 
 	_, err = NewStorage(map[string]interface{}{
-		"databaseUrl": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseUrl": suite.databaseUrl,
 		"tableName":   "test",
 		"dataField":   "test_field",
 	})
@@ -52,7 +65,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresNewStorage() {
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	newClient, _ := NewStorage(map[string]interface{}{
-		"databaseUrl": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseUrl": suite.databaseUrl,
 		"tableName":   "Not Exist",
 		"dataField":   "Not exist",
 	})
@@ -60,7 +73,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	assert.Error(suite.T(), err)
 
 	newClient, err = NewStorage(map[string]interface{}{
-		"databaseUrl": "postgresql://webhook:test@127.0.0.1:5432/webhook_db?sslmode=disable",
+		"databaseUrl": suite.databaseUrl,
 		"tableName":   "test",
 		"dataField":   "test_field",
 	})

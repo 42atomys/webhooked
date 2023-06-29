@@ -1,0 +1,47 @@
+version: '3.1'
+services:
+  workspace:
+    image: mcr.microsoft.com/devcontainers/go:1.0.0-1.20-bookworm
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      DEBUG: "true"
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: '5432'
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ''
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: '5672'
+      RABBITMQ_USER: rabbitmq
+      RABBITMQ_PASSWORD: rabbitmq
+    ports:
+      - 8080:8080
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+  redis:
+    image: redis:6.2.5-alpine
+    ports:
+      - 6379:6379
+
+  rabbitmq:
+    image: rabbitmq:3.9.7-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+
+  postgres:
+    image: postgres:13.4-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
