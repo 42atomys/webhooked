@@ -32,5 +32,8 @@ jobs:
       continue-on-error: true
       run: |
         go run main.go serve --config tests/webhooks.tests.yml >/dev/null 2>&1 &
-        sleep 20
+        until $(curl --output /dev/null --silent --head --fail http://localhost:8080/metrics); do
+          printf '.'
+          sleep 1
+        done
         ./k6 run tests/loadtesting/k6-load-script.js

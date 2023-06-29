@@ -108,5 +108,8 @@ jobs:
     - name: Run Integration tests
       run: |
         go run main.go serve --config tests/integrations/webhooked_config.integration.yaml >/dev/null 2>&1 &
-        sleep 10
+        until $(curl --output /dev/null --silent --head --fail http://localhost:8080/metrics); do
+          printf '.'
+          sleep 1
+        done
         ./k6 run tests/integrations/scenarios.js
