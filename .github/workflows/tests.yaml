@@ -96,6 +96,8 @@ jobs:
       REDIS_PORT: '6379'
       REDIS_PASSWORD: ''
     steps:
+    - name: Checkout project
+      uses: actions/checkout@v3
     - name: Start Redis
       uses: supercharge/redis-github-action@1.5.0
       with:
@@ -103,8 +105,7 @@ jobs:
     - name: Install k6
       run: |
         curl https://github.com/grafana/k6/releases/download/v0.39.0/k6-v0.39.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
-    - name: Start application and run K6
-      continue-on-error: true
+    - name: Run Integration tests
       run: |
         go run main.go serve --config tests/integrations/webhooked_config.integration.yaml >/dev/null 2>&1 &
         sleep 10
