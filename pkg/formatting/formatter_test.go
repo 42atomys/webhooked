@@ -1,25 +1,29 @@
 package formatting
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"atomys.codes/webhooked/internal/config"
 )
 
-func TestNewTemplateData(t *testing.T) {
+func TestNewWithTemplate(t *testing.T) {
 	assert := assert.New(t)
 
-	tmpl := NewTemplateData("")
+	tmpl := New().WithTemplate("")
 	assert.NotNil(tmpl)
 	assert.Equal("", tmpl.tmplString)
 	assert.Equal(0, len(tmpl.data))
 
-	tmpl = NewTemplateData("{{ .Payload }}")
+	tmpl = New().WithTemplate("{{ .Payload }}")
+	assert.NotNil(tmpl)
+	assert.Equal("{{ .Payload }}", tmpl.tmplString)
+	assert.Equal(0, len(tmpl.data))
+
+	tmpl = NewWithTemplate("{{ .Payload }}")
 	assert.NotNil(tmpl)
 	assert.Equal("{{ .Payload }}", tmpl.tmplString)
 	assert.Equal(0, len(tmpl.data))
@@ -28,7 +32,7 @@ func TestNewTemplateData(t *testing.T) {
 func Test_WithData(t *testing.T) {
 	assert := assert.New(t)
 
-	tmpl := NewTemplateData("").WithData("test", true)
+	tmpl := New().WithTemplate("").WithData("test", true)
 	assert.NotNil(tmpl)
 	assert.Equal("", tmpl.tmplString)
 	assert.Equal(1, len(tmpl.data))
@@ -38,7 +42,7 @@ func Test_WithData(t *testing.T) {
 func Test_WithRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	tmpl := NewTemplateData("").WithRequest(httptest.NewRequest("GET", "/", nil))
+	tmpl := New().WithTemplate("").WithRequest(httptest.NewRequest("GET", "/", nil))
 	assert.NotNil(tmpl)
 	assert.Equal("", tmpl.tmplString)
 	assert.Equal(1, len(tmpl.data))
@@ -53,7 +57,7 @@ func Test_WithPayload(t *testing.T) {
 	data, err := json.Marshal(map[string]interface{}{"test": "test"})
 	assert.Nil(err)
 
-	tmpl := NewTemplateData("").WithPayload(data)
+	tmpl := New().WithTemplate("").WithPayload(data)
 	assert.NotNil(tmpl)
 	assert.Equal("", tmpl.tmplString)
 	assert.Equal(1, len(tmpl.data))
@@ -63,8 +67,12 @@ func Test_WithPayload(t *testing.T) {
 func Test_Render(t *testing.T) {
 	assert := assert.New(t)
 
+	// Test with no template
+	_, err := New().Render()
+	assert.ErrorIs(err, ErrNoTemplate)
+
 	// Test with basic template
-	tmpl := NewTemplateData("{{ .Payload }}").WithPayload([]byte(`{"test": "test"}`))
+	tmpl := New().WithTemplate("{{ .Payload }}").WithPayload([]byte(`{"test": "test"}`))
 	assert.NotNil(tmpl)
 	assert.Equal("{{ .Payload }}", tmpl.tmplString)
 	assert.Equal(1, len(tmpl.data))
@@ -79,11 +87,9 @@ func Test_Render(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("X-Test", "test")
 
-	tmpl = NewTemplateData(`
+	tmpl = New().WithTemplate(`
 	{
-		"config": {{ toJson .Config }},
-		"spec": {{ toJson .Spec }},
-		"storage": {{ toJson .Storage }},
+		"customData": {{ toJson .CustomData }},
 		"metadata": {
 			"testID": "{{ .Request.Header | getHeader "X-Test" }}",
 			"deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
@@ -97,27 +103,14 @@ func Test_Render(t *testing.T) {
 	`).
 		WithPayload([]byte(`{"test": {"foo": true}}`)).
 		WithRequest(req).
-		WithData("Spec", &config.WebhookSpec{Name: "test", EntrypointURL: "/webhooks/test", Formatting: &config.FormattingSpec{}}).
-		WithData("Storage", &config.StorageSpec{Type: "testing", Specs: map[string]interface{}{}}).
-		WithData("Config", config.Current())
+		WithData("CustomData", map[string]string{"foo": "bar"})
 	assert.NotNil(tmpl)
 
 	str, err = tmpl.Render()
 	assert.Nil(err)
 	assert.JSONEq(`{
-		"config": {
-			"apiVersion":"",
-			"observability":{
-				"metricsEnabled":false
-			},
-			"specs": null
-		},
-		"spec": {
-			"name":"test",
-			"entrypointUrl": "/webhooks/test"
-		},
-		"storage": {
-			"type": "testing"
+		"customData": {
+			"foo": "bar"
 		},
 		"metadata": {
 			"testID": "test",
@@ -129,7 +122,7 @@ func Test_Render(t *testing.T) {
 	}`, str)
 
 	// Test with template with template error
-	tmpl = NewTemplateData("{{ .Payload }")
+	tmpl = New().WithTemplate("{{ .Payload }")
 	assert.NotNil(tmpl)
 	assert.Equal("{{ .Payload }", tmpl.tmplString)
 
@@ -139,7 +132,7 @@ func Test_Render(t *testing.T) {
 	assert.Equal("", str)
 
 	// Test with template with data error
-	tmpl = NewTemplateData("{{ .Request.Method }}").WithRequest(nil)
+	tmpl = New().WithTemplate("{{ .Request.Method }}").WithRequest(nil)
 	assert.NotNil(tmpl)
 	assert.Equal("{{ .Request.Method }}", tmpl.tmplString)
 
@@ -147,4 +140,30 @@ func Test_Render(t *testing.T) {
 	assert.Error(err)
 	assert.Contains(err.Error(), "error while filling your template: ")
 	assert.Equal("", str)
+}
+
+func TestFromContext(t *testing.T) {
+	// Test case 1: context value is not a *Formatter
+	ctx1 := context.Background()
+	_, err1 := FromContext(ctx1)
+	assert.Equal(t, ErrNotFoundInContext, err1)
+
+	// Test case 2: context value is a *Formatter
+	ctx2 := context.WithValue(context.Background(), formatterCtxKey, &Formatter{})
+	formatter, err2 := FromContext(ctx2)
+	assert.NotNil(t, formatter)
+	assert.Nil(t, err2)
+}
+
+func TestToContext(t *testing.T) {
+	// Test case 1: context value is nil
+	ctx1 := context.Background()
+	ctx1 = ToContext(ctx1, nil)
+	assert.Nil(t, ctx1.Value(formatterCtxKey))
+
+	// Test case 2: context value is not nil
+	ctx2 := context.Background()
+	formatter := &Formatter{}
+	ctx2 = ToContext(ctx2, formatter)
+	assert.Equal(t, formatter, ctx2.Value(formatterCtxKey))
 }

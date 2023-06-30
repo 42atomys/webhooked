@@ -1,19 +1,22 @@
 package postgres
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
+	"atomys.codes/webhooked/pkg/formatting"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 type PostgresSetupTestSuite struct {
 	suite.Suite
-	client      *sql.DB
+	client      *sqlx.DB
 	databaseUrl string
+	ctx         context.Context
 }
 
 // Create Table for running test
@@ -29,12 +32,18 @@ func (suite *PostgresSetupTestSuite) BeforeTest(suiteName, testName string) {
 		os.Getenv("POSTGRES_DB"),
 	)
 
-	if suite.client, err = sql.Open("postgres", suite.databaseUrl); err != nil {
+	if suite.client, err = sqlx.Open("postgres", suite.databaseUrl); err != nil {
 		suite.T().Error(err)
 	}
 	if _, err := suite.client.Query("CREATE TABLE test (test_field TEXT)"); err != nil {
 		suite.T().Error(err)
 	}
+
+	suite.ctx = formatting.ToContext(
+		context.Background(),
+		formatting.New().WithTemplate("{{.}}"),
+	)
+
 }
 
 // Delete Table after test
@@ -61,6 +70,27 @@ func (suite *PostgresSetupTestSuite) TestPostgresNewStorage() {
 		"dataField":   "test_field",
 	})
 	assert.NoError(suite.T(), err)
+
+	_, err = NewStorage(map[string]interface{}{
+		"databaseUrl":                 suite.databaseUrl,
+		"tableName":                   "test",
+		"useFormattingToPerformQuery": true,
+	})
+	assert.Error(suite.T(), err)
+
+	_, err = NewStorage(map[string]interface{}{
+		"databaseUrl":                 suite.databaseUrl,
+		"useFormattingToPerformQuery": true,
+		"query":                       "",
+	})
+	assert.Error(suite.T(), err)
+
+	_, err = NewStorage(map[string]interface{}{
+		"databaseUrl":                 suite.databaseUrl,
+		"useFormattingToPerformQuery": true,
+		"query":                       "INSERT INTO test (test_field) VALUES ('$field')",
+	})
+	assert.NoError(suite.T(), err)
 }
 
 func (suite *PostgresSetupTestSuite) TestPostgresPush() {
@@ -69,7 +99,7 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 		"tableName":   "Not Exist",
 		"dataField":   "Not exist",
 	})
-	err := newClient.Push("Hello")
+	err := newClient.Push(suite.ctx, []byte("Hello"))
 	assert.Error(suite.T(), err)
 
 	newClient, err = NewStorage(map[string]interface{}{
@@ -79,8 +109,37 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	})
 	assert.NoError(suite.T(), err)
 
-	err = newClient.Push("Hello")
+	err = newClient.Push(suite.ctx, []byte("Hello"))
 	assert.NoError(suite.T(), err)
+}
+
+func (suite *PostgresSetupTestSuite) TestPostgresPushNewFormattedQuery() {
+	newClient, err := NewStorage(map[string]interface{}{
+		"databaseUrl":                 suite.databaseUrl,
+		"useFormattingToPerformQuery": true,
+		"query":                       "INSERT INTO test (test_field) VALUES (:field)",
+		"args": map[string]string{
+			"field": "{{.Payload}}",
+		},
+	})
+	assert.NoError(suite.T(), err)
+
+	fakePayload := []byte("A strange payload")
+	err = newClient.Push(
+		suite.ctx,
+		fakePayload,
+	)
+	assert.NoError(suite.T(), err)
+
+	rows, err := suite.client.Query("SELECT test_field FROM test")
+	assert.NoError(suite.T(), err)
+
+	var result string
+	for rows.Next() {
+		err := rows.Scan(&result)
+		assert.NoError(suite.T(), err)
+	}
+	assert.Equal(suite.T(), string(fakePayload), result)
 }
 
 func TestRunPostgresPush(t *testing.T) {

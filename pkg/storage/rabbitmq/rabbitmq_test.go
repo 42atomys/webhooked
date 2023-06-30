@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -68,7 +69,7 @@ func (suite *RabbitMQSetupTestSuite) TestRabbitMQPush() {
 	})
 	assert.NoError(suite.T(), err)
 
-	err = newClient.Push("Hello")
+	err = newClient.Push(context.Background(), []byte("Hello"))
 	assert.NoError(suite.T(), err)
 }
 
@@ -106,9 +107,9 @@ func (suite *RabbitMQSetupTestSuite) TestReconnect() {
 	})
 	assert.NoError(suite.T(), err)
 
-	assert.NoError(suite.T(), newClient.Push("Hello"))
+	assert.NoError(suite.T(), newClient.Push(context.Background(), []byte("Hello")))
 	assert.NoError(suite.T(), newClient.client.Close())
-	assert.NoError(suite.T(), newClient.Push("Hello"))
+	assert.NoError(suite.T(), newClient.Push(context.Background(), []byte("Hello")))
 	assert.NoError(suite.T(), newClient.channel.Close())
-	assert.NoError(suite.T(), newClient.Push("Hello"))
+	assert.NoError(suite.T(), newClient.Push(context.Background(), []byte("Hello")))
 }
