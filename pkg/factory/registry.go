@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+	"strings"
 )
 
 var (
@@ -19,10 +20,12 @@ var (
 
 // GetFactoryByName returns true if the function name is contained in the map
 func GetFactoryByName(name string) (*Factory, bool) {
-	fn, ok := factoryMap[name]
-	if ok {
-		return newFactory(fn), ok
+	for k, v := range factoryMap {
+		if strings.EqualFold(k, name) {
+			return newFactory(v), true
+		}
 	}
+
 	return nil, false
 }
 

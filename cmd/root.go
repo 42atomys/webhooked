@@ -1,7 +1,7 @@
 /*
 Package cmd : cobra package
 
-Copyright © 2022 42Stellar
+# Copyright © 2022 42Stellar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,8 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		log.Error().Msgf("Error reading config file, %s", err.Error())
 	}
+	log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
 }
