@@ -112,7 +112,7 @@ func (suite *TestSuiteValuable) TestValuableGet() {
 	}
 }
 
-func (suite *TestSuiteValuable) TestValuableFirst() {
+func (suite *TestSuiteValuable) TestValuableFirstandString() {
 	assert := assert.New(suite.T())
 
 	tests := []struct {
@@ -131,6 +131,7 @@ func (suite *TestSuiteValuable) TestValuableFirst() {
 
 	for _, test := range tests {
 		assert.Equal(test.input.First(), test.output, test.name)
+		assert.Equal(test.input.String(), test.output, test.name)
 	}
 }
 
