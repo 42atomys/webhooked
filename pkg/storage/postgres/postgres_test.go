@@ -83,6 +83,37 @@ func (suite *PostgresSetupTestSuite) TestPostgresPush() {
 	assert.NoError(suite.T(), err)
 }
 
+func (suite *PostgresSetupTestSuite) TestPostgresPushNewFormattedQuery() {
+	newClient, _ := NewStorage(map[string]interface{}{
+		"databaseUrl":                 suite.databaseUrl,
+		"useFormattingToPerformQuery": true,
+	})
+	err := newClient.Push("Hello")
+	assert.Error(suite.T(), err)
+
+	newClient, err = NewStorage(map[string]interface{}{
+		"databaseUrl":                 suite.databaseUrl,
+		"useFormattingToPerformQuery": true,
+	})
+	assert.NoError(suite.T(), err)
+
+	fakePayload := "A strange payload"
+	err = newClient.Push(
+		fmt.Sprintf("INSERT INTO test (test_field) VALUES ('%s')", fakePayload),
+	)
+	assert.NoError(suite.T(), err)
+
+	rows, err := suite.client.Query("SELECT test_field FROM test")
+	assert.NoError(suite.T(), err)
+
+	var result string
+	for rows.Next() {
+		err := rows.Scan(&result)
+		assert.NoError(suite.T(), err)
+	}
+	assert.Equal(suite.T(), fakePayload, result)
+}
+
 func TestRunPostgresPush(t *testing.T) {
 	if testing.Short() {
 		t.Skip("postgresql testing is skiped in short version of test")

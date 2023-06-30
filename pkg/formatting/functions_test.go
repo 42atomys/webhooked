@@ -107,3 +107,35 @@ func Test_getHeader(t *testing.T) {
 	assert.Equal("false string", ternary("true string", "false string", false))
 	assert.Equal(nil, ternary(nil, nil, false))
 }
+
+func Test_toSql(t *testing.T) {
+	assert := assert.New(t)
+
+	// Test for SQL injection
+	assert.Equal("\\'; DROP TABLE users; --", toSql("'; DROP TABLE users; --"))
+
+	// Test for other special characters
+	assert.Equal("test\\\r\\\n\\\\", toSql("test\r\n\\"))
+
+	// Test for nil input
+	assert.Equal("", toSql(nil))
+
+	// Test for SQL injection attacks
+	assert.Equal("admin\\' --", toSql([]byte("admin' --")))
+	assert.Equal("admin\\' #", toSql("admin' #"))
+	assert.Equal("admin\\'/*", toSql("admin'/*"))
+	assert.Equal("\\' or 1=1--", toSql("' or 1=1--"))
+	assert.Equal("\\' or 1=1#", toSql("' or 1=1#"))
+	assert.Equal("\\' or 1=1/*", toSql("' or 1=1/*"))
+	assert.Equal("\\') or \\'1\\'=\\'1--", toSql("') or '1'='1--"))
+	assert.Equal("\\') or (\\'1\\'=\\'1--", toSql("') or ('1'='1--"))
+	assert.Equal("\\') or [\\\"1\\\"=\\'1--", toSql("') or [\"1\"='1--"))
+	assert.Equal("\\'\\Z", toSql("'\032"))
+
+	// Test for other types
+	assert.Equal("1", toSql(1))
+	assert.Equal("1.1", toSql(1.1))
+	assert.Equal("true", toSql(true))
+	assert.Equal("false", toSql(false))
+	assert.Equal("test", toSql("test"))
+}
