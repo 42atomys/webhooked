@@ -16,11 +16,11 @@ type storage struct {
 }
 
 type config struct {
-	Host     string            `mapstructure:"host" json:"host"`
-	Port     string            `mapstructure:"port" json:"port"`
-	Database int               `mapstructure:"database" json:"database"`
+	Host     valuable.Valuable `mapstructure:"host" json:"host"`
+	Port     valuable.Valuable `mapstructure:"port" json:"port"`
 	Username valuable.Valuable `mapstructure:"username" json:"username"`
 	Password valuable.Valuable `mapstructure:"password" json:"password"`
+	Database int               `mapstructure:"database" json:"database"`
 	Key      string            `mapstructure:"key" json:"key"`
 }
 

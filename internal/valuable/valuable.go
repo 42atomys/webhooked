@@ -122,6 +122,12 @@ func (v *Valuable) First() string {
 	return v.Get()[0]
 }
 
+// String returns the string representation of the Valuable object
+// following the order listed on the First() function
+func (v Valuable) String() string {
+	return v.First()
+}
+
 // Contains returns true if the Valuable contains the given value
 // @param value is the value to check
 // @return true if the Valuable contains the given value

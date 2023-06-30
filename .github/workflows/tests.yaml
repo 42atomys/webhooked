@@ -84,3 +84,32 @@ jobs:
     - name: Run Go Build
       run: |
         go build -o /tmp/applications-test-units
+  integration-tests:
+    name: "Integration tests"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goVersion: [ '1.18', '1.19', '1.20' ]
+    env:
+      REDIS_HOST: '127.0.0.1'
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ''
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v3
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.5.0
+      with:
+        redis-version: 6
+    - name: Install k6
+      run: |
+        curl https://github.com/grafana/k6/releases/download/v0.45.0/k6-v0.45.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+    - name: Run Integration tests
+      run: |
+        go run main.go serve --config tests/integrations/webhooked_config.integration.yaml >/dev/null 2>&1 &
+        until $(curl --output /dev/null --silent --head --fail http://localhost:8080/metrics); do
+          printf '.'
+          sleep 1
+        done
+        ./k6 run tests/integrations/scenarios.js
