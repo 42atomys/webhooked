@@ -28,20 +28,4 @@ specs:
         },
         "payload": {{ .Payload }}
       }
-  storage:
-  - type: postgres
-    specs:
-      databaseUrl: 'postgresql://postgres:postgres@postgres:5432/postgres'
-      useFormattingToPerformQuery: true
-      query: |
-        INSERT INTO webhooks (payload, config, storage, metadata) VALUES (:payload, :config, :storage, :metadata)
-      args:
-        payload: '{{ .Payload }}'
-        config: '{{ toJson .Config }}'
-        storage: '{{ toJson .Storage }}'
-        metadata: |
-          {
-            "model": "{{ .Request.Header | getHeader "X-Model" }}",
-            "event": "{{ .Request.Header | getHeader "X-Event" }}",
-            "deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
-          }
+  storage: []
