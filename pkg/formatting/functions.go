@@ -30,10 +30,7 @@ func funcMap() template.FuncMap {
 		// Headers manipulation functions
 		"getHeader": getHeader,
 
-		// SQL functions
-		"toSql": toSql,
-
-    // Time manipulation functions
+		// Time manipulation functions
 		"formatTime": formatTime,
 		"parseTime":  parseTime,
 
@@ -172,64 +169,6 @@ func getHeader(name string, headers *http.Header) string {
 		return ""
 	}
 	return headers.Get(name)
-}
-
-// toSql returns the given value as a SQL serialized string to prevent SQL
-// injection. If the given value is nil, it returns an empty string. If the
-// given value is a string, it returns it surrounded by single quotes. etc.
-func toSql(v interface{}) string {
-	if v == nil {
-		return ""
-	}
-
-	var source string
-	switch v := v.(type) {
-	case string:
-		source = v
-	case []byte:
-		source = string(v)
-	default:
-		source = toJson(v)
-	}
-
-	var j = 0
-	tempStr := source[:]
-	desc := make([]byte, len(tempStr)*2)
-	for i := 0; i < len(tempStr); i++ {
-		flag := false
-		var escape byte
-		switch tempStr[i] {
-		case '\r':
-			flag = true
-			escape = '\r'
-		case '\n':
-			flag = true
-			escape = '\n'
-		case '\\':
-			flag = true
-			escape = '\\'
-		case '\'':
-			flag = true
-			escape = '\''
-		case '"':
-			flag = true
-			escape = '"'
-		case '\032':
-			flag = true
-			escape = 'Z'
-		default:
-		}
-		if flag {
-			desc[j] = '\\'
-			desc[j+1] = escape
-			j = j + 2
-		} else {
-			desc[j] = tempStr[i]
-			j = j + 1
-		}
-	}
-
-	return string(desc[0:j])
 }
 
 // formatTime returns the given time formatted with the given layout.

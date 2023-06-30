@@ -87,6 +87,8 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 // it will call the security pipeline if configured and store data on each configured
 // storages
 func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err error) {
+	ctx := r.Context()
+
 	if spec == nil {
 		return config.ErrSpecNotFound
 	}
@@ -107,21 +109,28 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 		}
 	}
 
+	previousPayload := data
+	payloadFormatter := formatting.New().
+		WithRequest(r).
+		WithPayload(data).
+		WithData("Spec", spec).
+		WithData("Config", config.Current())
+
 	for _, storage := range spec.Storage {
-		str, err := formatting.
-			NewTemplateData(storage.Formatting.Template).
-			WithRequest(r).
-			WithPayload(data).
-			WithData("Spec", spec).
-			WithData("Storage", storage).
-			WithData("Config", config.Current()).
-			Render()
+		payloadFormatter = payloadFormatter.WithData("Storage", storage)
+
+		storagePayload, err := payloadFormatter.WithTemplate(storage.Formatting.Template).Render()
 		if err != nil {
 			return err
 		}
 
-		log.Debug().Msgf("store following data: %+v", str)
-		if err := storage.Client.Push(str); err != nil {
+		// update the formatter with the rendered payload of storage formatting
+		// this will allow to chain formatting
+		payloadFormatter.WithData("PreviousPayload", previousPayload)
+		ctx = formatting.ToContext(ctx, payloadFormatter)
+
+		log.Debug().Msgf("store following data: %s", storagePayload)
+		if err := storage.Client.Push(ctx, []byte(storagePayload)); err != nil {
 			return err
 		}
 		log.Debug().Str("storage", storage.Client.Name()).Msgf("stored successfully")

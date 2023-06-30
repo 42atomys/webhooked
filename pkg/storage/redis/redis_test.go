@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -44,10 +45,7 @@ func (suite *RedisSetupTestSuite) TestRedisPush() {
 	})
 	assert.NoError(suite.T(), err)
 
-	err = newClient.Push(func() {})
-	assert.Error(suite.T(), err)
-
-	err = newClient.Push("Hello")
+	err = newClient.Push(context.Background(), []byte("Hello"))
 	assert.NoError(suite.T(), err)
 }
 

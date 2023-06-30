@@ -1,8 +1,8 @@
 package rabbitmq
 
 import (
+	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -105,7 +105,7 @@ func (c *storage) Name() string {
 // A run is made from external caller
 // @param value that will be pushed
 // @return an error if the push failed
-func (c *storage) Push(value interface{}) error {
+func (c *storage) Push(ctx context.Context, value []byte) error {
 	for attempt := 0; attempt < maxAttempt; attempt++ {
 		err := c.channel.Publish(
 			c.config.Exchange,
@@ -114,7 +114,7 @@ func (c *storage) Push(value interface{}) error {
 			c.config.Immediate,
 			amqp.Publishing{
 				ContentType: c.config.ContentType(),
-				Body:        []byte(fmt.Sprintf("%v", value)),
+				Body:        value,
 			})
 
 		if err != nil {

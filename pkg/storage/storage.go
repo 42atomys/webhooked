@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 
 	"atomys.codes/webhooked/pkg/storage/postgres"
@@ -16,7 +17,7 @@ type Pusher interface {
 	// Will be unique across all storages
 	Name() string
 	// Method call when insert new data in the storage
-	Push(value interface{}) error
+	Push(ctx context.Context, value []byte) error
 }
 
 // Load will fetch and return the built-in storage based on the given
