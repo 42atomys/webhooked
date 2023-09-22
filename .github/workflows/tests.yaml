@@ -33,7 +33,7 @@ jobs:
       POSTGRES_DB: 'postgres'
     steps:
     - name: Checkout project
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Start Redis
       uses: supercharge/redis-github-action@1.6.0
       with:
@@ -97,7 +97,7 @@ jobs:
       REDIS_PASSWORD: ''
     steps:
     - name: Checkout project
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Start Redis
       uses: supercharge/redis-github-action@1.6.0
       with:
