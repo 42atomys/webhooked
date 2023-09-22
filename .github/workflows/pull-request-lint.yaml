@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && !contains(fromJson('["skip-commit-lint"]'), github.event.pull_request.labels)
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Install Dependencies
