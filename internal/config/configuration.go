@@ -6,9 +6,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"atomys.codes/webhooked/pkg/factory"
 	"atomys.codes/webhooked/pkg/storage"
@@ -25,11 +29,34 @@ var (
 
 // Load loads the configuration from the viper configuration file
 // if an error is occurred, it will be returned
-func Load() error {
-	err := viper.Unmarshal(&currentConfig, viper.DecodeHook(factory.DecodeHook))
-	if err != nil {
-		return err
+func Load(cfgFile string) error {
+	var k = koanf.New(".")
+
+	if cfgFile == "" {
+		cfgFile = "config/webhooked.yml"
 	}
+
+	// Load YAML config.
+	if err := k.Load(file.Provider(cfgFile), yaml.Parser()); err != nil {
+		log.Fatal().Msgf("error loading config: %v", err)
+	}
+
+	// Load from environment variables
+	err := k.Load(env.ProviderWithValue("WH_", ".", func(s, v string) (string, interface{}) {
+		key := strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, "WH_")), "_", ".", -1)
+
+		return key, v
+	}), nil)
+	if err != nil {
+		log.Fatal().Msgf("error loading config: %v", err)
+	}
+
+	k.Print()
+
+	k.UnmarshalWithConf("", currentConfig, koanf.UnmarshalConf{
+		Tag: "koanf",
+	})
 
 	for _, spec := range currentConfig.Specs {
 		if err := loadSecurityFactory(spec); err != nil {

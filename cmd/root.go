@@ -24,9 +24,7 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -54,20 +52,20 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.SetConfigName("webhooks")
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath("./config")
-	}
+	// if cfgFile != "" {
+	// 	// Use config file from the flag.
+	// 	viper.SetConfigFile(cfgFile)
+	// } else {
+	// 	viper.SetConfigName("webhooks")
+	// 	viper.SetConfigType("yaml")
+	// 	viper.AddConfigPath("./config")
+	// }
 
-	viper.AutomaticEnv() // read in environment variables that match
+	// viper.AutomaticEnv() // read in environment variables that match
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		log.Error().Msgf("Error reading config file, %s", err.Error())
-	}
-	log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
+	// // If a config file is found, read it in.
+	// if err := viper.ReadInConfig(); err != nil {
+	// 	log.Error().Msgf("Error reading config file, %s", err.Error())
+	// }
+	// log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
 }

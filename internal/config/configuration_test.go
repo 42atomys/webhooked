@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	"github.com/spf13/viper"
+	// "github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"atomys.codes/webhooked/internal/valuable"
@@ -11,15 +11,15 @@ import (
 )
 
 func init() {
-	viper.SetConfigName("webhooks.tests")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../../tests")
-	viper.AutomaticEnv()
+	// viper.SetConfigName("webhooks.tests")
+	// viper.SetConfigType("yaml")
+	// viper.AddConfigPath("../../tests")
+	// viper.AutomaticEnv()
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
-	}
+	// if err := viper.ReadInConfig(); err != nil {
+	// 	panic(err)
+	// }
 }
 
 func TestLoad(t *testing.T) {
