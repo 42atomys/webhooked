@@ -6,7 +6,7 @@ on:
     - main
     paths:
     - '**/*.go'
-    - '**/*.yml'
+    - '**/*.yaml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -62,9 +62,7 @@ jobs:
       with:
         version: latest
     - name: Run Unit tests
-      run: |
-        go test ./... -coverprofile coverage.out -covermode count
-        go tool cover -func coverage.out
+      run: make test-units
     - name: Quality Gate - Test coverage shall be above threshold
       env:
           TESTCOVERAGE_THRESHOLD: 90
@@ -82,8 +80,7 @@ jobs:
         fi
     - uses: codecov/codecov-action@v3
     - name: Run Go Build
-      run: |
-        go build -o /tmp/applications-test-units
+      run: make build
   integration-tests:
     name: "Integration tests"
     runs-on: ubuntu-latest
@@ -102,14 +99,11 @@ jobs:
       uses: supercharge/redis-github-action@1.6.0
       with:
         redis-version: 6
-    - name: Install k6
-      run: |
-        curl https://github.com/grafana/k6/releases/download/v0.45.0/k6-v0.45.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
     - name: Run Integration tests
       run: |
-        go run main.go serve --config tests/integrations/webhooked_config.integration.yaml >/dev/null 2>&1 &
+        make run-integration >/dev/null 2>&1 &
         until $(curl --output /dev/null --silent --head --fail http://localhost:8080/metrics); do
           printf '.'
           sleep 1
         done
-        ./k6 run tests/integrations/scenarios.js
+        make test-integrations

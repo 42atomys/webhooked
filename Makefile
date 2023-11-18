@@ -21,16 +21,17 @@ build:
 	@echo "Building webhooked..."
 	@GOOS=linux GOARCH=amd64 go build -o ./bin/webhooked ./main.go
 
-tests: test-unit test-integration
+tests: test-units test-integrations
 
-test-unit:
+test-units:
 	@echo "Running unit tests..."
-	@go test -v ./...
+	@go test ./... -coverprofile coverage.out -covermode count
+	@go tool cover -func coverage.out
 
 run-integration: build
 	@./bin/webhooked --config ./tests/integrations/webhooked_config.integration.yaml serve
 
-test-integration: install-k6
+test-integrations: install-k6
 	@echo "Running integration tests..."
 	
 	@if ! pgrep -f "./bin/webhooked" > /dev/null; then \
