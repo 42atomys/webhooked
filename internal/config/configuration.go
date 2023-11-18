@@ -12,6 +12,7 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
 
 	"atomys.codes/webhooked/pkg/factory"
@@ -27,7 +28,7 @@ var (
 	defaultTemplate = `{{ .Payload }}`
 )
 
-// Load loads the configuration from the viper configuration file
+// Load loads the configuration from the configuration file
 // if an error is occurred, it will be returned
 func Load(cfgFile string) error {
 	var k = koanf.New(".")
@@ -54,9 +55,22 @@ func Load(cfgFile string) error {
 
 	k.Print()
 
-	k.UnmarshalWithConf("", currentConfig, koanf.UnmarshalConf{
-		Tag: "koanf",
+	err = k.UnmarshalWithConf("", &currentConfig, koanf.UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				factory.DecodeHook,
+			),
+			Result:           &currentConfig,
+			WeaklyTypedInput: true,
+		},
 	})
+	if err != nil {
+		log.Fatal().Msgf("error loading config: %v", err)
+		return err
+	}
+
+	fmt.Printf("AFTER MAPSTRUCUTRE : %+v\n", currentConfig)
 
 	for _, spec := range currentConfig.Specs {
 		if err := loadSecurityFactory(spec); err != nil {

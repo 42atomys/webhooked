@@ -9,7 +9,7 @@ kind: ConfigMap
 metadata:
   name: webhooked
 data:
-  webhooks.yaml: |
+  webhooked.yaml: |
     apiVersion: v1alpha1
     specs:
     - name: exampleHook
@@ -68,9 +68,9 @@ spec:
         - containerPort: 8080
           name: http
         volumeMounts:
-        - mountPath: /config/webhooks.yaml
+        - mountPath: /config/webhooked.yaml
           name: configuration
-          subPath: webhooks.yaml
+          subPath: webhooked.yaml
       volumes:
       - name: configuration
         configMap:

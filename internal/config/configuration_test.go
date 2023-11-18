@@ -3,27 +3,14 @@ package config
 import (
 	"testing"
 
-	// "github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"atomys.codes/webhooked/internal/valuable"
 	"atomys.codes/webhooked/pkg/factory"
 )
 
-func init() {
-	// viper.SetConfigName("webhooks.tests")
-	// viper.SetConfigType("yaml")
-	// viper.AddConfigPath("../../tests")
-	// viper.AutomaticEnv()
-
-	// If a config file is found, read it in.
-	// if err := viper.ReadInConfig(); err != nil {
-	// 	panic(err)
-	// }
-}
-
 func TestLoad(t *testing.T) {
-	assert.NoError(t, Load())
+	assert.NoError(t, Load("../../tests/webhooks.tests.yaml"))
 
 	assert.Equal(t, true, currentConfig.Observability.MetricsEnabled)
 	assert.Len(t, currentConfig.Specs, 1)
