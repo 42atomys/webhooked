@@ -18,8 +18,8 @@ jobs:
           goos: windows
     steps:
     - name: Checkout project
-      uses: actions/checkout@v3
-    - uses: wangyoucao577/go-release-action@v1.38
+      uses: actions/checkout@v4
+    - uses: wangyoucao577/go-release-action@v1.40
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
@@ -34,18 +34,18 @@ jobs:
         goVersion: [ '1.20' ]
     steps:
     - name: Checkout project
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Setup go
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.goVersion }}
     - name: Login to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.REGISTRY_USER }}
         password: ${{ secrets.REGISTRY_TOKEN }}
     - name: Build and push
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: build/Dockerfile

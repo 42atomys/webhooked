@@ -33,9 +33,9 @@ jobs:
       POSTGRES_DB: 'postgres'
     steps:
     - name: Checkout project
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Start Redis
-      uses: supercharge/redis-github-action@1.6.0
+      uses: supercharge/redis-github-action@1.7.0
       with:
         redis-version: 6
     - name: Setup RabbitMQ
@@ -58,7 +58,7 @@ jobs:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3.6.0
+      uses: golangci/golangci-lint-action@v3.7.0
       with:
         version: latest
     - name: Run Unit tests
@@ -94,9 +94,9 @@ jobs:
       REDIS_PASSWORD: ''
     steps:
     - name: Checkout project
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Start Redis
-      uses: supercharge/redis-github-action@1.6.0
+      uses: supercharge/redis-github-action@1.7.0
       with:
         redis-version: 6
     - name: Run Integration tests
