@@ -12,6 +12,8 @@ import (
 
 func TestLoad(t *testing.T) {
 	assert := assert.New(t)
+	currentConfig = &Configuration{} // reset currentConfig to avoid side effects
+
 	assert.NoError(Load("../../tests/webhooks.tests.yaml"))
 
 	assert.Equal(true, currentConfig.Observability.MetricsEnabled)
@@ -38,6 +40,7 @@ func TestLoad(t *testing.T) {
 
 func TestLoadWithEnv(t *testing.T) {
 	assert := assert.New(t)
+	currentConfig = &Configuration{} // reset currentConfig to avoid side effects
 
 	os.Setenv("WH_APIVERSION", "v0")
 	assert.NoError(Load("../../tests/webhooks.tests.yaml"))
