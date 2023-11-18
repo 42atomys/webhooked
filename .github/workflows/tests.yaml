@@ -19,6 +19,7 @@ jobs:
       matrix:
         goVersion: [ '1.18', '1.19', '1.20' ]
     env:
+      WH_DEBUG: 'true'
       REDIS_HOST: '127.0.0.1'
       REDIS_PORT: '6379'
       REDIS_PASSWORD: ''
@@ -89,6 +90,7 @@ jobs:
       matrix:
         goVersion: [ '1.18', '1.19', '1.20' ]
     env:
+      WH_DEBUG: 'true'
       REDIS_HOST: '127.0.0.1'
       REDIS_PORT: '6379'
       REDIS_PASSWORD: ''
