@@ -5,7 +5,7 @@ services:
     volumes:
       - ..:/workspace:cached
     environment:
-      DEBUG: "true"
+      WH_DEBUG: "true"
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

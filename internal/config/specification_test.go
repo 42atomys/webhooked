@@ -8,9 +8,7 @@ import (
 
 func TestWebhookSpec_HasSecurity(t *testing.T) {
 	assert.False(t, WebhookSpec{Security: nil}.HasSecurity())
-	// assert.False(t, WebhookSpec{Security: []map[string]map[string]interface{}{}}.HasSecurity())
-	// assert.True(t, WebhookSpec{SecurityFactories: make([]*factory.Factory, 1)}.HasSecurity())
-	// assert.True(t, WebhookSpec{SecurityFactories: make([]*factory.Factory, 2)}.HasSecurity())
+	// TODO: add tests for security
 }
 
 func TestWebhookSpec_HasGlobalFormatting(t *testing.T) {

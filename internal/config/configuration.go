@@ -33,13 +33,9 @@ var (
 func Load(cfgFile string) error {
 	var k = koanf.New(".")
 
-	if cfgFile == "" {
-		cfgFile = "config/webhooked.yml"
-	}
-
 	// Load YAML config.
 	if err := k.Load(file.Provider(cfgFile), yaml.Parser()); err != nil {
-		log.Fatal().Msgf("error loading config: %v", err)
+		log.Error().Msgf("error loading config: %v", err)
 	}
 
 	// Load from environment variables
@@ -50,10 +46,12 @@ func Load(cfgFile string) error {
 		return key, v
 	}), nil)
 	if err != nil {
-		log.Fatal().Msgf("error loading config: %v", err)
+		log.Error().Msgf("error loading config: %v", err)
 	}
 
-	k.Print()
+	if os.Getenv("WH_DEBUG") == "true" {
+		k.Print()
+	}
 
 	err = k.UnmarshalWithConf("", &currentConfig, koanf.UnmarshalConf{
 		DecoderConfig: &mapstructure.DecoderConfig{
@@ -69,8 +67,6 @@ func Load(cfgFile string) error {
 		log.Fatal().Msgf("error loading config: %v", err)
 		return err
 	}
-
-	fmt.Printf("AFTER MAPSTRUCUTRE : %+v\n", currentConfig)
 
 	for _, spec := range currentConfig.Specs {
 		if err := loadSecurityFactory(spec); err != nil {

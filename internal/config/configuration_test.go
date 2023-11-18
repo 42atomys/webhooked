@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,11 +11,39 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	assert.NoError(t, Load("../../tests/webhooks.tests.yaml"))
+	assert := assert.New(t)
+	assert.NoError(Load("../../tests/webhooks.tests.yaml"))
 
-	assert.Equal(t, true, currentConfig.Observability.MetricsEnabled)
-	assert.Len(t, currentConfig.Specs, 1)
-	assert.Equal(t, "v1alpha1", currentConfig.APIVersion)
+	assert.Equal(true, currentConfig.Observability.MetricsEnabled)
+	assert.Equal("v1alpha1", currentConfig.APIVersion)
+	assert.Len(currentConfig.Specs, 1)
+
+	currentSpec := currentConfig.Specs[0]
+	assert.Equal("exampleHook", currentSpec.Name)
+	assert.Equal("/webhooks/example", currentSpec.EntrypointURL)
+
+	// Security block
+	assert.True(currentSpec.HasSecurity())
+	assert.Len(currentSpec.Security, 2)
+
+	// Formating block
+	assert.True(currentSpec.HasGlobalFormatting())
+	assert.NotEmpty(currentSpec.Formatting.TemplateString)
+
+	// Storage block
+	assert.Len(currentSpec.Storage, 1)
+	assert.Equal("postgres", currentSpec.Storage[0].Type)
+	assert.NotEmpty("postgres", currentSpec.Storage[0].Specs["args"])
+}
+
+func TestLoadWithEnv(t *testing.T) {
+	assert := assert.New(t)
+
+	os.Setenv("WH_APIVERSION", "v0")
+	assert.NoError(Load("../../tests/webhooks.tests.yaml"))
+
+	assert.Equal(true, currentConfig.Observability.MetricsEnabled)
+	assert.Equal("v0", currentConfig.APIVersion)
 }
 
 func TestValidate(t *testing.T) {

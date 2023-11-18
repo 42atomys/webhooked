@@ -25,6 +25,7 @@ tests: test-units test-integrations
 
 test-units:
 	@echo "Running unit tests..."
+	@export WH_DEBUG=true
 	@go test ./... -coverprofile coverage.out -covermode count
 	@go tool cover -func coverage.out
 
