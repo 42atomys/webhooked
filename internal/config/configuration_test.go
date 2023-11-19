@@ -11,13 +11,12 @@ import (
 )
 
 func TestLoad(t *testing.T) {
+	os.Setenv("WH_APIVERSION", "v1alpha1_test")
 	assert := assert.New(t)
-	currentConfig = &Configuration{} // reset currentConfig to avoid side effects
-
 	assert.NoError(Load("../../tests/webhooks.tests.yaml"))
 
 	assert.Equal(true, currentConfig.Observability.MetricsEnabled)
-	assert.Equal("v1alpha1", currentConfig.APIVersion)
+	assert.Equal("v1alpha1_test", currentConfig.APIVersion)
 	assert.Len(currentConfig.Specs, 1)
 
 	currentSpec := currentConfig.Specs[0]
@@ -36,17 +35,6 @@ func TestLoad(t *testing.T) {
 	assert.Len(currentSpec.Storage, 1)
 	assert.Equal("postgres", currentSpec.Storage[0].Type)
 	assert.NotEmpty("postgres", currentSpec.Storage[0].Specs["args"])
-}
-
-func TestLoadWithEnv(t *testing.T) {
-	assert := assert.New(t)
-	currentConfig = &Configuration{} // reset currentConfig to avoid side effects
-
-	os.Setenv("WH_APIVERSION", "v0")
-	assert.NoError(Load("../../tests/webhooks.tests.yaml"))
-
-	assert.Equal(true, currentConfig.Observability.MetricsEnabled)
-	assert.Equal("v0", currentConfig.APIVersion)
 }
 
 func TestValidate(t *testing.T) {
