@@ -33,7 +33,7 @@ import (
 func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	if os.Getenv("DEBUG") == "true" {
+	if os.Getenv("WH_DEBUG") == "true" {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)

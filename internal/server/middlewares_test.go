@@ -6,24 +6,13 @@ import (
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 
 	"atomys.codes/webhooked/internal/config"
 )
 
 func init() {
-	viper.SetConfigName("webhooks.tests")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../../tests")
-	viper.AutomaticEnv()
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
-	}
-
-	if err := config.Load(); err != nil {
+	if err := config.Load("../../tests/webhooks.tests.yaml"); err != nil {
 		panic(err)
 	}
 }

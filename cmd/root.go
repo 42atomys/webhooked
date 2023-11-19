@@ -24,17 +24,16 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-var cfgFile string
+// configFilePath represents the location of the configuration file
+var configFilePath string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "webhooks",
-	Short: "webhooks is a simple program to receive webhooks from around the world and place them in a storage space of your choice.",
+	Use:   "webhooked",
+	Short: "webhooked is a simple program to receive webhooks and forward them to a destination",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -44,30 +43,8 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is config/webhooks.yaml)")
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.SetConfigName("webhooks")
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath("./config")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		log.Error().Msgf("Error reading config file, %s", err.Error())
-	}
-	log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
+	rootCmd.PersistentFlags().StringVarP(&configFilePath, "config", "c", "config/webhooked.yaml", "config file (default is config/webhooked.yaml)")
 }

@@ -1,7 +1,7 @@
 /*
 Package cmd : cobra package
 
-Copyright © 2022 42Stellar
+# Copyright © 2022 42Stellar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ var (
 		Use:   "serve",
 		Short: "serve the http server",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := config.Load(); err != nil {
+			if err := config.Load(configFilePath); err != nil {
 				log.Fatal().Err(err).Msg("invalid configuration")
 			}
 

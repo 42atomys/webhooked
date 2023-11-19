@@ -122,7 +122,7 @@ You can use the docker image [atomys/webhooked](https://hub.docker.com/r/atomys/
 
 ```sh
 # Basic launch instruction using the default configuration path
-docker run -it --rm -p 8080:8080 -v ${PWD}/myconfig.yaml:/config/webhooks.yaml atomys/webhooked:latest
+docker run -it --rm -p 8080:8080 -v ${PWD}/myconfig.yaml:/config/webhooked.yaml atomys/webhooked:latest
 # Use custom configuration file
 docker run -it --rm -p 8080:8080 -v ${PWD}/myconfig.yaml:/myconfig.yaml atomys/webhooked:latest serve --config /myconfig.yaml
 ```

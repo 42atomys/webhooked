@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+bin
 
 # Test binary, built with `go test -c`
 *.test
@@ -12,8 +13,8 @@
 *.out
 
 # Configuration file
-config/*.yml
-!config/webhooks.example.yml
+config/*.yaml
+!config/webhooked.example.yaml
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

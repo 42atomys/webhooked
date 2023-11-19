@@ -6,9 +6,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"atomys.codes/webhooked/pkg/factory"
 	"atomys.codes/webhooked/pkg/storage"
@@ -23,11 +28,43 @@ var (
 	defaultTemplate = `{{ .Payload }}`
 )
 
-// Load loads the configuration from the viper configuration file
+// Load loads the configuration from the configuration file
 // if an error is occurred, it will be returned
-func Load() error {
-	err := viper.Unmarshal(&currentConfig, viper.DecodeHook(factory.DecodeHook))
+func Load(cfgFile string) error {
+	var k = koanf.New(".")
+
+	// Load YAML config.
+	if err := k.Load(file.Provider(cfgFile), yaml.Parser()); err != nil {
+		log.Error().Msgf("error loading config: %v", err)
+	}
+
+	// Load from environment variables
+	err := k.Load(env.ProviderWithValue("WH_", ".", func(s, v string) (string, interface{}) {
+		key := strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, "WH_")), "_", ".", -1)
+
+		return key, v
+	}), nil)
 	if err != nil {
+		log.Error().Msgf("error loading config: %v", err)
+	}
+
+	if os.Getenv("WH_DEBUG") == "true" {
+		k.Print()
+	}
+
+	err = k.UnmarshalWithConf("", &currentConfig, koanf.UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				factory.DecodeHook,
+			),
+			Result:           &currentConfig,
+			WeaklyTypedInput: true,
+		},
+	})
+	if err != nil {
+		log.Fatal().Msgf("error loading config: %v", err)
 		return err
 	}
 

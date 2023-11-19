@@ -31,7 +31,7 @@ jobs:
     - name: Start application and run K6
       continue-on-error: true
       run: |
-        go run main.go serve --config tests/webhooks.tests.yml >/dev/null 2>&1 &
+        go run main.go serve --config tests/webhooks.tests.yaml >/dev/null 2>&1 &
         until $(curl --output /dev/null --silent --head --fail http://localhost:8080/metrics); do
           printf '.'
           sleep 1

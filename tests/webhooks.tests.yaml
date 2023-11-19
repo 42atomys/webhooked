@@ -6,13 +6,14 @@ specs:
   entrypointUrl: /webhooks/example
   security:
   - header:
+      id: secretHeader
       inputs:
       - name: headerName
         value: X-Hook-Secret
   - compare:
       inputs:
       - name: first
-        value: '{{ .Outputs.header.value }}'
+        value: '{{ .Outputs.secretHeader.value }}'
       - name: second
         valueFrom:
           staticRef: test

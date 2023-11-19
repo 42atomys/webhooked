@@ -175,6 +175,7 @@ func getHeader(name string, headers *http.Header) string {
 // If the given time is invalid, it returns an empty string.
 func formatTime(t interface{}, fromLayout, tolayout string) string {
 	if isNull(t) {
+		log.Error().Msg("time is nil. Returning empty string")
 		return ""
 	}
 
@@ -184,6 +185,7 @@ func formatTime(t interface{}, fromLayout, tolayout string) string {
 
 	parsedTime := parseTime(t, fromLayout)
 	if parsedTime.IsZero() {
+		log.Error().Msgf("Failed to parse time [%v] with layout [%s]", t, fromLayout)
 		return ""
 	}
 
