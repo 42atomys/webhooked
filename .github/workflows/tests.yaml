@@ -54,7 +54,7 @@ jobs:
         postgresql user: postgres
         postgresql password: postgres
     - name: Setup go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
