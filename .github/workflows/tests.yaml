@@ -36,7 +36,7 @@ jobs:
     - name: Checkout project
       uses: actions/checkout@v4
     - name: Start Redis
-      uses: supercharge/redis-github-action@1.7.0
+      uses: supercharge/redis-github-action@1.8.0
       with:
         redis-version: 6
     - name: Setup RabbitMQ
@@ -98,7 +98,7 @@ jobs:
     - name: Checkout project
       uses: actions/checkout@v4
     - name: Start Redis
-      uses: supercharge/redis-github-action@1.7.0
+      uses: supercharge/redis-github-action@1.8.0
       with:
         redis-version: 6
     - name: Run Integration tests
