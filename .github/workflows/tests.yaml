@@ -79,7 +79,7 @@ jobs:
             echo "Failed"
             exit 1
         fi
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
     - name: Run Go Build
       run: make build
   integration-tests:
