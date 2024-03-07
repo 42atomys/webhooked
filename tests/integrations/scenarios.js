@@ -29,6 +29,20 @@ export const scenarios = [
     }
   },
   {
+    name: 'basic-response',
+    description: 'should return 200 with a response asked.',
+    payload: {
+      id: randomName,
+    },
+    expected: {
+      "contentType": "application/json",
+      data: {
+        id: randomName,
+      }
+    },
+    expectedResponse: randomName
+  },
+  {
     name: 'advanced-formatted-usage',
     description: 'should return 200 with an advanced formatting.',
     payload: {
@@ -74,6 +88,10 @@ const testSuite = () => {
       const storedValue = await redisClient.lpop(`integration:${test.name}`);
       console.log(`[${test.name}]`, storedValue);
       expect(JSON.parse(storedValue)).to.deep.equal(test.expected);
+
+      console.error('ADS', test.expectedResponse, res.body)
+
+      expect(res.body).to.equal(test.expectedResponse)
     })
   });
 }

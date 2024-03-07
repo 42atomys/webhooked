@@ -80,6 +80,10 @@ func Load(cfgFile string) error {
 		if err = loadStorage(spec); err != nil {
 			return fmt.Errorf("configured storage for %s received an error: %s", spec.Name, err.Error())
 		}
+
+		if spec.Response.Formatting, err = loadTemplate(spec.Response.Formatting, nil); err != nil {
+			return fmt.Errorf("configured response for %s received an error: %s", spec.Name, err.Error())
+		}
 	}
 
 	log.Info().Msgf("Load %d configurations", len(currentConfig.Specs))

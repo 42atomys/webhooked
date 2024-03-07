@@ -52,7 +52,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return expectedError },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", expectedError },
 		}).Code,
 	)
 
@@ -67,7 +67,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", nil },
 		}).Code,
 	)
 
@@ -82,7 +82,9 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return errSecurityFailed },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) {
+				return "", errSecurityFailed
+			},
 		}).Code,
 	)
 
@@ -97,7 +99,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", nil },
 		}).Code,
 	)
 }
@@ -176,7 +178,7 @@ func Test_webhookService(t *testing.T) {
 
 	for _, test := range tests {
 		log.Warn().Msgf("body %+v", test.input.req.Body)
-		got := webhookService(&Server{}, test.input.spec, test.input.req)
+		_, got := webhookService(&Server{}, test.input.spec, test.input.req)
 		if test.wantErr {
 			assert.ErrorIs(got, test.matchErr, "input: %s", test.name)
 		} else {
@@ -233,7 +235,7 @@ func TestServer_webhokServiceStorage(t *testing.T) {
 			},
 		}
 
-		got := webhookService(&Server{}, spec, test.req)
+		_, got := webhookService(&Server{}, spec, test.req)
 		if test.wantErr {
 			assert.Error(t, got, "input: %s", test.name)
 		} else {

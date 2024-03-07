@@ -4,6 +4,7 @@ observability:
 specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
+  response: '{{ .Payload }}'
   security:
   - header:
       id: secretHeader

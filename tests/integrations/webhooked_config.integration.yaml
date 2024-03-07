@@ -62,6 +62,34 @@ specs:
       # The key where you want to send the data
       key: integration:basic-formatted-usage
 
+- name: basic-response
+  entrypointUrl: /integration/basic-response
+  response: '{{ lookup "id" .Payload }}'
+  security:
+  - header:
+      inputs:
+      - name: headerName
+        value: X-Token
+  - compare:
+      inputs:
+      - name: first
+        value: '{{ .Outputs.header.value }}'
+      - name: second
+        valueFrom:
+          staticRef: integration-test
+  storage:
+  - type: redis
+    specs:
+      host:
+        valueFrom:
+          envRef: REDIS_HOST
+      # Port of the Redis Server
+      port: '6379'
+      # In which database do you want to store your data
+      database: 0
+      # The key where you want to send the data
+      key: integration:basic-usage
+
 - name: advanced-formatted-usage
   entrypointUrl: /integration/advanced-formatted-usage
   security:
