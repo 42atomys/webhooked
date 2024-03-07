@@ -1,10 +1,13 @@
-apiVersion: v1alpha1
+apiVersion: v1alpha1_test
 observability:
   metricsEnabled: true
 specs:
 - name: exampleHook
   entrypointUrl: /webhooks/example
-  response: '{{ .Payload }}'
+  response:
+    formatting:
+      templateString: '{{ .Payload }}'
+    httpCode: 200
   security:
   - header:
       id: secretHeader

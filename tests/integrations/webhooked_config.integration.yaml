@@ -64,7 +64,10 @@ specs:
 
 - name: basic-response
   entrypointUrl: /integration/basic-response
-  response: '{{ lookup "id" .Payload }}'
+  response:
+    formatting:
+      templateString: '{{ lookup "id" .Payload }}'
+    httpCode: 200
   security:
   - header:
       inputs:

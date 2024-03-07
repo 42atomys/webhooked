@@ -88,9 +88,6 @@ const testSuite = () => {
       const storedValue = await redisClient.lpop(`integration:${test.name}`);
       console.log(`[${test.name}]`, storedValue);
       expect(JSON.parse(storedValue)).to.deep.equal(test.expected);
-
-      console.error('ADS', test.expectedResponse, res.body)
-
       expect(res.body).to.equal(test.expectedResponse)
     })
   });
