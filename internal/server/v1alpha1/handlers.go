@@ -153,7 +153,7 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (respo
 		log.Debug().Str("storage", storage.Client.Name()).Msgf("stored successfully")
 	}
 
-	if spec.Response.Formatting.Template != "" {
+	if spec.Response.Formatting != nil && spec.Response.Formatting.Template != "" {
 		return payloadFormatter.WithTemplate(spec.Response.Formatting.Template).Render()
 	}
 
