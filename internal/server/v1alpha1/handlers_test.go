@@ -52,7 +52,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return expectedError },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", expectedError },
 		}).Code,
 	)
 
@@ -67,7 +67,27 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", nil },
+		}).Code,
+	)
+
+	assert.Equal(t,
+		http.StatusOK,
+		testServerWebhookHandlerHelper(t, &Server{
+			config: &config.Configuration{
+				APIVersion: "v1alpha1",
+				Specs: []*config.WebhookSpec{
+					{
+						Name:          "test",
+						EntrypointURL: "/test",
+						Response: config.ResponseSpec{
+							Formatting:  &config.FormattingSpec{Template: "test-payload"},
+							HttpCode:    200,
+							ContentType: "application/json",
+						},
+					}},
+			},
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "test-payload", nil },
 		}).Code,
 	)
 
@@ -82,7 +102,9 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return errSecurityFailed },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) {
+				return "", errSecurityFailed
+			},
 		}).Code,
 	)
 
@@ -97,7 +119,7 @@ func TestServer_WebhookHandler(t *testing.T) {
 						EntrypointURL: "/test",
 					}},
 			},
-			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) error { return nil },
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", nil },
 		}).Code,
 	)
 }
@@ -162,13 +184,23 @@ func Test_webhookService(t *testing.T) {
 		{"empty security", &input{&config.WebhookSpec{
 			SecurityPipeline: factory.NewPipeline(),
 		}, req}, false, nil},
-
 		{"valid security", &input{&config.WebhookSpec{
 			SecurityPipeline: validPipeline,
 		}, req}, false, nil},
 		{"invalid security", &input{&config.WebhookSpec{
 			SecurityPipeline: invalidPipeline,
 		}, req}, true, errSecurityFailed},
+		{"valid payload with response", &input{
+			&config.WebhookSpec{
+				SecurityPipeline: validPipeline,
+				Response: config.ResponseSpec{
+					Formatting:  &config.FormattingSpec{Template: "{{.Payload}}"},
+					HttpCode:    200,
+					ContentType: "application/json",
+				},
+			},
+			req,
+		}, false, nil},
 		{"invalid body payload", &input{&config.WebhookSpec{
 			SecurityPipeline: validPipeline,
 		}, invalidReq}, true, errRequestBodyMissing},
@@ -176,7 +208,7 @@ func Test_webhookService(t *testing.T) {
 
 	for _, test := range tests {
 		log.Warn().Msgf("body %+v", test.input.req.Body)
-		got := webhookService(&Server{}, test.input.spec, test.input.req)
+		_, got := webhookService(&Server{}, test.input.spec, test.input.req)
 		if test.wantErr {
 			assert.ErrorIs(got, test.matchErr, "input: %s", test.name)
 		} else {
@@ -233,7 +265,7 @@ func TestServer_webhokServiceStorage(t *testing.T) {
 			},
 		}
 
-		got := webhookService(&Server{}, spec, test.req)
+		_, got := webhookService(&Server{}, spec, test.req)
 		if test.wantErr {
 			assert.Error(t, got, "input: %s", test.name)
 		} else {

@@ -263,7 +263,7 @@ func Test_loadTemplate(t *testing.T) {
 			nil,
 			nil,
 			false,
-			defaultTemplate,
+			defaultPayloadTemplate,
 		},
 		{
 			"template string",
@@ -317,7 +317,7 @@ func Test_loadTemplate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tmpl, err := loadTemplate(test.input, test.parentSpec)
+		tmpl, err := loadTemplate(test.input, test.parentSpec, defaultPayloadTemplate)
 		if test.wantErr {
 			assert.Error(t, err, test.name)
 		} else {

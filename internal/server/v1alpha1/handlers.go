@@ -21,7 +21,7 @@ type Server struct {
 	// config is the current configuration of the server
 	config *config.Configuration
 	// webhookService is the function that will be called to process the webhook
-	webhookService func(s *Server, spec *config.WebhookSpec, r *http.Request) error
+	webhookService func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error)
 	// logger is the logger used by the server
 	logger zerolog.Logger
 }
@@ -68,7 +68,8 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 			return
 		}
 
-		if err := s.webhookService(s, spec, r); err != nil {
+		responseBody, err := s.webhookService(s, spec, r)
+		if err != nil {
 			switch err {
 			case errSecurityFailed:
 				w.WriteHeader(http.StatusForbidden)
@@ -79,6 +80,22 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 				return
 			}
 		}
+
+		if responseBody != "" {
+			log.Debug().Str("response", responseBody).Msg("Webhook response")
+			if _, err := w.Write([]byte(responseBody)); err != nil {
+				s.logger.Error().Err(err).Msg("Error during response writing")
+			}
+		}
+
+		if spec.Response.HttpCode != 0 {
+			w.WriteHeader(spec.Response.HttpCode)
+		}
+
+		if spec.Response.ContentType != "" {
+			w.Header().Set("Content-Type", spec.Response.ContentType)
+		}
+
 		s.logger.Debug().Str("entry", spec.Name).Msg("Webhook processed successfully")
 	}
 }
@@ -86,26 +103,26 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 // webhookService is the function that will be called to process the webhook call
 // it will call the security pipeline if configured and store data on each configured
 // storages
-func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err error) {
+func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (responseTemplare string, err error) {
 	ctx := r.Context()
 
 	if spec == nil {
-		return config.ErrSpecNotFound
+		return "", config.ErrSpecNotFound
 	}
 
 	if r.Body == nil {
-		return errRequestBodyMissing
+		return "", errRequestBodyMissing
 	}
 	defer r.Body.Close()
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if spec.HasSecurity() {
 		if err := s.runSecurity(spec, r, data); err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -117,26 +134,30 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (err e
 		WithData("Config", config.Current())
 
 	for _, storage := range spec.Storage {
-		payloadFormatter = payloadFormatter.WithData("Storage", storage)
+		storageFormatter := *payloadFormatter.WithData("Storage", storage)
 
-		storagePayload, err := payloadFormatter.WithTemplate(storage.Formatting.Template).Render()
+		storagePayload, err := storageFormatter.WithTemplate(storage.Formatting.Template).Render()
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		// update the formatter with the rendered payload of storage formatting
 		// this will allow to chain formatting
-		payloadFormatter.WithData("PreviousPayload", previousPayload)
-		ctx = formatting.ToContext(ctx, payloadFormatter)
+		storageFormatter.WithData("PreviousPayload", previousPayload)
+		ctx = formatting.ToContext(ctx, &storageFormatter)
 
 		log.Debug().Msgf("store following data: %s", storagePayload)
 		if err := storage.Client.Push(ctx, []byte(storagePayload)); err != nil {
-			return err
+			return "", err
 		}
 		log.Debug().Str("storage", storage.Client.Name()).Msgf("stored successfully")
 	}
 
-	return err
+	if spec.Response.Formatting != nil && spec.Response.Formatting.Template != "" {
+		return payloadFormatter.WithTemplate(spec.Response.Formatting.Template).Render()
+	}
+
+	return "", err
 }
 
 // runSecurity will run the security pipeline for the current webhook call

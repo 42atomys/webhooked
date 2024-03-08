@@ -17,9 +17,11 @@ export const session = (testName) => {
 }
 
 export const redisClient = new redis.Client({
-  addrs: new Array(__ENV.REDIS_HOST+':6379'),
+  socket: {
+    host: __ENV.REDIS_HOST,
+    port: 6379,
+  },
   password: __ENV.REDIS_PASSWORD,
-  db: 0,
 });
 
 export const k6Options = {

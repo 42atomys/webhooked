@@ -114,6 +114,51 @@ func Test_ternary(t *testing.T) {
 	assert.Equal("", getHeader("", nil))
 }
 
+func TestLookup(t *testing.T) {
+	// Initialize the assert helper
+	assert := assert.New(t)
+
+	// Example of nested data structure for testing
+	testData := map[string]interface{}{
+		"user": map[string]interface{}{
+			"details": map[string]interface{}{
+				"name": "John Doe",
+				"age":  30,
+			},
+			"email": "john.doe@example.com",
+		},
+		"empty": map[string]interface{}{},
+	}
+
+	// Test cases
+	tests := []struct {
+		path     string
+		data     interface{}
+		expected interface{}
+	}{
+		// Test successful lookups
+		{"user.details.name", testData, "John Doe"},
+		{"user.email", testData, "john.doe@example.com"},
+		// Test unsuccessful lookups
+		{"user.details.phone", testData, nil},
+		{"user.location.city", testData, nil},
+		// Test edge cases
+		{"", testData, testData},
+		{"user..name", testData, nil},
+		{"nonexistent", testData, nil},
+		// Test with non-map data
+		{"user", []interface{}{}, nil},
+	}
+
+	// Run test cases
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			result := lookup(test.path, test.data)
+			assert.Equal(test.expected, result, "Lookup should return the expected value.")
+		})
+	}
+}
+
 func Test_getHeader(t *testing.T) {
 	assert := assert.New(t)
 
