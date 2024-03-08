@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"sync"
 	"text/template"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Formatter struct {
@@ -95,8 +93,6 @@ func (d *Formatter) Render() (string, error) {
 		return "", ErrNoTemplate
 	}
 
-	log.Debug().Msgf("rendering template: %s", d.tmplString)
-
 	t := template.New("formattingTmpl").Funcs(funcMap())
 	t, err := t.Parse(d.tmplString)
 	if err != nil {
@@ -106,6 +102,10 @@ func (d *Formatter) Render() (string, error) {
 	buf := new(bytes.Buffer)
 	if err := t.Execute(buf, d.data); err != nil {
 		return "", fmt.Errorf("error while filling your template: %s", err.Error())
+	}
+
+	if buf.String() == "<no value>" {
+		return "", fmt.Errorf("template cannot be rendered, check your template")
 	}
 
 	return buf.String(), nil
