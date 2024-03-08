@@ -100,6 +100,23 @@ specs:
       port: 6379
       database: 0
       key: example-webhook
+
+
+  # Response is the final step of the pipeline. It allows you to send a response
+  # to the webhook sender. You can use the built-in helper function to format it
+  # as you want. (Optional)
+  #
+  # In this example we send a JSON response with a 200 HTTP code and a custom
+  # content type header `application/json`. The response contains the deliveryID
+  # header value or `unknown` if not present in the request.
+  response:
+    formatting:
+      templateString: |
+        {
+          "deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
+        }
+    httpCode: 200
+    contentType: application/json
 ```
 
 More informations about security pipeline available on wiki : [Configuration/Security](https://github.com/42Atomys/webhooked/wiki/Security)
