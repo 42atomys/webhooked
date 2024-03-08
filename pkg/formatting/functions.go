@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -26,6 +27,7 @@ func funcMap() template.FuncMap {
 		"toPrettyJson": toPrettyJson,
 		"fromJson":     fromJson,
 		"ternary":      ternary,
+		"lookup":       lookup,
 
 		// Headers manipulation functions
 		"getHeader": getHeader,
@@ -153,12 +155,43 @@ func fromJson(v interface{}) map[string]interface{} {
 }
 
 // ternary returns `isTrue` if `condition` is true, otherwise returns `isFalse`.
-func ternary(isTrue interface{}, isFalse interface{}, confition bool) interface{} {
-	if confition {
+func ternary(isTrue interface{}, isFalse interface{}, condition bool) interface{} {
+	if condition {
 		return isTrue
 	}
 
 	return isFalse
+}
+
+// lookup recursively navigates through nested data structures based on a dot-separated path.
+func lookup(path string, data interface{}) interface{} {
+	keys := strings.Split(path, ".")
+
+	if path == "" {
+		return data
+	}
+
+	// Navigate through the data for each key.
+	current := data
+	for _, key := range keys {
+		switch val := current.(type) {
+		case map[string]interface{}:
+			// If the current value is a map and the key exists, proceed to the next level.
+			if next, ok := val[key]; ok {
+				current = next
+			} else {
+				// Key not found
+				log.Logger.Warn().Str("path", path).Msg("Key are not found on the object")
+				return nil
+			}
+		default:
+			// If the current type is not a map or we've reached a non-navigable point
+			return nil
+		}
+	}
+
+	// If the final value is a string, return it; otherwise
+	return current
 }
 
 // getHeader returns the value of the given header. If the header is not found,

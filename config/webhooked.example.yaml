@@ -26,3 +26,8 @@ specs:
         valueFrom:
           envRef: REDIS_PASSWORD
       key: example-webhook
+  response:
+    formatting:
+      templateString: '{ "status": "ok" }'
+    httpCode: 200
+    contentType: application/json
