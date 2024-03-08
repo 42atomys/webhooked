@@ -52,6 +52,22 @@ type WebhookSpec struct {
 	// Storage is the configuration for the storage of the webhook spec
 	// It is defined by the user and can be empty.
 	Storage []*StorageSpec `mapstructure:"storage" json:"-"`
+	// Response is the configuration for the response of the webhook sent
+	// to the caller. It is defined by the user and can be empty.
+	Response ResponseSpec `mapstructure:"response" json:"-"`
+}
+
+type ResponseSpec struct {
+	// Formatting is used to define the response body sent by webhooked
+	// to the webhook caller. When this configuration is empty, no response
+	// body is sent. It is defined by the user and can be empty.
+	Formatting *FormattingSpec `mapstructure:"formatting" json:"-"`
+	// HTTPCode is the HTTP code of the response. It is defined by the user
+	// and can be empty. (default: 200)
+	HttpCode int `mapstructure:"httpCode" json:"httpCode"`
+	// ContentType is the content type of the response. It is defined by the user
+	// and can be empty. (default: plain/text)
+	ContentType string `mapstructure:"contentType" json:"contentType"`
 }
 
 // Security is the struct contains the configuration for a security
