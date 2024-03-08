@@ -66,7 +66,7 @@ specs:
   entrypointUrl: /integration/basic-response
   response:
     formatting:
-      templateString: '{{ lookup "id" .Payload }}'
+      templateString: '{{ fromJson .Payload | lookup "id" }}'
     httpCode: 200
   security:
   - header:
@@ -91,7 +91,7 @@ specs:
       # In which database do you want to store your data
       database: 0
       # The key where you want to send the data
-      key: integration:basic-usage
+      key: integration:basic-response
 
 - name: advanced-formatted-usage
   entrypointUrl: /integration/advanced-formatted-usage

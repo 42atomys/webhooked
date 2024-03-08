@@ -9,24 +9,26 @@ export const scenarios = [
     name: 'basic-usage',
     description: 'should return 200 with the payload not formatted.',
     payload: { 
-      message: `Hello, ${randomName}!`,
+      message: `Hello basic, ${randomName}!`,
     },
     expected: {
-      message: `Hello, ${randomName}!`,
-    }
+      message: `Hello basic, ${randomName}!`,
+    },
+    expectedResponse: ''
   },
   {
     name: 'basic-formatted-usage',
     description: 'should return 200 with a basic formatting.',
     payload: {
-      message: `Hello, ${randomName}!`,
+      message: `Hello formatted, ${randomName}!`,
     },
     expected: {
       "contentType": "application/json",
       data: {
-        message: `Hello, ${randomName}!`,
+        message: `Hello formatted, ${randomName}!`,
       }
-    }
+    },
+    expectedResponse: ''
   },
   {
     name: 'basic-response',
@@ -35,10 +37,7 @@ export const scenarios = [
       id: randomName,
     },
     expected: {
-      "contentType": "application/json",
-      data: {
-        id: randomName,
-      }
+      id: randomName,
     },
     expectedResponse: randomName
   },
@@ -73,7 +72,8 @@ export const scenarios = [
       childrenNames: ['Jane', 'Bob'],
       hasPets: false,
       favoriteColor: 'blue',
-    }
+    },
+    expectedResponse: ''
   },
 ]
 
@@ -87,6 +87,7 @@ const testSuite = () => {
 
       const storedValue = await redisClient.lpop(`integration:${test.name}`);
       console.log(`[${test.name}]`, storedValue);
+
       expect(JSON.parse(storedValue)).to.deep.equal(test.expected);
       expect(res.body).to.equal(test.expectedResponse)
     })

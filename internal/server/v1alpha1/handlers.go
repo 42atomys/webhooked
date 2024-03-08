@@ -81,8 +81,11 @@ func (s *Server) WebhookHandler() http.HandlerFunc {
 			}
 		}
 
-		if _, err := w.Write([]byte(responseBody)); err != nil {
-			s.logger.Error().Err(err).Msg("Error during response writing")
+		if responseBody != "" {
+			log.Debug().Str("response", responseBody).Msg("Webhook response")
+			if _, err := w.Write([]byte(responseBody)); err != nil {
+				s.logger.Error().Err(err).Msg("Error during response writing")
+			}
 		}
 
 		if spec.Response.HttpCode != 0 {
@@ -131,17 +134,17 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (respo
 		WithData("Config", config.Current())
 
 	for _, storage := range spec.Storage {
-		payloadFormatter = payloadFormatter.WithData("Storage", storage)
+		storageFormatter := *payloadFormatter.WithData("Storage", storage)
 
-		storagePayload, err := payloadFormatter.WithTemplate(storage.Formatting.Template).Render()
+		storagePayload, err := storageFormatter.WithTemplate(storage.Formatting.Template).Render()
 		if err != nil {
 			return "", err
 		}
 
 		// update the formatter with the rendered payload of storage formatting
 		// this will allow to chain formatting
-		payloadFormatter.WithData("PreviousPayload", previousPayload)
-		ctx = formatting.ToContext(ctx, payloadFormatter)
+		storageFormatter.WithData("PreviousPayload", previousPayload)
+		ctx = formatting.ToContext(ctx, &storageFormatter)
 
 		log.Debug().Msgf("store following data: %s", storagePayload)
 		if err := storage.Client.Push(ctx, []byte(storagePayload)); err != nil {
@@ -150,7 +153,7 @@ func webhookService(s *Server, spec *config.WebhookSpec, r *http.Request) (respo
 		log.Debug().Str("storage", storage.Client.Name()).Msgf("stored successfully")
 	}
 
-	if spec.Response.Formatting != nil {
+	if spec.Response.Formatting.Template != "" {
 		return payloadFormatter.WithTemplate(spec.Response.Formatting.Template).Render()
 	}
 
