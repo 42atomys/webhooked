@@ -140,6 +140,16 @@ func Test_Render(t *testing.T) {
 	assert.Error(err)
 	assert.Contains(err.Error(), "error while filling your template: ")
 	assert.Equal("", str)
+
+	// Test with template with invalid format sended to a function
+	tmpl = New().WithTemplate(`{{ lookup "test" .Payload }}`).WithPayload([]byte(`{"test": "test"}`))
+	assert.NotNil(tmpl)
+	assert.Equal(`{{ lookup "test" .Payload }}`, tmpl.tmplString)
+
+	str, err = tmpl.Render()
+	assert.Error(err)
+	assert.Contains(err.Error(), "template cannot be rendered, check your template")
+	assert.Equal("", str)
 }
 
 func TestFromContext(t *testing.T) {

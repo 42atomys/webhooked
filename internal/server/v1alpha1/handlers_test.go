@@ -72,6 +72,26 @@ func TestServer_WebhookHandler(t *testing.T) {
 	)
 
 	assert.Equal(t,
+		http.StatusNoContent,
+		testServerWebhookHandlerHelper(t, &Server{
+			config: &config.Configuration{
+				APIVersion: "v1alpha1",
+				Specs: []*config.WebhookSpec{
+					{
+						Name:          "test",
+						EntrypointURL: "/test",
+						Response: config.ResponseSpec{
+							Formatting:  &config.FormattingSpec{Template: "{{.Payload}}"},
+							HttpCode:    204,
+							ContentType: "application/json",
+						},
+					}},
+			},
+			webhookService: func(s *Server, spec *config.WebhookSpec, r *http.Request) (string, error) { return "", nil },
+		}).Code,
+	)
+
+	assert.Equal(t,
 		http.StatusForbidden,
 		testServerWebhookHandlerHelper(t, &Server{
 			config: &config.Configuration{
