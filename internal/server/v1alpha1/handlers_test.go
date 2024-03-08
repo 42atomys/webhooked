@@ -164,13 +164,23 @@ func Test_webhookService(t *testing.T) {
 		{"empty security", &input{&config.WebhookSpec{
 			SecurityPipeline: factory.NewPipeline(),
 		}, req}, false, nil},
-
 		{"valid security", &input{&config.WebhookSpec{
 			SecurityPipeline: validPipeline,
 		}, req}, false, nil},
 		{"invalid security", &input{&config.WebhookSpec{
 			SecurityPipeline: invalidPipeline,
 		}, req}, true, errSecurityFailed},
+		{"valid payload with response", &input{
+			&config.WebhookSpec{
+				SecurityPipeline: validPipeline,
+				Response: config.ResponseSpec{
+					Formatting:  &config.FormattingSpec{Template: "{{.Payload}}"},
+					HttpCode:    200,
+					ContentType: "application/json",
+				},
+			},
+			req,
+		}, false, nil},
 		{"invalid body payload", &input{&config.WebhookSpec{
 			SecurityPipeline: validPipeline,
 		}, invalidReq}, true, errRequestBodyMissing},
