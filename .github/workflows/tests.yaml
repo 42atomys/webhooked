@@ -59,7 +59,7 @@ jobs:
         go-version: ${{ matrix.goVersion }}
         check-latest: true
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3.7.0
+      uses: golangci/golangci-lint-action@v4.0.0
       with:
         version: latest
     - name: Run Unit tests
@@ -79,7 +79,7 @@ jobs:
             echo "Failed"
             exit 1
         fi
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
     - name: Run Go Build
       run: make build
   integration-tests:
