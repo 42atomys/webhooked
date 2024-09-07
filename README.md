@@ -23,7 +23,7 @@ This is exactly what `Webhooked` does !
 
 ## Roadmap
 
-I am actively working on this project in order to release a stable version for **2023**
+I am actively working on this project in order to release a stable version for **2025**
 
 ![Roadmap](/.github/profile/roadmap.png)
 
