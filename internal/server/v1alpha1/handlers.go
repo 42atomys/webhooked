@@ -10,8 +10,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/internal/config"
-	"atomys.codes/webhooked/pkg/formatting"
+	"github.com/42atomys/webhooked/internal/config"
+	"github.com/42atomys/webhooked/pkg/formatting"
 )
 
 // Server is the server instance for the v1alpha1 version

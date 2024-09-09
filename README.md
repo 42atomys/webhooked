@@ -1,7 +1,7 @@
 <h1 align="center">Webhooked</h1>
 
 <p align="center"><a href="https://github.com/42Atomys/webhooked/actions/workflows/release.yaml"><img src="https://github.com/42Atomys/webhooked/actions/workflows/release.yaml/badge.svg" alt="Release 🎉"></a>
-<a href="https://goreportcard.com/report/atomys.codes/webhooked"><img src="https://goreportcard.com/badge/atomys.codes/webhooked" /></a>
+<a href="https://goreportcard.com/report/github.com/42atomys/webhooked"><img src="https://goreportcard.com/badge/github.com/42atomys/webhooked" /></a>
 <a href="https://codeclimate.com/github/42Atomys/webhooked"><img alt="Code Climate maintainability" src="https://img.shields.io/codeclimate/maintainability/42Atomys/webhooked"></a>
 <a href="https://codecov.io/gh/42Atomys/webhooked"><img alt="Codecov" src="https://img.shields.io/codecov/c/gh/42Atomys/webhooked?token=NSUZMDT9M9"></a>
 <img src="https://img.shields.io/github/v/release/42atomys/webhooked?label=last%20release" alt="GitHub release (latest by date)">
@@ -9,7 +9,7 @@
 <img src="https://img.shields.io/github/stars/42atomys/webhooked?color=blueviolet" alt="GitHub Repo stars">
 <a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/pulls/atomys/webhooked" alt="Docker Pull"></a>
 <a href="https://hub.docker.com/r/atomys/webhooked"><img src="https://img.shields.io/docker/image-size/atomys/webhooked" alt="Docker Pull"></a>
-<a href="https://pkg.go.dev/atomys.codes/webhooked"><img src="https://pkg.go.dev/badge/atomys.codes/webhooked.svg" alt="Go Reference"></a></p>
+<a href="https://pkg.go.dev/github.com/42atomys/webhooked"><img src="https://pkg.go.dev/badge/github.com/42atomys/webhooked.svg" alt="Go Reference"></a></p>
   
 <p align="center">A webhook receiver on steroids. The process is simple, receive webhook from all over the world, and send it to your favorite pub/sub to process it immediately or later without losing any received data</p>
 

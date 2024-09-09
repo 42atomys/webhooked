@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"atomys.codes/webhooked/pkg/formatting"
+	"github.com/42atomys/webhooked/pkg/formatting"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"atomys.codes/webhooked/pkg/storage/postgres"
-	"atomys.codes/webhooked/pkg/storage/rabbitmq"
-	"atomys.codes/webhooked/pkg/storage/redis"
+	"github.com/42atomys/webhooked/pkg/storage/postgres"
+	"github.com/42atomys/webhooked/pkg/storage/rabbitmq"
+	"github.com/42atomys/webhooked/pkg/storage/redis"
 )
 
 // Pusher is the interface for storage pusher

@@ -1,8 +1,8 @@
 package config
 
 import (
-	"atomys.codes/webhooked/pkg/factory"
-	"atomys.codes/webhooked/pkg/storage"
+	"github.com/42atomys/webhooked/pkg/factory"
+	"github.com/42atomys/webhooked/pkg/storage"
 )
 
 // Configuration is the struct contains all the configuration

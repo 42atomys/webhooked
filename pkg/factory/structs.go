@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sync"
 
-	"atomys.codes/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/valuable"
 )
 
 // contextKey is used to define context key inside the factory package

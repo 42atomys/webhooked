@@ -15,8 +15,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/pkg/factory"
-	"atomys.codes/webhooked/pkg/storage"
+	"github.com/42atomys/webhooked/pkg/factory"
+	"github.com/42atomys/webhooked/pkg/storage"
 )
 
 var (

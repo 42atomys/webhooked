@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/suite"
 
-	"atomys.codes/webhooked/internal/config"
+	"github.com/42atomys/webhooked/internal/config"
 )
 
 func init() {
