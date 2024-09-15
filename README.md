@@ -79,7 +79,7 @@ specs:
         "config": "{{ toJson .Config }}",
         "metadata": {
           "specName": "{{ .Spec.Name }}",
-          "deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
+          "deliveryID": "{{ .Request.Header.Get "X-Delivery" | default "unknown" }}"
         },
         "payload": {{ .Payload }}
       }
@@ -113,7 +113,7 @@ specs:
     formatting:
       templateString: |
         {
-          "deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
+          "deliveryID": "{{ .Request.Header.Get "X-Delivery" | default "unknown" }}"
         }
     httpCode: 200
     contentType: application/json
