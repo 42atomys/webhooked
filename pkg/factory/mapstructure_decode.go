@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"atomys.codes/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/valuable"
 )
 
 // DecodeHook is a mapstructure.DecodeHook that serializes

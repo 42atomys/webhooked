@@ -46,7 +46,7 @@ specs:
   formatting:
     templateString: |
       {
-        "contentType": "{{ .Request.Header | getHeader "Content-Type" }}",
+        "contentType": "{{ .Request.Header.Get "Content-Type" }}",
         "data": {{ .Payload }}
       }
   storage:
@@ -66,7 +66,7 @@ specs:
   entrypointUrl: /integration/basic-response
   response:
     formatting:
-      templateString: '{{ fromJson .Payload | lookup "id" }}'
+      templateString: '{{ fromJson .Payload | dig "id" }}'
     httpCode: 200
   security:
   - header:
