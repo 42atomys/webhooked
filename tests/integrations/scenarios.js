@@ -77,9 +77,9 @@ export const scenarios = [
   },
 ]
 
-
-
 const testSuite = () => {
+  redisClient.sendCommand('FLUSHALL');
+
   scenarios.forEach((test) => {
     describe(`${test.description} [${test.name}]`, async () => {
       const res = session(test.name).post('', JSON.stringify(test.payload), test.configuration);

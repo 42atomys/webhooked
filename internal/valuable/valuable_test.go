@@ -82,7 +82,7 @@ func (suite *TestSuiteValuable) TestSerializeValuable() {
 	}
 
 	for _, test := range tests {
-		v, err := SerializeValuable(test.input)
+		v, err := Serialize(test.input)
 		if test.wantErr && assert.Error(err, "this test must be crash %s", err) {
 		} else if assert.NoError(err, "cannot serialize test %s", test.name) {
 			assert.ElementsMatch(v.Get(), test.output, test.name)

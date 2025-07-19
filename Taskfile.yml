@@ -1,0 +1,76 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  build:
+    aliases: [b]
+    desc: Build the project
+    #env:
+    #  GOOS: linux
+    #  GOARCH: amd64
+    cmds:
+    - cmd: go build -o ./bin/webhooked ./cmd/webhooked/webhooked.go
+
+  test-units:
+    aliases: [tu]
+    desc: Run unit tests
+    env:
+      WH_DEBUG: "true"
+    cmds:
+    - cmd: go test ./... -coverprofile coverage.out -covermode count
+    - cmd: go tool cover -func coverage.out
+
+  run-integration:
+    aliases: [ri]
+    desc: Run webhooked server for integration tests
+    deps: [build]
+    env:
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ''
+    cmds:
+    - cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml
+
+  test-integration:
+    aliases: [ti]
+    desc: Run integration tests
+    cmds:
+    - cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml &
+    - defer: kill -9 $(pgrep -f "./bin/webhooked")
+    - cmd: k6 run ./tests/integrations/scenarios.js
+
+  test-load-testing:
+    aliases: [tl]
+    desc: Run load testing
+    env:
+      K6_WEB_DASHBOARD: true
+      K6_WEB_DASHBOARD_EXPORT: load-testing-report-{{ now }}.html
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ''
+    cmds:
+    # - cmd: go install go.k6.io/xk6/cmd/xk6@latest
+    #- cmd: xk6 build --with github.com/grafana/xk6-dashboard
+    #- task: build
+    #- cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml serve &> /dev/null &
+    #- defer: kill -9 $(pgrep -f "./bin/webhooked")
+    - cmd: k6 run ./tests/loadtesting/k6_load_script.js
+
+  tests:
+    aliases: [t]
+    desc: Run all tests
+    cmds:
+    - task: test-units
+    - task: test-integration
+
+  send-test-payload:
+    desc: Send a test payload to the webhooked server
+    aliases: [test-payload, tp]
+    vars:
+      addr: http://localhost:8080
+    cmds:
+    - cmd: "curl -XPOST -H \'X-Hook-Secret:test' -d '{\"time\": \"{{ now }}\", \"content\": \"Hello World\"}' {{ .addr }}/webhooks/v1alpha2/postgres"
+
