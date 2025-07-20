@@ -41,15 +41,20 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 	}
 
 	// Decode formatting
-	// formatting := format.Formatting{}
-	// if err := decodeField(m, "formatting", &formatting); err != nil {
-	// 	return nil, fmt.Errorf("error decoding formatting: %w", err)
-	// }
+	formatSpecs := format.Specs{}
+	if err := decodeField(m, "formatting", &formatSpecs); err != nil {
+		return nil, fmt.Errorf("error decoding formatting: %w", err)
+	}
+
+	formatting, err := format.New(formatSpecs)
+	if err != nil {
+		return nil, fmt.Errorf("error creating formatting: %w", err)
+	}
 
 	return Storage{
-		Type: storageType,
-		// Formatting: formatting,
-		Specs: spec,
+		Type:       storageType,
+		Formatting: formatting,
+		Specs:      spec,
 	}, nil
 }
 
@@ -71,6 +76,10 @@ func createSpec(storageType string) (Specs, error) {
 
 // Helper to decode a field from the map
 func decodeField(data map[string]any, key string, result any) error {
+	if _, exists := data[key]; !exists {
+		return nil
+	}
+
 	fieldData, ok := data[key].(map[string]any)
 	if !ok {
 		return fmt.Errorf("%s must be a map", key)

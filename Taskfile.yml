@@ -8,20 +8,41 @@ tasks:
   build:
     aliases: [b]
     desc: Build the project
+    vars:
+      VERSION:
+        sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
+      COMMIT:
+        sh: git rev-parse --short HEAD 2>/dev/null || echo "unknown"
+      BUILD_DATE:
+        sh: date -u +"%Y-%m-%dT%H:%M:%SZ"
     #env:
     #  GOOS: linux
     #  GOARCH: amd64
     cmds:
-    - cmd: go build -o ./bin/webhooked ./cmd/webhooked/webhooked.go
+      - cmd: go build -ldflags "-X github.com/42atomys/webhooked.Version={{.VERSION}} -X github.com/42atomys/webhooked.GitCommit={{.COMMIT}} -X github.com/42atomys/webhooked.BuildDate={{.BUILD_DATE}}" -o ./bin/webhooked ./cmd/webhooked/webhooked.go
+
+  lint:
+    aliases: [l]
+    desc: Run linting checks
+    cmds:
+      - cmd: golangci-lint run
+
+  fmt:
+    aliases: [f]
+    desc: Format code
+    cmds:
+      - cmd: gofmt -s -w .
+      - cmd: goimports -w .
 
   test-units:
     aliases: [tu]
     desc: Run unit tests
+    deps: [lint, fmt]
     env:
-      WH_DEBUG: "true"
+      WH_DEBUG: 'true'
     cmds:
-    - cmd: go test ./... -coverprofile coverage.out -covermode count
-    - cmd: go tool cover -func coverage.out
+      - cmd: go test ./... -coverprofile coverage.out -covermode count
+      - cmd: go tool cover -func coverage.out
 
   run-integration:
     aliases: [ri]
@@ -32,15 +53,15 @@ tasks:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ''
     cmds:
-    - cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml
+      - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml
 
   test-integration:
     aliases: [ti]
     desc: Run integration tests
     cmds:
-    - cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml &
-    - defer: kill -9 $(pgrep -f "./bin/webhooked")
-    - cmd: k6 run ./tests/integrations/scenarios.js
+      - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml &
+      - defer: kill -9 $(pgrep -f "./bin/webhooked")
+      - cmd: k6 run ./tests/integrations/scenarios.js
 
   test-load-testing:
     aliases: [tl]
@@ -52,25 +73,24 @@ tasks:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ''
     cmds:
-    # - cmd: go install go.k6.io/xk6/cmd/xk6@latest
-    #- cmd: xk6 build --with github.com/grafana/xk6-dashboard
-    #- task: build
-    #- cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml serve &> /dev/null &
-    #- defer: kill -9 $(pgrep -f "./bin/webhooked")
-    - cmd: k6 run ./tests/loadtesting/k6_load_script.js
+      # - cmd: go install go.k6.io/xk6/cmd/xk6@latest
+      #- cmd: xk6 build --with github.com/grafana/xk6-dashboard
+      #- task: build
+      #- cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml serve &> /dev/null &
+      #- defer: kill -9 $(pgrep -f "./bin/webhooked")
+      - cmd: k6 run ./tests/loadtesting/k6_load_script.js
 
   tests:
     aliases: [t]
     desc: Run all tests
     cmds:
-    - task: test-units
-    - task: test-integration
+      - task: test-units
+      - task: test-integration
 
   send-test-payload:
     desc: Send a test payload to the webhooked server
     aliases: [test-payload, tp]
     vars:
-      addr: http://localhost:8080
+      addr: http://localhost:8081
     cmds:
-    - cmd: "curl -XPOST -H \'X-Hook-Secret:test' -d '{\"time\": \"{{ now }}\", \"content\": \"Hello World\"}' {{ .addr }}/webhooks/v1alpha2/postgres"
-
+      - cmd: 'curl -XPOST -H ''X-Hook-Secret:test'' -d ''{"time": "{{ now }}", "content": "Hello World"}'' {{ .addr }}/webhooks/v1alpha2/integration/basic-usage'

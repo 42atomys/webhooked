@@ -10,7 +10,26 @@
       "request": "launch",
       "mode": "auto",
       "program": "cmd/webhooked/webhooked.go",
-      "args": ["serve"],
+      "args": [
+        "serve"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "X_DEV_SECRET_TOKEN": "test",
+      }
+    },
+    {
+      "name": "Start webhooked integrations",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "cmd/webhooked/webhooked.go",
+      "args": [
+        "-p",
+        "8081",
+        "--config",
+        "tests/integrations/webhooked_config.integrations.yaml"
+      ],
       "cwd": "${workspaceFolder}",
       "env": {
         "X_DEV_SECRET_TOKEN": "test",

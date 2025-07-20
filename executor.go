@@ -72,13 +72,19 @@ func (e *DefaultExecutor) pipelineSecure(ctx context.Context, rctx *fasthttp.Req
 		if err != nil {
 			return ctx, ErrHTTPInternalServerError(rctx, fmt.Errorf("error during security validation: %w", err))
 		}
-		return ctx, ErrHTTPUnathorized(rctx, nil)
+		return ctx, ErrHTTPUnathorized(rctx, errors.New("security validation failed"))
 	}
 	return ctx, nil
 }
 
 func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error) {
-	wg := e.wgPool.Get().(*sync.WaitGroup)
+	wgInterface := e.wgPool.Get()
+	var wg *sync.WaitGroup
+	if wgInterface != nil {
+		wg = wgInterface.(*sync.WaitGroup)
+	} else {
+		wg = &sync.WaitGroup{}
+	}
 	defer e.wgPool.Put(wg)
 	errChan := make(chan error)
 
@@ -87,22 +93,37 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 		wg.Add(1)
 
 		go func(s *storage.Storage, gCtx context.Context) {
-			payloadPtr := e.workerPool.Get().(*[]byte)
-			payload := *payloadPtr
+			payloadInterface := e.workerPool.Get()
+			var payloadPtr *[]byte
+			var payload []byte
+
+			if payloadInterface != nil {
+				payloadPtr = payloadInterface.(*[]byte)
+				payload = *payloadPtr
+			} else {
+				slice := make([]byte, 0, 1024)
+				payloadPtr = &slice
+				payload = slice
+			}
 
 			defer func() {
-				*payloadPtr = (*payloadPtr)[:0]
-				e.workerPool.Put(payloadPtr)
+				if payloadPtr != nil {
+					*payloadPtr = (*payloadPtr)[:0]
+					e.workerPool.Put(payloadPtr)
+				}
 				wg.Done()
 			}()
 
-			if s.Formatting.HasTemplate() {
+			if s.Formatting != nil && s.Formatting.HasTemplate() {
 				var err error
 				payload, err = s.Formatting.Format(gCtx, map[string]any{})
 				if err != nil {
 					errChan <- err
 					return
 				}
+			} else {
+				log.Debug().Msg("No formatting specified, using raw payload")
+				payload = rctx.PostBody()
 			}
 
 			if err := s.Store(gCtx, payload); err != nil {
@@ -124,12 +145,11 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 		}
 	}
 
-	e.wgPool.Put(wg) // Put the WaitGroup back in the pool after all operations are complete
 	return ctx, nil
 }
 
 func (e *DefaultExecutor) pipelineResponse(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error) {
-	if !wh.Response.Formatting.HasTemplate() {
+	if wh.Response.Formatting == nil || !wh.Response.Formatting.HasTemplate() {
 		rctx.SetStatusCode(fasthttp.StatusNoContent)
 		return ctx, nil
 	}

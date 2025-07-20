@@ -8,7 +8,8 @@ import (
 )
 
 func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
-	if from.Kind() != reflect.Map || to != reflect.TypeOf(Formatting{}) {
+	// Check if we're decoding to a pointer to Formatting
+	if from.Kind() != reflect.Map || to != reflect.TypeOf(&Formatting{}) {
 		return data, nil
 	}
 
@@ -21,10 +22,18 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 	templateStringStr, _ := m["templateString"].(string)
 	templatePathStr, _ := m["templatePath"].(string)
 
-	f, err := New(templateStringStr, templatePathStr)
+	// If both are empty, return nil to avoid unnecessary initialization
+	if templateStringStr == "" && templatePathStr == "" {
+		return (*Formatting)(nil), nil
+	}
+
+	f, err := New(Specs{
+		TemplateString: templateStringStr,
+		TemplatePath:   templatePathStr,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return *f, nil
+	return f, nil
 }

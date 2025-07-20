@@ -39,7 +39,7 @@ func ensureResponseCompleteness(wh *Webhook) error {
 
 	// Ensure response formatting is initialized correctly when not provided
 	if wh.Response.Formatting == nil {
-		formatting, err := format.New(string(defaultResponseTemplate), "")
+		formatting, err := format.New(format.Specs{TemplateString: string(defaultResponseTemplate)})
 		if err != nil {
 			return fmt.Errorf("error initializing default response formatting: %w", err)
 		}

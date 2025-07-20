@@ -16,6 +16,7 @@ export const options = {
         { target: 12_800, duration: "50s" },
         { target: 25_600, duration: "1m" },
         { target: 51_200, duration: "2m" },
+        { target: 51_200, duration: "3m" },
         { target: 0, duration: "30s" },
       ],
     },

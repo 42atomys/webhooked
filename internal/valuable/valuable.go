@@ -65,20 +65,24 @@ func (v *Valuable) Validate() error {
 // @return the serialized Valuable.
 func Serialize(data any) (*Valuable, error) {
 	v := &Valuable{}
+
+	decoderConfig := &mapstructure.DecoderConfig{
+		Result:  v,
+		TagName: "json",
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			decodeHookMapInterfaceToMapString,
+		),
+	}
+
 	switch t := data.(type) {
 	case nil:
 		return &Valuable{}, nil
 	case string:
 		v.Value = &t
-	case map[string]any:
-		// Decode the map into the Valuable struct
-		decoderConfig := &mapstructure.DecoderConfig{
-			Result:  v,
-			TagName: "json",
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				decodeHookMapInterfaceToMapString,
-			),
-		}
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, bool:
+		str := fmt.Sprint(t)
+		v.Value = &str
+	case map[string]any, map[any]any:
 		decoder, err := mapstructure.NewDecoder(decoderConfig)
 		if err != nil {
 			return nil, err

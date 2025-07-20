@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/42atomys/webhooked/format"
+	"github.com/rs/zerolog/log"
 )
 
 type Storage struct {
-	Type       string            `json:"type"`
-	Formatting format.Formatting `json:"formatting"`
-	Specs      Specs             `json:"specs"`
+	Type       string             `json:"type"`
+	Formatting *format.Formatting `json:"formatting"`
+	Specs      Specs              `json:"specs"`
 }
 
 type Specs interface {
@@ -19,5 +20,6 @@ type Specs interface {
 }
 
 func (s *Storage) Store(ctx context.Context, value []byte) error {
+	log.Debug().Msgf("Storing data in %s storage", s.Type)
 	return s.Specs.Store(ctx, value)
 }

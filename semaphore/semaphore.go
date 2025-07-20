@@ -7,7 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"unsafe"
 )
 
 /*
@@ -181,6 +180,7 @@ type Semaphore[T any] struct {
 	tail        int32
 	curWorkers  int32
 	consumerWg  sync.WaitGroup
+	retryWg     sync.WaitGroup  // Track pending retries
 	stop        int32
 	consumerSem chan struct{}
 }
@@ -223,10 +223,22 @@ func (s *Semaphore[T]) StartConsumers() {
 // the system shuts down cleanly.
 func (s *Semaphore[T]) StopConsumers() {
 	atomic.StoreInt32(&s.stop, 1)
+	
+	// Signal all consumers to wake up and check stop condition
+	// Use non-blocking sends to avoid deadlock if channel is full
 	for i := 0; i < s.cfg.MaxWorkers; i++ {
-		s.consumerSem <- struct{}{}
+		select {
+		case s.consumerSem <- struct{}{}:
+		default:
+			// Channel full, consumers will check stop condition anyway
+		}
 	}
+	
+	// Wait for all workers to complete
 	s.consumerWg.Wait()
+	
+	// Wait for all pending retries to complete
+	s.retryWg.Wait()
 }
 
 // Execute enqueues the given task for processing. If the queue is full, returns `QueueFullError`.
@@ -307,6 +319,28 @@ func (s *Semaphore[T]) enqueue(item queueItem[T]) error {
 	}
 }
 
+// enqueueRetry is like enqueue but allows retries to be queued even during shutdown.
+// This ensures that retries scheduled before shutdown can still be processed.
+func (s *Semaphore[T]) enqueueRetry(item queueItem[T]) error {
+	for {
+		h := atomic.LoadInt32(&s.head)
+		tl := atomic.LoadInt32(&s.tail)
+
+		// Check if there is capacity
+		if (tl - h) < s.capacity {
+			// Attempt to claim a slot in the queue
+			if atomic.CompareAndSwapInt32(&s.tail, tl, tl+1) {
+				s.queue[tl&s.mask] = item
+				s.signalConsumer()
+				return nil
+			}
+		} else {
+			// Queue is full
+			return QueueFullError{}
+		}
+	}
+}
+
 // signalConsumer notifies a waiting consumer goroutine that a new task is available.
 // If the consumerSem channel is full, the notification is dropped, but consumers will
 // eventually poll for tasks anyway. This helps keep the system responsive without
@@ -330,9 +364,6 @@ func (s *Semaphore[T]) signalConsumer() {
 func (s *Semaphore[T]) consumer() {
 	defer s.consumerWg.Done()
 	for {
-		if atomic.LoadInt32(&s.stop) == 1 {
-			return
-		}
 		select {
 		case <-s.consumerSem:
 			// Process all available tasks
@@ -350,6 +381,23 @@ func (s *Semaphore[T]) consumer() {
 				}
 			}
 		default:
+			// Check if we should stop and no more tasks to process
+			if atomic.LoadInt32(&s.stop) == 1 {
+				// Process any remaining tasks before stopping
+				for {
+					h := atomic.LoadInt32(&s.head)
+					tl := atomic.LoadInt32(&s.tail)
+					if h == tl {
+						// No more tasks, safe to exit
+						return
+					}
+					// Attempt to dequeue one task
+					if atomic.CompareAndSwapInt32(&s.head, h, h+1) {
+						item := s.queue[h&s.mask]
+						s.run(item)
+					}
+				}
+			}
 			// No signal, yield CPU to other goroutines
 			runtime.Gosched()
 		}
@@ -364,8 +412,9 @@ func (s *Semaphore[T]) consumer() {
 // This is an internal method handling the entire lifecycle of a single task processing attempt.
 func (s *Semaphore[T]) run(item queueItem[T]) {
 	atomic.AddInt32(&s.curWorkers, 1)
+	defer atomic.AddInt32(&s.curWorkers, -1)
+	
 	err := s.executor.Process(context.Background(), item.task)
-	atomic.AddInt32(&s.curWorkers, -1)
 
 	if err == nil {
 		return // Task succeeded
@@ -373,18 +422,34 @@ func (s *Semaphore[T]) run(item queueItem[T]) {
 
 	// Task failed, check if we can retry
 	if s.cfg.MaxRetries > 0 && item.retries < s.cfg.MaxRetries {
-		var delay time.Duration
-		if len(s.cfg.BackoffSchedule) > 0 {
-			delay = s.cfg.BackoffSchedule[item.retries%len(s.cfg.BackoffSchedule)]
-		}
-		time.Sleep(delay)
-		item.retries++
-		enqueueErr := s.enqueue(item)
-		if enqueueErr != nil {
-			// Could not re-enqueue due to queue closure or full queue after stop.
-			// The task is effectively lost at this point.
-			return
-		}
+		// Schedule retry asynchronously to avoid blocking the worker
+		s.retryWg.Add(1)
+		go func() {
+			defer s.retryWg.Done()
+			
+			var delay time.Duration
+			if len(s.cfg.BackoffSchedule) > 0 {
+				delay = s.cfg.BackoffSchedule[item.retries%len(s.cfg.BackoffSchedule)]
+			}
+			
+			if delay > 0 {
+				time.Sleep(delay)
+			}
+			
+			retryItem := queueItem[T]{
+				task:    item.task,
+				retries: item.retries + 1,
+			}
+			
+			// Try to enqueue retry even if semaphore is stopping
+			// We use a special retry enqueue that bypasses the stop check
+			enqueueErr := s.enqueueRetry(retryItem)
+			if enqueueErr != nil {
+				// Could not re-enqueue due to full queue
+				// The task is effectively lost at this point.
+				return
+			}
+		}()
 	} else {
 		// No retries left or retries not enabled
 		if item.retries >= s.cfg.MaxRetries && s.cfg.MaxRetries > 0 {
@@ -412,10 +477,10 @@ func nextPowerOfTwo(x int) int {
 	return x + 1
 }
 
-// noescape is a low-level optimization hint to the compiler to avoid heap allocations.
-// It's included as a reference for advanced optimization but is not currently used in this code.
-// In typical usage scenarios, this function can be safely removed.
-func noescape[T any](p *T) *T {
-	x := uintptr(unsafe.Pointer(p))
-	return (*T)(unsafe.Pointer(x))
-}
+// // noescape is a low-level optimization hint to the compiler to avoid heap allocations.
+// // It's included as a reference for advanced optimization but is not currently used in this code.
+// // In typical usage scenarios, this function can be safely removed.
+// func noescape[T any](p *T) *T {
+// 	x := uintptr(unsafe.Pointer(p))
+// 	return (*T)(unsafe.Pointer(x))
+// }

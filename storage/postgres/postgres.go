@@ -43,7 +43,7 @@ func (s *PostgresStorageSpec) Initialize() error {
 	}
 
 	for name, template := range s.Args {
-		formatter, err := format.New(template, "")
+		formatter, err := format.New(format.Specs{TemplateString: template})
 		if err != nil {
 			return fmt.Errorf("error initializing formatter for %s: %w", name, err)
 		}

@@ -55,7 +55,7 @@ func (suite *TestSuiteValuable) TestSerializeValuable() {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		output  []string
 		wantErr bool
 	}{
@@ -63,19 +63,19 @@ func (suite *TestSuiteValuable) TestSerializeValuable() {
 		{"int value", 1, []string{"1"}, false},
 		{"float value", 1.42, []string{"1.42"}, false},
 		{"boolean value", true, []string{"true"}, false},
-		{"map[interface{}]interface{} value", map[interface{}]interface{}{"value": "test"}, []string{"test"}, false},
-		{"map[interface{}]interface{} with error", map[interface{}]interface{}{"value": func() {}}, []string{}, true},
+		{"map[any]any value", map[any]any{"value": "test"}, []string{"test"}, false},
+		{"map[any]any with error", map[any]any{"value": func() {}}, []string{}, true},
 		{"nil value", nil, []string{}, false},
-		{"simple value map interface", map[string]interface{}{
+		{"simple value map interface", map[string]any{
 			"value": suite.testValue,
 		}, []string{suite.testValue}, false},
-		{"complexe value from envRef map interface", map[string]interface{}{
-			"valueFrom": map[string]interface{}{
+		{"complexe value from envRef map interface", map[string]any{
+			"valueFrom": map[string]any{
 				"envRef": suite.testEnvName,
 			},
 		}, []string{suite.testValue}, false},
-		{"invalid payload", map[string]interface{}{
-			"valueFrom": map[string]interface{}{
+		{"invalid payload", map[string]any{
+			"valueFrom": map[string]any{
 				"envRef": func() {},
 			},
 		}, []string{suite.testValue}, true},
@@ -102,12 +102,13 @@ func (suite *TestSuiteValuable) TestValuableGet() {
 		{"a basic list of values", &Valuable{Values: suite.testValues}, suite.testValues},
 		{"a basic value with a basic list", &Valuable{Value: &suite.testValue, Values: suite.testValues}, append(suite.testValues, suite.testValue)},
 		{"an empty valueFrom", &Valuable{ValueFrom: &ValueFromSource{}}, []string{}},
-		{"an environment ref with invalid name", &Valuable{ValueFrom: &ValueFromSource{EnvRef: &suite.testInvalidEnvName}}, []string{""}},
+		{"an environment ref with invalid name", &Valuable{ValueFrom: &ValueFromSource{EnvRef: &suite.testInvalidEnvName}}, []string{}},
 		{"an environment ref with valid name", &Valuable{ValueFrom: &ValueFromSource{EnvRef: &suite.testEnvName}}, []string{suite.testValue}},
 		{"a static ref", &Valuable{ValueFrom: &ValueFromSource{StaticRef: &suite.testValue}}, []string{suite.testValue}},
 	}
 
 	for _, test := range tests {
+		assert.NoError(test.input.retrieveData())
 		assert.ElementsMatch(test.input.Get(), test.output, test.name)
 	}
 }
@@ -130,6 +131,7 @@ func (suite *TestSuiteValuable) TestValuableFirstandString() {
 	}
 
 	for _, test := range tests {
+		assert.NoError(test.input.retrieveData())
 		assert.Equal(test.input.First(), test.output, test.name)
 		assert.Equal(test.input.String(), test.output, test.name)
 	}
@@ -153,6 +155,7 @@ func (suite *TestSuiteValuable) TestValuableContains() {
 
 	for _, test := range tests {
 		v := Valuable{Values: test.input}
+		assert.NoError(v.retrieveData(), test.name)
 		assert.Equal(test.output, v.Contains(test.testString), test.name)
 	}
 }
@@ -175,6 +178,7 @@ func (suite *TestSuiteValuable) TestValuablecontains() {
 
 	for _, test := range tests {
 		v := Valuable{Values: test.input}
+		assert.NoError(v.retrieveData(), test.name)
 		assert.Equal(test.output, contains(v.Get(), test.testString), test.name)
 	}
 }

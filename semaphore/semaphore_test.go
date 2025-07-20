@@ -32,7 +32,7 @@ func TestBasicFunctionality(t *testing.T) {
 	s.StartConsumers()
 
 	// Enqueue tasks
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		err := s.Execute(context.Background(), i)
 		require.NoError(t, err)
 	}
@@ -119,6 +119,10 @@ func TestTaskErrorWithRetry(t *testing.T) {
 
 	err := s.Execute(context.Background(), 1)
 	require.NoError(t, err)
+
+	// Give some time for retries to be processed
+	time.Sleep(10 * time.Millisecond)
+
 	s.StopConsumers()
 
 	// We expect 3 attempts total
@@ -142,6 +146,10 @@ func TestMaxRetryReached(t *testing.T) {
 
 	err := s.Execute(context.Background(), 10)
 	require.NoError(t, err)
+
+	// Give some time for retries to be processed
+	time.Sleep(10 * time.Millisecond)
+
 	s.StopConsumers()
 
 	assert.Equal(t, int32(3), attempts)
@@ -236,6 +244,10 @@ func TestBackoffScheduleWrapping(t *testing.T) {
 	)
 	s.StartConsumers()
 	require.NoError(t, s.Execute(context.Background(), 123))
+
+	// Give some time for retries to be processed
+	time.Sleep(20 * time.Millisecond)
+
 	s.StopConsumers()
 
 	// initial + 5 retries = 6 attempts total

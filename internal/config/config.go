@@ -40,7 +40,7 @@ type Metadata struct {
 type Spec struct {
 	MetricsEnabled bool        `json:"metricsEnabled"`
 	Throttling     *Throttling `json:"throttling"`
-	Webhooks       []*Webhook  `json:"specs"`
+	Webhooks       []*Webhook  `json:"webhooks"`
 }
 
 type Throttling struct {
@@ -161,7 +161,7 @@ func Load(path string) error {
 		},
 	})
 	if err != nil {
-		log.Fatal().Msgf("error loading config: %v", err)
+		log.Error().Msgf("error loading config: %v", err)
 		return err
 	}
 

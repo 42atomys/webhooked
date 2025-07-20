@@ -3,6 +3,8 @@ package custom
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -98,9 +100,12 @@ func (s *CustomSecuritySpec) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
 		return false, err
 	}
 
-	result := strings.Trim(sb.String(), "\n") == "true"
-	s.builderPool.Put(sb)
+	result, err := strconv.ParseBool(strings.Trim(sb.String(), "\n"))
+	if err != nil {
+		return false, fmt.Errorf("failed to parse custom security condition result as boolean: %w", err)
+	}
 
+	s.builderPool.Put(sb)
 	log.Debug().Str("condition", s.Condition.First()).Bool("result", result).Msgf("custom security condition evaluated")
 	return result, nil
 }

@@ -17,10 +17,13 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type Formatting struct {
+type Specs struct {
 	TemplateString string `json:"templateString"`
 	TemplatePath   string `json:"templatePath"`
+}
 
+type Formatting struct {
+	specs      Specs
 	template   *template.Template
 	handler    sprout.Handler
 	bufferPool sync.Pool
@@ -39,17 +42,17 @@ var (
 	ErrNoTemplate = errors.New("no template defined")
 )
 
-func (f *Formatting) compileTemplate(str, path string) error {
+func (f *Formatting) compileTemplate(specs Specs) error {
 	var buffer bytes.Buffer
 
-	if str != "" {
-		f.TemplateString = str
-		buffer.WriteString(str)
+	if specs.TemplateString != "" {
+		f.specs.TemplateString = specs.TemplateString
+		buffer.WriteString(specs.TemplateString)
 	}
 
-	if path != "" {
-		f.TemplatePath = path
-		file, err := os.OpenFile(path, os.O_RDONLY, 0666)
+	if specs.TemplatePath != "" {
+		f.specs.TemplatePath = specs.TemplatePath
+		file, err := os.OpenFile(specs.TemplatePath, os.O_RDONLY, 0666)
 		if err != nil {
 			return err
 		}
@@ -71,7 +74,7 @@ func (f *Formatting) compileTemplate(str, path string) error {
 	return nil
 }
 
-func New(str, path string) (*Formatting, error) {
+func New(specs Specs) (*Formatting, error) {
 	f := &Formatting{
 		handler: sprout.New(sprout.WithGroups(all.RegistryGroup())),
 		bufferPool: sync.Pool{
@@ -80,7 +83,7 @@ func New(str, path string) (*Formatting, error) {
 			},
 		},
 	}
-	if err := f.compileTemplate(str, path); err != nil {
+	if err := f.compileTemplate(specs); err != nil {
 		return nil, err
 	}
 
@@ -88,15 +91,27 @@ func New(str, path string) (*Formatting, error) {
 }
 
 func (f *Formatting) HasTemplate() bool {
-	return f.TemplateString != "" || f.TemplatePath != ""
+	if f == nil {
+		return false
+	}
+
+	return f.specs.TemplateString != "" || f.specs.TemplatePath != ""
 }
 
 func (f *Formatting) HasTemplateCompiled() bool {
+	if f == nil {
+		return false
+	}
+
 	return f.template != nil
 }
 
 func (f *Formatting) WithTemplate(template []byte) *Formatting {
-	f.TemplateString = string(template)
+	if f == nil {
+		return nil
+	}
+
+	f.specs.TemplateString = string(template)
 	return f
 }
 
@@ -137,6 +152,7 @@ func templateData(ctx context.Context) map[string]any {
 		"RequestTime": rctx.Time(),
 		"URI":         rctx.URI(),
 		"UserAgent":   string(rctx.UserAgent()),
+		"Request":     &rctx.Request,
 		"Payload":     string(rctx.Request.Body()),
 	}
 }
