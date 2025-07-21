@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -115,13 +116,17 @@ func gracefulShutdown() error {
 }
 
 func initializeConfig() error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get working directory: %w", err)
+	var configPath string
+	if filepath.IsAbs(flags.Config) {
+		configPath = flags.Config
+	} else {
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get working directory: %w", err)
+		}
+
+		configPath = fmt.Sprintf("%s/%s", wd, flags.Config)
 	}
-
-	configPath := fmt.Sprintf("%s/webhooked.yaml", wd)
-
 	// Check if config already exists
 	if _, err := os.Stat(configPath); err == nil {
 		return fmt.Errorf("configuration file already exists at %s", configPath)
@@ -133,10 +138,6 @@ metadata:
   name: example-webhooked-config
 specs:
 - metricsEnabled: true
-  throttling:
-    enabled: false
-    maxRequests: 1000
-    window: 60
   webhooks:
   - name: example-webhook
     entrypointUrl: /example
@@ -159,9 +160,9 @@ specs:
 		return fmt.Errorf("failed to write configuration file: %w", err)
 	}
 
-	fmt.Printf("✅ Webhooked configuration initialized at %s\n", configPath)
+	fmt.Println("✅ Webhooked configuration initialized at ", configPath)
 	fmt.Println("📝 Edit the configuration file to customize your webhook endpoints")
-	fmt.Printf("🚀 Start the server with: webhooked serve --config %s\n", configPath)
+	fmt.Println("🚀 Start the server with: webhooked serve --config \n", configPath)
 
 	return nil
 }
