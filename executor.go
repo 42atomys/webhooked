@@ -89,13 +89,13 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 		wg = &sync.WaitGroup{}
 	}
 	defer e.wgPool.Put(wg)
-	errChan := make(chan error)
+	errChan := make(chan error, len(wh.Storage))
 
 	for _, store := range wh.Storage {
 		storeCtx := contextutil.WithStore(ctx, store)
 		wg.Add(1)
 
-		go func(s *storage.Storage, gCtx context.Context) {
+		go func(gCtx context.Context, s *storage.Storage) {
 			payloadInterface := e.workerPool.Get()
 			var payloadPtr *[]byte
 			var payload []byte
@@ -134,7 +134,7 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 				return
 			}
 
-		}(store, storeCtx)
+		}(storeCtx, store)
 	}
 
 	go func() {
