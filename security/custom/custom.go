@@ -9,6 +9,7 @@ import (
 	"sync"
 	"text/template"
 
+	"github.com/42atomys/webhooked/format"
 	"github.com/42atomys/webhooked/internal/valuable"
 	"github.com/go-sprout/sprout"
 	"github.com/go-sprout/sprout/group/all"
@@ -82,21 +83,7 @@ func (s *CustomSecuritySpec) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
 	sb.Reset()
 
 	// Execute the template with the request context
-	if err := s.template.Execute(sb, map[string]any{
-		"ConnID":      ctx.ConnID(),
-		"ConnTime":    ctx.ConnTime(),
-		"Host":        string(ctx.Host()),
-		"IsTLS":       ctx.IsTLS(),
-		"Method":      string(ctx.Method()),
-		"QueryArgs":   ctx.QueryArgs(),
-		"RemoteAddr":  ctx.RemoteAddr(),
-		"RemoteIP":    ctx.RemoteIP(),
-		"RequestTime": ctx.Time(),
-		"URI":         ctx.URI(),
-		"UserAgent":   string(ctx.UserAgent()),
-		"Request":     &ctx.Request,
-		"Payload":     ctx.PostBody(),
-	}); err != nil {
+	if err := s.template.Execute(sb, format.GenerateRequestContext(ctx)); err != nil {
 		return false, err
 	}
 

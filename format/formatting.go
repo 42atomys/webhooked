@@ -125,7 +125,7 @@ func (f *Formatting) Format(ctx context.Context, data map[string]any) ([]byte, e
 	defer f.bufferPool.Put(buf)
 
 	// Insert context data into the template data
-	maps.Copy(data, templateData(ctx))
+	maps.Copy(data, generateTemplateContext(ctx))
 
 	if err := f.template.Execute(buf, data); err != nil {
 		return nil, fmt.Errorf("error while filling your template: %s", err.Error())
@@ -134,9 +134,17 @@ func (f *Formatting) Format(ctx context.Context, data map[string]any) ([]byte, e
 	return buf.Bytes(), nil
 }
 
-func templateData(ctx context.Context) map[string]any {
+func generateTemplateContext(ctx context.Context) map[string]any {
 	rctx, ok := contextutil.RequestCtxFromContext[*fasthttp.RequestCtx](ctx)
 	if !ok {
+		return map[string]any{}
+	}
+
+	return GenerateRequestContext(rctx)
+}
+
+func GenerateRequestContext(rctx *fasthttp.RequestCtx) map[string]any {
+	if rctx == nil {
 		return map[string]any{}
 	}
 
