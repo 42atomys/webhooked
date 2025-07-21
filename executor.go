@@ -55,7 +55,7 @@ func (e *DefaultExecutor) IncomingRequest(ctx context.Context, rctx *fasthttp.Re
 
 	for _, fn := range e.pipelineOrder() {
 		if ctx, err = fn(ctx, rctx, wh); err != nil {
-			return err
+			return fmt.Errorf("pipeline error: %w", err)
 		}
 	}
 

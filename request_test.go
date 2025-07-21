@@ -16,7 +16,7 @@ func TestErrHTTPNotFound(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusNotFound, ctx.Response.StatusCode())
 	assert.Equal(t, notFound, ctx.Response.Body())
-	assert.Equal(t, testErr, returnedErr)
+	assert.ErrorIs(t, returnedErr, testErr)
 }
 
 func TestErrHTTPUnauthorized(t *testing.T) {
@@ -27,7 +27,7 @@ func TestErrHTTPUnauthorized(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusUnauthorized, ctx.Response.StatusCode())
 	assert.Equal(t, unauthorized, ctx.Response.Body())
-	assert.Equal(t, testErr, returnedErr)
+	assert.ErrorIs(t, returnedErr, testErr)
 }
 
 func TestErrHTTPInternalServerError(t *testing.T) {
@@ -38,7 +38,7 @@ func TestErrHTTPInternalServerError(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusInternalServerError, ctx.Response.StatusCode())
 	assert.Equal(t, internalServerError, ctx.Response.Body())
-	assert.Equal(t, testErr, returnedErr)
+	assert.ErrorIs(t, returnedErr, testErr)
 }
 
 func TestErrHTTPBadRequest(t *testing.T) {
@@ -49,7 +49,7 @@ func TestErrHTTPBadRequest(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusBadRequest, ctx.Response.StatusCode())
 	assert.Equal(t, badRequest, ctx.Response.Body())
-	assert.Equal(t, testErr, returnedErr)
+	assert.ErrorIs(t, returnedErr, testErr)
 }
 
 func TestErrHTTPNotFound_WithNilError(t *testing.T) {
@@ -87,13 +87,13 @@ func TestMultipleErrorCalls(t *testing.T) {
 	// First error
 	err1 := ErrHTTPBadRequest(ctx, errors.New("first error"))
 	assert.Error(t, err1)
-	assert.Equal(t, "first error", err1.Error())
+	assert.Equal(t, "bad request: first error", err1.Error())
 	assert.Equal(t, fasthttp.StatusBadRequest, ctx.Response.StatusCode())
 
 	// Second error (should overwrite)
 	err2 := ErrHTTPInternalServerError(ctx, errors.New("second error"))
 	assert.Error(t, err2)
-	assert.Equal(t, "second error", err2.Error())
+	assert.Equal(t, "internal server error: second error", err2.Error())
 	assert.Equal(t, fasthttp.StatusInternalServerError, ctx.Response.StatusCode())
 	assert.Equal(t, internalServerError, ctx.Response.Body())
 }

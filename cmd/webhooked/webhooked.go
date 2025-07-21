@@ -43,7 +43,7 @@ func exec(ctx context.Context) error {
 	}
 
 	if err := flags.ValidateFlags(); err != nil {
-		return err
+		return fmt.Errorf("error validating flags: %w", err)
 	}
 
 	if flags.Version {
@@ -70,7 +70,7 @@ func exec(ctx context.Context) error {
 
 	cfg, err := config.Load(flags.Config)
 	if err != nil {
-		return err
+		return fmt.Errorf("error loading config: %w", err)
 	}
 
 	// Create server instance
@@ -99,7 +99,7 @@ func exec(ctx context.Context) error {
 		log.Info().Msg("shutdown signal received, gracefully shutting down...")
 		return app.gracefulShutdown()
 	case err := <-serverErrChan:
-		return err
+		return fmt.Errorf("server error: %w", err)
 	}
 }
 
@@ -115,8 +115,7 @@ func (a *app) gracefulShutdown() error {
 
 	log.Info().Msg("gracefully shutting down server...")
 	if err := a.server.Shutdown(shutdownCtx); err != nil {
-		log.Error().Err(err).Msg("server shutdown failed")
-		return err
+		return fmt.Errorf("error shutting down server: %w", err)
 	}
 
 	log.Info().Msg("server shutdown completed")

@@ -1,6 +1,8 @@
 package webhooked
 
 import (
+	"fmt"
+
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
 )
@@ -15,25 +17,37 @@ var (
 func ErrHTTPNotFound(rctx *fasthttp.RequestCtx, err error) error {
 	rctx.SetStatusCode(fasthttp.StatusNotFound)
 	rctx.SetBody(notFound)
-	return err
+	if err != nil {
+		return fmt.Errorf("not found: %w", err)
+	}
+	return nil
 }
 
 func ErrHTTPUnauthorized(rctx *fasthttp.RequestCtx, err error) error {
 	rctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	rctx.SetBody(unauthorized)
-	return err
+	if err != nil {
+		return fmt.Errorf("unauthorized: %w", err)
+	}
+	return nil
 }
 
 func ErrHTTPInternalServerError(rctx *fasthttp.RequestCtx, err error) error {
 	log.Error().Err(err).Msg(string(internalServerError))
 	rctx.SetStatusCode(fasthttp.StatusInternalServerError)
 	rctx.SetBody(internalServerError)
-	return err
+	if err != nil {
+		return fmt.Errorf("internal server error: %w", err)
+	}
+	return nil
 }
 
 func ErrHTTPBadRequest(rctx *fasthttp.RequestCtx, err error) error {
 	log.Error().Err(err).Msg(string(badRequest))
 	rctx.SetStatusCode(fasthttp.StatusBadRequest)
 	rctx.SetBody(badRequest)
-	return err
+	if err != nil {
+		return fmt.Errorf("bad request: %w", err)
+	}
+	return nil
 }

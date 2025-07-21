@@ -31,12 +31,12 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 	// Map storage type to spec struct
 	spec, err := createSpec(securityType)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating spec: %w", err)
 	}
 
 	// Decode the specs into the spec struct
 	if err := hooks.DecodeField(m, "specs", spec); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error decoding specs: %w", err)
 	}
 
 	// Return the Security struct with the correct spec

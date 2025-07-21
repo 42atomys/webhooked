@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/42atomys/webhooked/internal/valuable"
@@ -44,11 +45,11 @@ func (s *RabbitmqStorageSpec) Initialize() error {
 	var err error
 
 	if s.client, err = amqp.Dial(s.DatabaseURL.First()); err != nil {
-		return err
+		return fmt.Errorf("error connecting to rabbitmq: %w", err)
 	}
 
 	if s.channel, err = s.client.Channel(); err != nil {
-		return err
+		return fmt.Errorf("error creating channel: %w", err)
 	}
 
 	go func() {
@@ -68,7 +69,7 @@ func (s *RabbitmqStorageSpec) Initialize() error {
 		s.NoWait,
 		nil,
 	); err != nil {
-		return err
+		return fmt.Errorf("error declaring queue: %w", err)
 	}
 
 	return nil
@@ -92,7 +93,7 @@ func (s *RabbitmqStorageSpec) Store(ctx context.Context, value []byte) error {
 				s.reconnect()
 				continue
 			} else {
-				return err
+				return fmt.Errorf("error publishing to rabbitmq: %w", err)
 			}
 		}
 		return nil

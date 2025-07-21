@@ -84,7 +84,7 @@ func (s *CustomSecuritySpec) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
 
 	// Execute the template with the request context
 	if err := s.template.Execute(sb, format.GenerateRequestContext(ctx)); err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to execute custom security condition template: %w", err)
 	}
 
 	result, err := strconv.ParseBool(strings.Trim(sb.String(), "\n"))

@@ -61,7 +61,7 @@ func (f *Formatting) compileTemplate(specs Specs) error {
 		var buffer bytes.Buffer
 		_, err = io.Copy(&buffer, file)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading template file: %w", err)
 		}
 	}
 
@@ -84,7 +84,7 @@ func New(specs Specs) (*Formatting, error) {
 		},
 	}
 	if err := f.compileTemplate(specs); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error compiling template: %w", err)
 	}
 
 	return f, nil

@@ -45,7 +45,7 @@ func (s *RedisStorageSpec) Initialize() error {
 
 	// Ping Redis for testing config
 	if err := s.client.Ping(context.Background()).Err(); err != nil {
-		return err
+		return fmt.Errorf("error pinging Redis: %w", err)
 	}
 
 	return nil
@@ -53,7 +53,7 @@ func (s *RedisStorageSpec) Initialize() error {
 
 func (s *RedisStorageSpec) Store(ctx context.Context, value []byte) error {
 	if err := s.client.RPush(ctx, s.Key, value).Err(); err != nil {
-		return err
+		return fmt.Errorf("error storing value in Redis: %w", err)
 	}
 	return nil
 }

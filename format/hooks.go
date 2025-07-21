@@ -32,7 +32,7 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 		TemplatePath:   templatePathStr,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating formatting: %w", err)
 	}
 
 	return f, nil

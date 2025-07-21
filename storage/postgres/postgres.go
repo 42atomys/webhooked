@@ -39,7 +39,7 @@ func (s *PostgresStorageSpec) Initialize() error {
 	var err error
 
 	if s.client, err = sqlx.Open("postgres", s.DatabaseURL.First()); err != nil {
-		return err
+		return fmt.Errorf("error connecting to postgres: %w", err)
 	}
 
 	for name, template := range s.Args {
@@ -57,7 +57,7 @@ func (s *PostgresStorageSpec) Initialize() error {
 func (s *PostgresStorageSpec) Store(ctx context.Context, value []byte) error {
 	stmt, err := s.client.PrepareNamedContext(ctx, s.Query)
 	if err != nil {
-		return err
+		return fmt.Errorf("error preparing statement: %w", err)
 	}
 
 	var namedArgs = make(map[string]any, 0)
@@ -66,12 +66,12 @@ func (s *PostgresStorageSpec) Store(ctx context.Context, value []byte) error {
 			"FieldName": name,
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("error formatting argument %s: %w", name, err)
 		}
 		namedArgs[name] = value
 	}
 
 	_, err = stmt.QueryContext(ctx, namedArgs)
-	return err
+	return fmt.Errorf("error executing query: %w", err)
 
 }

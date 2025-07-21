@@ -85,7 +85,7 @@ func Serialize(data any) (*Valuable, error) {
 	case map[string]any, map[any]any:
 		decoder, err := mapstructure.NewDecoder(decoderConfig)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error creating decoder: %w", err)
 		}
 		if err := decoder.Decode(data); err != nil {
 			return nil, fmt.Errorf("unsupported data type %T: %v", data, err)
@@ -96,11 +96,11 @@ func Serialize(data any) (*Valuable, error) {
 
 	// Retrieve data from external sources during serialization
 	if err := v.retrieveData(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error retrieving data: %w", err)
 	}
 
 	if err := v.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error validating valuable: %w", err)
 	}
 
 	return v, nil

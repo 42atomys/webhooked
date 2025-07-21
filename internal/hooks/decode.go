@@ -30,7 +30,7 @@ func DecodeField(data map[string]any, key string, result any) error {
 		TagName: "json",
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating decoder: %w", err)
 	}
 
 	return decoder.Decode(fieldData)
