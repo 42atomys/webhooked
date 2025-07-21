@@ -16,14 +16,14 @@ import (
 )
 
 func TestNewExecutor(t *testing.T) {
-	executor := NewExecutor()
+	executor := NewExecutor(&config.Config{})
 	assert.NotNil(t, executor)
 	assert.IsType(t, &DefaultExecutor{}, executor)
 }
 
 func TestDefaultExecutor_IncomingRequest_SpecNotFound(t *testing.T) {
 	// Setup
-	executor := NewExecutor()
+	executor := NewExecutor(&config.Config{})
 
 	ctx := &fasthttp.RequestCtx{}
 	ctx.Request.SetRequestURI("/nonexistent/path")
@@ -40,7 +40,7 @@ func TestDefaultExecutor_IncomingRequest_Success(t *testing.T) {
 	// Setup test configuration
 	setupTestConfig(t)
 
-	executor := NewExecutor()
+	executor := NewExecutor(&config.Config{})
 
 	ctx := &fasthttp.RequestCtx{}
 	ctx.Request.SetRequestURI("/webhooks/v1alpha2/test")
@@ -59,7 +59,7 @@ func TestDefaultExecutor_IncomingRequest_SecurityFailure(t *testing.T) {
 	// Setup test configuration with security that will fail
 	setupTestConfigWithFailingSecurity(t)
 
-	executor := NewExecutor()
+	executor := NewExecutor(&config.Config{})
 
 	ctx := &fasthttp.RequestCtx{}
 	ctx.Request.SetRequestURI("/webhooks/v1alpha2/secure-test")

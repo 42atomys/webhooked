@@ -17,6 +17,7 @@ import (
 
 // Server represents the webhooked HTTP server
 type Server struct {
+	config      *config.Config
 	port        int
 	server      *fasthttp.Server
 	listener    net.Listener
@@ -25,8 +26,8 @@ type Server struct {
 }
 
 // NewServer creates a new Server instance
-func NewServer(port int) (*Server, error) {
-	executor := NewExecutor()
+func NewServer(config *config.Config, port int) (*Server, error) {
+	executor := NewExecutor(config)
 
 	// Use fasthttp.Server with optimized settings for high concurrency
 	server := &fasthttp.Server{
@@ -41,6 +42,7 @@ func NewServer(port int) (*Server, error) {
 	}
 
 	s := &Server{
+		config:   config,
 		port:     port,
 		server:   server,
 		executor: executor,
@@ -161,8 +163,7 @@ func (s *Server) handleHealthCheck(rctx *fasthttp.RequestCtx) {
 // handleReadinessCheck handles the /ready endpoint
 func (s *Server) handleReadinessCheck(rctx *fasthttp.RequestCtx) {
 	// Check if configuration is loaded
-	config := config.Current()
-	if config == nil || len(config.Specs) == 0 {
+	if s.config == nil || len(s.config.Specs) == 0 {
 		rctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
 		rctx.SetContentType("application/json")
 		rctx.SetBody([]byte(`{"status":"not ready","reason":"no configuration loaded"}`))
@@ -176,14 +177,13 @@ func (s *Server) handleReadinessCheck(rctx *fasthttp.RequestCtx) {
 
 // initializeRateLimiter initializes the rate limiter based on configuration
 func (s *Server) initializeRateLimiter() {
-	cfg := config.Current()
-	if cfg == nil || len(cfg.Specs) == 0 {
+	if s.config == nil || len(s.config.Specs) == 0 {
 		return
 	}
 
 	// Use throttling configuration from the first spec
 	// In a more advanced implementation, you might want to support per-webhook throttling
-	for _, spec := range cfg.Specs {
+	for _, spec := range s.config.Specs {
 		if spec.Throttling != nil && spec.Throttling.Enabled {
 			s.rateLimiter = NewRateLimiter(spec.Throttling)
 			s.rateLimiter.StartCleanupRoutine()

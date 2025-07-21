@@ -18,14 +18,17 @@ type Executor interface {
 }
 
 type DefaultExecutor struct {
+	config *config.Config
+
 	workerPool sync.Pool
 	wgPool     sync.Pool
 }
 
 type pipelineFn = func(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error)
 
-func NewExecutor() *DefaultExecutor {
+func NewExecutor(config *config.Config) *DefaultExecutor {
 	return &DefaultExecutor{
+		config: config,
 		workerPool: sync.Pool{
 			New: func() interface{} {
 				slice := make([]byte, 0, 1024)
@@ -41,7 +44,7 @@ func NewExecutor() *DefaultExecutor {
 }
 
 func (e *DefaultExecutor) IncomingRequest(ctx context.Context, rctx *fasthttp.RequestCtx) error {
-	wh, err := config.FetchWebhookByPath(rctx.Path())
+	wh, err := e.config.FetchWebhookByPath(rctx.Path())
 	if errors.Is(err, config.ErrSpecNotFound) {
 		return ErrHTTPNotFound(rctx, err)
 	}

@@ -17,7 +17,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var server *webhooked.Server
+type app struct {
+	config *config.Config
+	server *webhooked.Server
+}
 
 func main() {
 	// Create context that will be cancelled on interrupt signals
@@ -58,29 +61,34 @@ func exec(ctx context.Context) error {
 	}
 
 	if flags.Validate {
-		if err := config.Load(flags.Config); err != nil {
+		if _, err := config.Load(flags.Config); err != nil {
 			return fmt.Errorf("configuration validation failed: %w", err)
 		}
 		fmt.Println("✅ Configuration is valid")
 		return nil
 	}
 
-	if err := config.Load(flags.Config); err != nil {
+	cfg, err := config.Load(flags.Config)
+	if err != nil {
 		return err
 	}
 
 	// Create server instance
-	var err error
-	server, err = webhooked.NewServer(flags.Port)
+	server, err := webhooked.NewServer(cfg, flags.Port)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
+	}
+
+	app := &app{
+		config: cfg,
+		server: server,
 	}
 
 	// Start server in goroutine
 	serverErrChan := make(chan error, 1)
 	go func() {
 		log.Info().Int("port", flags.Port).Msg("starting webhooked server")
-		if err := server.Start(); err != nil {
+		if err := app.server.Start(); err != nil {
 			serverErrChan <- fmt.Errorf("server failed to start: %w", err)
 		}
 	}()
@@ -89,14 +97,14 @@ func exec(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		log.Info().Msg("shutdown signal received, gracefully shutting down...")
-		return gracefulShutdown()
+		return app.gracefulShutdown()
 	case err := <-serverErrChan:
 		return err
 	}
 }
 
-func gracefulShutdown() error {
-	if server == nil {
+func (a *app) gracefulShutdown() error {
+	if a.server == nil {
 		log.Info().Msg("no server to shutdown")
 		return nil
 	}
@@ -106,7 +114,7 @@ func gracefulShutdown() error {
 	defer cancel()
 
 	log.Info().Msg("gracefully shutting down server...")
-	if err := server.Shutdown(shutdownCtx); err != nil {
+	if err := a.server.Shutdown(shutdownCtx); err != nil {
 		log.Error().Err(err).Msg("server shutdown failed")
 		return err
 	}

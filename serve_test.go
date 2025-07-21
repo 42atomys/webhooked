@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewServer(t *testing.T) {
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 
 	require.NoError(t, err)
 	assert.NotNil(t, server)
@@ -23,7 +23,7 @@ func TestNewServer(t *testing.T) {
 }
 
 func TestServer_HealthCheck(t *testing.T) {
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	ctx := &fasthttp.RequestCtx{}
@@ -38,7 +38,7 @@ func TestServer_HealthCheck(t *testing.T) {
 }
 
 func TestServer_ReadinessCheck_NoConfig(t *testing.T) {
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	ctx := &fasthttp.RequestCtx{}
@@ -55,7 +55,7 @@ func TestServer_ReadinessCheck_WithConfig(t *testing.T) {
 	// Setup configuration
 	setupMinimalConfig(t)
 
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	ctx := &fasthttp.RequestCtx{}
@@ -70,7 +70,7 @@ func TestServer_ReadinessCheck_WithConfig(t *testing.T) {
 }
 
 func TestServer_RequestHandler_HealthEndpoints(t *testing.T) {
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	handler := server.requestHandlerFunc()
@@ -108,7 +108,7 @@ func TestServer_RequestHandler_WebhookPath(t *testing.T) {
 	// Setup minimal config for webhook testing
 	setupMinimalConfig(t)
 
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	handler := server.requestHandlerFunc()
@@ -125,7 +125,7 @@ func TestServer_RequestHandler_WebhookPath(t *testing.T) {
 }
 
 func TestServer_Shutdown(t *testing.T) {
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	// Test shutdown without starting
@@ -137,7 +137,7 @@ func TestServer_Shutdown(t *testing.T) {
 }
 
 func TestServer_Shutdown_WithTimeout(t *testing.T) {
-	server, err := NewServer(8080)
+	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
 	// Create a context that expires immediately
@@ -182,7 +182,7 @@ func TestServer_Integration(t *testing.T) {
 
 	setupMinimalConfig(t)
 
-	server, err := NewServer(0) // Use port 0 for random available port
+	server, err := NewServer(&config.Config{}, 0) // Use port 0 for random available port
 	require.NoError(t, err)
 
 	// Use in-memory listener for testing

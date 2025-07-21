@@ -83,7 +83,6 @@ type Response struct {
 }
 
 var (
-	currentConfig = &Config{}
 	// ErrSpecNotFound is returned when the spec is not found
 	ErrSpecNotFound = errors.New("spec not found")
 	// ErrInvalidStatusCode is returned when the status code is invalid
@@ -103,10 +102,11 @@ var (
 	mutex = &sync.RWMutex{}
 )
 
-func Load(path string) error {
+func Load(path string) (*Config, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
+	var currentConfig *Config
 	var k = koanf.New(".")
 
 	// File provider
@@ -118,12 +118,12 @@ func Load(path string) error {
 
 		log.Info().Msgf("config file changed, reloading config...")
 		_ = fileProvider.Unwatch()
-		if err := Load(path); err != nil {
+		if currentConfig, err = Load(path); err != nil {
 			log.Error().Msgf("error reloading config: %v", err)
 		}
 	}); err != nil {
 		log.Error().Msgf("error watching config file: %v", err)
-		return err
+		return currentConfig, err
 	}
 
 	// Load YAML config.
@@ -140,7 +140,7 @@ func Load(path string) error {
 	}), nil)
 	if err != nil {
 		log.Error().Msgf("error loading config: %v", err)
-		return err
+		return currentConfig, err
 	}
 
 	if os.Getenv("WH_DEBUG") == "true" {
@@ -162,14 +162,14 @@ func Load(path string) error {
 	})
 	if err != nil {
 		log.Error().Msgf("error loading config: %v", err)
-		return err
+		return currentConfig, err
 	}
 
 	webhooksCount := 0
 	for _, spec := range currentConfig.Specs {
 		for _, wh := range spec.Webhooks {
 			if err := validateAndSetDefaults(wh); err != nil {
-				return err
+				return currentConfig, err
 			}
 
 			webhooksCount++
@@ -177,21 +177,17 @@ func Load(path string) error {
 	}
 
 	log.Info().Msgf("Load %d configurations with %d webhooks from %s", len(currentConfig.Specs), webhooksCount, path)
-	return nil
+	return currentConfig, nil
 }
 
-func Current() *Config {
-	return currentConfig
-}
-
-func FetchWebhookByPath(path []byte) (*Webhook, error) {
-	webhooksPrefixLen := len(webhooksPrefix) + len(currentConfig.APIVersion) + 1 // 1 for the slash
+func (cfg *Config) FetchWebhookByPath(path []byte) (*Webhook, error) {
+	webhooksPrefixLen := len(webhooksPrefix) + len(cfg.APIVersion) + 1 // 1 for the slash
 	if len(path) < webhooksPrefixLen {
 		return nil, ErrSpecNotFound
 	}
 
 	path = path[webhooksPrefixLen:]
-	for _, spec := range currentConfig.Specs {
+	for _, spec := range cfg.Specs {
 		for _, wh := range spec.Webhooks {
 			if wh.EntrypointURL == string(path) {
 				return wh, nil
