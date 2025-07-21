@@ -5,12 +5,11 @@ import (
 	"reflect"
 
 	"github.com/42atomys/webhooked/format"
-	"github.com/42atomys/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/hooks"
 	"github.com/42atomys/webhooked/storage/noop"
 	"github.com/42atomys/webhooked/storage/postgres"
 	"github.com/42atomys/webhooked/storage/rabbitmq"
 	"github.com/42atomys/webhooked/storage/redis"
-	"github.com/go-viper/mapstructure/v2"
 )
 
 func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
@@ -36,13 +35,13 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 	}
 
 	// Decode specs
-	if err := decodeField(m, "specs", spec); err != nil {
+	if err := hooks.DecodeField(m, "specs", spec); err != nil {
 		return nil, fmt.Errorf("error decoding specs: %w", err)
 	}
 
 	// Decode formatting
 	formatSpecs := format.Specs{}
-	if err := decodeField(m, "formatting", &formatSpecs); err != nil {
+	if err := hooks.DecodeField(m, "formatting", &formatSpecs); err != nil {
 		return nil, fmt.Errorf("error decoding formatting: %w", err)
 	}
 
@@ -72,30 +71,4 @@ func createSpec(storageType string) (Specs, error) {
 	default:
 		return nil, fmt.Errorf("unknown storage type: %s", storageType)
 	}
-}
-
-// Helper to decode a field from the map
-func decodeField(data map[string]any, key string, result any) error {
-	if _, exists := data[key]; !exists {
-		return nil
-	}
-
-	fieldData, ok := data[key].(map[string]any)
-	if !ok {
-		return fmt.Errorf("%s must be a map", key)
-	}
-
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			valuable.MapToValuableHookFunc(),
-			format.DecodeHook,
-		),
-		Result:  result,
-		TagName: "json",
-	})
-	if err != nil {
-		return err
-	}
-
-	return decoder.Decode(fieldData)
 }

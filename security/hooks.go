@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/42atomys/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/hooks"
 	"github.com/42atomys/webhooked/security/custom"
 	"github.com/42atomys/webhooked/security/github"
 	"github.com/42atomys/webhooked/security/noop"
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -29,36 +28,14 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 		return data, fmt.Errorf("security type must be a string")
 	}
 
-	// Depending on the type, create the appropriate spec struct
-	var spec Specs
-	switch securityType {
-	case "noop":
-		spec = &noop.NoopSecuritySpec{}
-	case "github":
-		spec = &github.GitHubSecuritySpec{}
-	case "custom":
-		spec = &custom.CustomSecuritySpec{}
-	default:
-		return data, fmt.Errorf("unknown security type: %s", securityType)
-	}
-
-	// Decode the specs into the spec struct
-	specsData, ok := m["specs"].(map[string]any)
-	if !ok {
-		return data, fmt.Errorf("specs must be a map, got %v", m["specs"])
-	}
-
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			valuable.MapToValuableHookFunc(),
-		),
-		Result:  spec,
-		TagName: "json",
-	})
+	// Map storage type to spec struct
+	spec, err := createSpec(securityType)
 	if err != nil {
 		return nil, err
 	}
-	if err := decoder.Decode(specsData); err != nil {
+
+	// Decode the specs into the spec struct
+	if err := hooks.DecodeField(m, "specs", spec); err != nil {
 		return nil, err
 	}
 
@@ -67,4 +44,18 @@ func DecodeHook(from reflect.Type, to reflect.Type, data any) (any, error) {
 		Type:  securityType,
 		Specs: spec,
 	}, nil
+}
+
+// Helper to map storage type to spec struct
+func createSpec(securityType string) (Specs, error) {
+	switch securityType {
+	case "noop":
+		return &noop.NoopSecuritySpec{}, nil
+	case "github":
+		return &github.GitHubSecuritySpec{}, nil
+	case "custom":
+		return &custom.CustomSecuritySpec{}, nil
+	default:
+		return nil, fmt.Errorf("unknown security type: %s", securityType)
+	}
 }
