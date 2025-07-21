@@ -72,7 +72,7 @@ func (e *DefaultExecutor) pipelineSecure(ctx context.Context, rctx *fasthttp.Req
 		if err != nil {
 			return ctx, ErrHTTPInternalServerError(rctx, fmt.Errorf("error during security validation: %w", err))
 		}
-		return ctx, ErrHTTPUnathorized(rctx, errors.New("security validation failed"))
+		return ctx, ErrHTTPUnauthorized(rctx, errors.New("security validation failed"))
 	}
 	return ctx, nil
 }

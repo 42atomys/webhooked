@@ -23,7 +23,7 @@ func TestErrHTTPUnauthorized(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	testErr := errors.New("unauthorized error")
 
-	returnedErr := ErrHTTPUnathorized(ctx, testErr)
+	returnedErr := ErrHTTPUnauthorized(ctx, testErr)
 
 	assert.Equal(t, fasthttp.StatusUnauthorized, ctx.Response.StatusCode())
 	assert.Equal(t, unauthorized, ctx.Response.Body())
@@ -65,7 +65,7 @@ func TestErrHTTPNotFound_WithNilError(t *testing.T) {
 func TestErrHTTPUnauthorized_WithNilError(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
-	returnedErr := ErrHTTPUnathorized(ctx, nil)
+	returnedErr := ErrHTTPUnauthorized(ctx, nil)
 
 	assert.Equal(t, fasthttp.StatusUnauthorized, ctx.Response.StatusCode())
 	assert.Equal(t, unauthorized, ctx.Response.Body())

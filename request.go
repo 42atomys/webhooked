@@ -18,7 +18,7 @@ func ErrHTTPNotFound(rctx *fasthttp.RequestCtx, err error) error {
 	return err
 }
 
-func ErrHTTPUnathorized(rctx *fasthttp.RequestCtx, err error) error {
+func ErrHTTPUnauthorized(rctx *fasthttp.RequestCtx, err error) error {
 	rctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	rctx.SetBody(unauthorized)
 	return err
