@@ -42,6 +42,10 @@ func (s *PostgresStorageSpec) Initialize() error {
 		return fmt.Errorf("error connecting to postgres: %w", err)
 	}
 
+	if s.formatters == nil {
+		s.formatters = make(map[string]*format.Formatting)
+	}
+
 	for name, template := range s.Args {
 		formatter, err := format.New(format.Specs{TemplateString: template})
 		if err != nil {
