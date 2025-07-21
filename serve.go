@@ -95,18 +95,6 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	}
 }
 
-// Legacy function for backward compatibility
-func Serve(port int) {
-	server, err := NewServer(port)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to create server")
-	}
-
-	if err := server.Start(); err != nil {
-		log.Fatal().Err(err).Msg("server failed to start")
-	}
-}
-
 // requestHandlerFunc returns the HTTP request handler for the server
 func (s *Server) requestHandlerFunc() fasthttp.RequestHandler {
 	return func(rctx *fasthttp.RequestCtx) {
