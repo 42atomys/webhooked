@@ -11,10 +11,4 @@ bin
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
-# Configuration file
-config/*.yaml
-!config/webhooked.example.yaml
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+*.html
