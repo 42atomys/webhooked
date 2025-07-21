@@ -165,9 +165,9 @@ func (rl *RateLimiter) StartCleanupRoutine() {
 }
 
 // GetStats returns current rate limiting statistics
-func (rl *RateLimiter) GetStats() map[string]interface{} {
+func (rl *RateLimiter) GetStats() map[string]any {
 	if rl.throttle == nil || !rl.throttle.Enabled {
-		return map[string]interface{}{
+		return map[string]any{
 			"enabled": false,
 		}
 	}
@@ -184,7 +184,7 @@ func (rl *RateLimiter) GetStats() map[string]interface{} {
 		window.mu.RUnlock()
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"enabled":        true,
 		"active_clients": activeClients,
 		"total_requests": totalRequests,

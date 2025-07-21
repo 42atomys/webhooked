@@ -60,7 +60,7 @@ func (s *PostgresStorageSpec) Store(ctx context.Context, value []byte) error {
 		return err
 	}
 
-	var namedArgs = make(map[string]interface{}, 0)
+	var namedArgs = make(map[string]any, 0)
 	for name := range s.Args {
 		value, err := s.formatters[name].Format(ctx, map[string]any{
 			"FieldName": name,

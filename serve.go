@@ -200,9 +200,9 @@ func (s *Server) initializeRateLimiter() {
 }
 
 // GetRateLimitStats returns current rate limiting statistics
-func (s *Server) GetRateLimitStats() map[string]interface{} {
+func (s *Server) GetRateLimitStats() map[string]any {
 	if s.rateLimiter == nil {
-		return map[string]interface{}{
+		return map[string]any{
 			"enabled": false,
 		}
 	}
