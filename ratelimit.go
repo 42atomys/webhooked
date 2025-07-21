@@ -36,8 +36,6 @@ func (rl *RateLimiter) Allow(clientIP string) bool {
 	}
 
 	rl.mu.Lock()
-	defer rl.mu.Unlock()
-
 	window, exists := rl.windows[clientIP]
 	if !exists {
 		window = &Window{
@@ -45,6 +43,7 @@ func (rl *RateLimiter) Allow(clientIP string) bool {
 		}
 		rl.windows[clientIP] = window
 	}
+	rl.mu.Unlock()
 
 	return rl.checkWindow(window, clientIP)
 }

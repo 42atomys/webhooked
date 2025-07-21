@@ -30,13 +30,13 @@ func NewExecutor(config *config.Config) *DefaultExecutor {
 	return &DefaultExecutor{
 		config: config,
 		workerPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				slice := make([]byte, 0, 1024)
 				return &slice
 			},
 		},
 		wgPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &sync.WaitGroup{}
 			},
 		},
@@ -96,6 +96,14 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 		wg.Add(1)
 
 		go func(gCtx context.Context, s *storage.Storage) {
+			// Check for context cancellation
+			select {
+			case <-gCtx.Done():
+				errChan <- gCtx.Err()
+				return
+			default:
+			}
+
 			payloadInterface := e.workerPool.Get()
 			var payloadPtr *[]byte
 			var payload []byte
@@ -126,7 +134,7 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 				}
 			} else {
 				log.Debug().Msg("No formatting specified, using raw payload")
-				payload = rctx.PostBody()
+				payload = append(payload[:0], rctx.PostBody()...)
 			}
 
 			if err := s.Store(gCtx, payload); err != nil {

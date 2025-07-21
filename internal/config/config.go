@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/42atomys/webhooked/format"
 	"github.com/42atomys/webhooked/internal/valuable"
@@ -24,14 +23,6 @@ type Config struct {
 	Metadata   Metadata   `json:"metadata"`
 	Specs      []*Spec    `json:"specs"`
 }
-
-type APIVersion string
-type Kind string
-
-const (
-	APIVersionV1Alpha2 APIVersion = "v1alpha2"
-	KindConfiguration  Kind       = "Configuration"
-)
 
 type Metadata struct {
 	Name string `json:"name"`
@@ -82,6 +73,14 @@ type Response struct {
 	ContentType string             `json:"contentType"`
 }
 
+type APIVersion string
+type Kind string
+
+const (
+	APIVersionV1Alpha2 APIVersion = "v1alpha2"
+	KindConfiguration  Kind       = "Configuration"
+)
+
 var (
 	// ErrSpecNotFound is returned when the spec is not found
 	ErrSpecNotFound = errors.New("spec not found")
@@ -98,14 +97,7 @@ var (
 	webhooksPrefix = []byte("/webhooks")
 )
 
-var (
-	mutex = &sync.RWMutex{}
-)
-
 func Load(path string) (*Config, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
 	var currentConfig *Config
 	var k = koanf.New(".")
 

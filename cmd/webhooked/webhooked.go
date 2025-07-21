@@ -132,7 +132,7 @@ func initializeConfig() error {
 			return fmt.Errorf("failed to get working directory: %w", err)
 		}
 
-		configPath = fmt.Sprintf("%s/%s", wd, flags.Config)
+		configPath = filepath.Join(wd, flags.Config)
 	}
 	// Check if config already exists
 	if _, err := os.Stat(configPath); err == nil {
