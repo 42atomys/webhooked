@@ -62,11 +62,6 @@ type Webhook struct {
 	Response      Response           `json:"response"`
 }
 
-type TypedSpec[T any, S any] struct {
-	Type  T `json:"type"`
-	Specs S `json:"specs"`
-}
-
 type Response struct {
 	Formatting  *format.Formatting `json:"formatting"`
 	StatusCode  int                `json:"statusCode"`
