@@ -2,10 +2,14 @@ package github
 
 import (
 	"bytes"
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/42atomys/webhooked/internal/valuable"
-	"github.com/valyala/fasthttp"
 )
 
 type GitHubSecuritySpec struct {
@@ -22,15 +26,19 @@ func (s *GitHubSecuritySpec) Initialize() error {
 	return nil
 }
 
-func (s *GitHubSecuritySpec) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
+func (s *GitHubSecuritySpec) IsSecure(ctx context.Context, rctx *fasthttpz.RequestCtx) (bool, error) {
 	if s.Secret == nil || s.Secret.First() == "" {
 		return false, errors.New("secret is required")
 	}
 
-	headerValue := ctx.Request.Header.Peek(headerName)
+	headerValue := rctx.Request.Header.Peek(headerName)
 	if len(headerValue) == 0 {
 		return false, nil
 	}
 
-	return bytes.Equal([]byte(s.Secret.First()), headerValue), nil
+	h := hmac.New(sha256.New, []byte(s.Secret.String()))
+	h.Write(rctx.PostBody())
+	expectedValue := "sha256=" + hex.EncodeToString(h.Sum(nil))
+
+	return bytes.Equal([]byte(expectedValue), headerValue), nil
 }

@@ -3,6 +3,7 @@ package webhooked
 import (
 	"fmt"
 
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
 )
@@ -14,7 +15,7 @@ var (
 	badRequest          = []byte("Bad Request")
 )
 
-func ErrHTTPNotFound(rctx *fasthttp.RequestCtx, err error) error {
+func ErrHTTPNotFound(rctx *fasthttpz.RequestCtx, err error) error {
 	rctx.SetStatusCode(fasthttp.StatusNotFound)
 	rctx.SetBody(notFound)
 	if err != nil {
@@ -23,7 +24,7 @@ func ErrHTTPNotFound(rctx *fasthttp.RequestCtx, err error) error {
 	return nil
 }
 
-func ErrHTTPUnauthorized(rctx *fasthttp.RequestCtx, err error) error {
+func ErrHTTPUnauthorized(rctx *fasthttpz.RequestCtx, err error) error {
 	rctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	rctx.SetBody(unauthorized)
 	if err != nil {
@@ -32,7 +33,7 @@ func ErrHTTPUnauthorized(rctx *fasthttp.RequestCtx, err error) error {
 	return nil
 }
 
-func ErrHTTPInternalServerError(rctx *fasthttp.RequestCtx, err error) error {
+func ErrHTTPInternalServerError(rctx *fasthttpz.RequestCtx, err error) error {
 	log.Error().Err(err).Msg(string(internalServerError))
 	rctx.SetStatusCode(fasthttp.StatusInternalServerError)
 	rctx.SetBody(internalServerError)
@@ -42,7 +43,7 @@ func ErrHTTPInternalServerError(rctx *fasthttp.RequestCtx, err error) error {
 	return nil
 }
 
-func ErrHTTPBadRequest(rctx *fasthttp.RequestCtx, err error) error {
+func ErrHTTPBadRequest(rctx *fasthttpz.RequestCtx, err error) error {
 	log.Error().Err(err).Msg(string(badRequest))
 	rctx.SetStatusCode(fasthttp.StatusBadRequest)
 	rctx.SetBody(badRequest)

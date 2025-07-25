@@ -152,19 +152,37 @@ func Load(path string) (*Config, error) {
 		return currentConfig, err
 	}
 
-	webhooksCount := 0
-	for _, spec := range currentConfig.Specs {
+	if err := currentConfig.Validate(); err != nil {
+		log.Error().Msgf("error validating config: %v", err)
+		return currentConfig, err
+	}
+
+	log.Info().Msgf("Load %d configurations webhooks from %s", len(currentConfig.Specs), path)
+	return currentConfig, nil
+}
+
+func (cfg *Config) Validate() error {
+	if cfg.APIVersion != APIVersionV1Alpha2 {
+		return errors.New("unsupported API version")
+	}
+
+	if cfg.Kind != KindConfiguration {
+		return errors.New("invalid kind, expected 'Configuration'")
+	}
+
+	for _, spec := range cfg.Specs {
 		for _, wh := range spec.Webhooks {
-			if err := validateAndSetDefaults(wh); err != nil {
-				return currentConfig, err
+			if wh.EntrypointURL == "" {
+				return errors.New("webhook entrypoint URL cannot be empty")
 			}
 
-			webhooksCount++
+			if err := validateAndSetDefaults(wh); err != nil {
+				return err
+			}
 		}
 	}
 
-	log.Info().Msgf("Load %d configurations with %d webhooks from %s", len(currentConfig.Specs), webhooksCount, path)
-	return currentConfig, nil
+	return nil
 }
 
 func (cfg *Config) FetchWebhookByPath(path []byte) (*Webhook, error) {
@@ -187,4 +205,11 @@ func (cfg *Config) FetchWebhookByPath(path []byte) (*Webhook, error) {
 
 func WebhooksEndpointPrefix() []byte {
 	return webhooksPrefix
+}
+
+func (w *Webhook) TemplateContext() map[string]any {
+	return map[string]any{
+		"SpecName":          w.Name,
+		"SpecEntrypointURL": w.EntrypointURL,
+	}
 }

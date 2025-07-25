@@ -4,12 +4,13 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
 
 func TestErrHTTPNotFound(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	testErr := errors.New("test error")
 
 	returnedErr := ErrHTTPNotFound(ctx, testErr)
@@ -20,7 +21,7 @@ func TestErrHTTPNotFound(t *testing.T) {
 }
 
 func TestErrHTTPUnauthorized(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	testErr := errors.New("unauthorized error")
 
 	returnedErr := ErrHTTPUnauthorized(ctx, testErr)
@@ -31,7 +32,7 @@ func TestErrHTTPUnauthorized(t *testing.T) {
 }
 
 func TestErrHTTPInternalServerError(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	testErr := errors.New("internal server error")
 
 	returnedErr := ErrHTTPInternalServerError(ctx, testErr)
@@ -42,7 +43,7 @@ func TestErrHTTPInternalServerError(t *testing.T) {
 }
 
 func TestErrHTTPBadRequest(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	testErr := errors.New("bad request error")
 
 	returnedErr := ErrHTTPBadRequest(ctx, testErr)
@@ -53,7 +54,7 @@ func TestErrHTTPBadRequest(t *testing.T) {
 }
 
 func TestErrHTTPNotFound_WithNilError(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	returnedErr := ErrHTTPNotFound(ctx, nil)
 
@@ -63,7 +64,7 @@ func TestErrHTTPNotFound_WithNilError(t *testing.T) {
 }
 
 func TestErrHTTPUnauthorized_WithNilError(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	returnedErr := ErrHTTPUnauthorized(ctx, nil)
 
@@ -82,7 +83,7 @@ func TestErrorConstants(t *testing.T) {
 
 func TestMultipleErrorCalls(t *testing.T) {
 	// Test that multiple error calls on the same context work correctly
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	// First error
 	err1 := ErrHTTPBadRequest(ctx, errors.New("first error"))

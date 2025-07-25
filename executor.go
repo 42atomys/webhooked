@@ -8,13 +8,14 @@ import (
 
 	"github.com/42atomys/webhooked/internal/config"
 	"github.com/42atomys/webhooked/internal/contextutil"
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/42atomys/webhooked/storage"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
 )
 
 type Executor interface {
-	IncomingRequest(ctx context.Context, rctx *fasthttp.RequestCtx) error
+	IncomingRequest(ctx context.Context, rctx *fasthttpz.RequestCtx) error
 }
 
 type DefaultExecutor struct {
@@ -24,7 +25,7 @@ type DefaultExecutor struct {
 	wgPool     sync.Pool
 }
 
-type pipelineFn = func(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error)
+type pipelineFn = func(ctx context.Context, rctx *fasthttpz.RequestCtx, wh *config.Webhook) (context.Context, error)
 
 func NewExecutor(config *config.Config) *DefaultExecutor {
 	return &DefaultExecutor{
@@ -43,7 +44,7 @@ func NewExecutor(config *config.Config) *DefaultExecutor {
 	}
 }
 
-func (e *DefaultExecutor) IncomingRequest(ctx context.Context, rctx *fasthttp.RequestCtx) error {
+func (e *DefaultExecutor) IncomingRequest(ctx context.Context, rctx *fasthttpz.RequestCtx) error {
 	wh, err := e.config.FetchWebhookByPath(rctx.Path())
 	if errors.Is(err, config.ErrSpecNotFound) {
 		return ErrHTTPNotFound(rctx, err)
@@ -70,8 +71,8 @@ func (e *DefaultExecutor) pipelineOrder() []pipelineFn {
 	}
 }
 
-func (e *DefaultExecutor) pipelineSecure(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error) {
-	if secure, err := wh.Security.IsSecure(rctx); err != nil || !secure {
+func (e *DefaultExecutor) pipelineSecure(ctx context.Context, rctx *fasthttpz.RequestCtx, wh *config.Webhook) (context.Context, error) {
+	if secure, err := wh.Security.IsSecure(ctx, rctx); err != nil || !secure {
 		if err != nil {
 			return ctx, ErrHTTPInternalServerError(rctx, fmt.Errorf("error during security validation: %w", err))
 		}
@@ -80,7 +81,7 @@ func (e *DefaultExecutor) pipelineSecure(ctx context.Context, rctx *fasthttp.Req
 	return ctx, nil
 }
 
-func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error) {
+func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttpz.RequestCtx, wh *config.Webhook) (context.Context, error) {
 	wgInterface := e.wgPool.Get()
 	var wg *sync.WaitGroup
 	if wgInterface != nil {
@@ -159,7 +160,7 @@ func (e *DefaultExecutor) pipelineStore(ctx context.Context, rctx *fasthttp.Requ
 	return ctx, nil
 }
 
-func (e *DefaultExecutor) pipelineResponse(ctx context.Context, rctx *fasthttp.RequestCtx, wh *config.Webhook) (context.Context, error) {
+func (e *DefaultExecutor) pipelineResponse(ctx context.Context, rctx *fasthttpz.RequestCtx, wh *config.Webhook) (context.Context, error) {
 	if wh.Response.Formatting == nil || !wh.Response.Formatting.HasTemplate() {
 		rctx.SetStatusCode(fasthttp.StatusNoContent)
 		return ctx, nil

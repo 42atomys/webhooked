@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/42atomys/webhooked/internal/config"
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/pprofhandler"
@@ -49,6 +50,7 @@ func NewServer(config *config.Config, port int) (*Server, error) {
 	}
 
 	// Initialize rate limiter when configuration is available
+	// TODO: Make ratelimiter works correctly
 	s.initializeRateLimiter()
 
 	// Set the handler
@@ -99,7 +101,8 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 // requestHandlerFunc returns the HTTP request handler for the server
 func (s *Server) requestHandlerFunc() fasthttp.RequestHandler {
-	return func(rctx *fasthttp.RequestCtx) {
+	return func(ctx *fasthttp.RequestCtx) {
+		rctx := &fasthttpz.RequestCtx{ctx}
 		log.Debug().Msgf("Incoming request: %s", rctx.Path())
 
 		start := rctx.Time()
@@ -149,19 +152,19 @@ func (s *Server) requestHandlerFunc() fasthttp.RequestHandler {
 			return
 		}
 
-		pprofhandler.PprofHandler(rctx)
+		pprofhandler.PprofHandler(rctx.RequestCtx)
 	}
 }
 
 // handleHealthCheck handles the /health endpoint
-func (s *Server) handleHealthCheck(rctx *fasthttp.RequestCtx) {
+func (s *Server) handleHealthCheck(rctx *fasthttpz.RequestCtx) {
 	rctx.SetStatusCode(fasthttp.StatusOK)
 	rctx.SetContentType("application/json")
 	rctx.SetBody([]byte(`{"status":"healthy","version":"` + Version + `"}`))
 }
 
 // handleReadinessCheck handles the /ready endpoint
-func (s *Server) handleReadinessCheck(rctx *fasthttp.RequestCtx) {
+func (s *Server) handleReadinessCheck(rctx *fasthttpz.RequestCtx) {
 	// Check if configuration is loaded
 	if s.config == nil || len(s.config.Specs) == 0 {
 		rctx.SetStatusCode(fasthttp.StatusServiceUnavailable)

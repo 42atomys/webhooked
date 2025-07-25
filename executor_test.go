@@ -7,11 +7,13 @@ import (
 
 	"github.com/42atomys/webhooked/format"
 	"github.com/42atomys/webhooked/internal/config"
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/42atomys/webhooked/security"
 	securityNoop "github.com/42atomys/webhooked/security/noop"
 	"github.com/42atomys/webhooked/storage"
 	storageNoop "github.com/42atomys/webhooked/storage/noop"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
 
@@ -22,10 +24,9 @@ func TestNewExecutor(t *testing.T) {
 }
 
 func TestDefaultExecutor_IncomingRequest_SpecNotFound(t *testing.T) {
-	// Setup
 	executor := NewExecutor(&config.Config{})
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/nonexistent/path")
 
 	// Execute
@@ -37,12 +38,9 @@ func TestDefaultExecutor_IncomingRequest_SpecNotFound(t *testing.T) {
 }
 
 func TestDefaultExecutor_IncomingRequest_Success(t *testing.T) {
-	// Setup test configuration
-	setupTestConfig(t)
+	executor := NewExecutor(setupTestConfig(t))
 
-	executor := NewExecutor(&config.Config{})
-
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/webhooks/v1alpha2/test")
 	ctx.Request.Header.SetMethod("POST")
 	ctx.Request.SetBody([]byte(`{"test": "data"}`))
@@ -56,12 +54,9 @@ func TestDefaultExecutor_IncomingRequest_Success(t *testing.T) {
 }
 
 func TestDefaultExecutor_IncomingRequest_SecurityFailure(t *testing.T) {
-	// Setup test configuration with security that will fail
-	setupTestConfigWithFailingSecurity(t)
+	executor := NewExecutor(setupTestConfigWithFailingSecurity(t))
 
-	executor := NewExecutor(&config.Config{})
-
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/webhooks/v1alpha2/secure-test")
 	ctx.Request.Header.SetMethod("POST")
 	ctx.Request.SetBody([]byte(`{"test": "data"}`))
@@ -74,6 +69,21 @@ func TestDefaultExecutor_IncomingRequest_SecurityFailure(t *testing.T) {
 	assert.Equal(t, fasthttp.StatusUnauthorized, ctx.Response.StatusCode())
 }
 
+func TestDefaultExecutor_IncomingRequest_SecurityError(t *testing.T) {
+	executor := NewExecutor(setupTestConfigWithFailingSecurity(t))
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	ctx.Request.SetRequestURI("/webhooks/v1alpha2/secure-test-error")
+	ctx.Request.Header.SetMethod("POST")
+	ctx.Request.SetBody([]byte(`{"test": "data"}`))
+
+	// Execute
+	err := executor.IncomingRequest(context.Background(), ctx)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Equal(t, fasthttp.StatusInternalServerError, ctx.Response.StatusCode())
+}
 func TestDefaultExecutor_pipelineOrder(t *testing.T) {
 	executor := &DefaultExecutor{}
 	pipeline := executor.pipelineOrder()
@@ -92,7 +102,7 @@ func TestDefaultExecutor_pipelineSecure_Success(t *testing.T) {
 		},
 	}
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	resultCtx, err := executor.pipelineSecure(context.Background(), ctx, webhook)
 
@@ -107,7 +117,7 @@ func TestDefaultExecutor_pipelineResponse_NoTemplate(t *testing.T) {
 		Response: config.Response{},
 	}
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	resultCtx, err := executor.pipelineResponse(context.Background(), ctx, webhook)
 
@@ -130,7 +140,7 @@ func TestDefaultExecutor_pipelineStore_Success(t *testing.T) {
 		},
 	}
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetBody([]byte(`{"test": "data"}`))
 
 	resultCtx, err := executor.pipelineStore(context.Background(), ctx, webhook)
@@ -141,22 +151,66 @@ func TestDefaultExecutor_pipelineStore_Success(t *testing.T) {
 
 // Helper functions for test setup
 
-func setupTestConfig(t *testing.T) {
-	// Since we can't modify the global config easily in tests,
-	// we'll skip these tests that require global config manipulation
-	t.Skip("Skipping test that requires global config modification")
+func setupTestConfig(t *testing.T) *config.Config {
+	config := &config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs: []*config.Spec{
+			{
+				Webhooks: []*config.Webhook{
+					{
+						Name:          "success-test",
+						EntrypointURL: "/test",
+						Security: security.Security{
+							Type:  "noop",
+							Specs: &securityNoop.NoopSecuritySpec{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, config.Validate())
+	return config
 }
 
-func setupTestConfigWithFailingSecurity(t *testing.T) {
-	// Since we can't modify the global config easily in tests,
-	// we'll skip these tests that require global config manipulation
-	t.Skip("Skipping test that requires global config modification")
+func setupTestConfigWithFailingSecurity(t *testing.T) *config.Config {
+	config := &config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs: []*config.Spec{
+			{
+				Webhooks: []*config.Webhook{
+					{
+						Name:          "secure-test",
+						EntrypointURL: "/secure-test",
+						Security: security.Security{
+							Type:  "failling",
+							Specs: &mockFailingSecurity{},
+						},
+					},
+					{
+						Name:          "secure-test-error",
+						EntrypointURL: "/secure-test-error",
+						Security: security.Security{
+							Type:  "error",
+							Specs: &mockErrorSecurity{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, config.Validate())
+	return config
 }
 
 // Mock security implementation that always fails
 type mockFailingSecurity struct{}
 
-func (m *mockFailingSecurity) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
+func (m *mockFailingSecurity) IsSecure(ctx context.Context, rctx *fasthttpz.RequestCtx) (bool, error) {
 	return false, nil
 }
 
@@ -171,7 +225,7 @@ func (m *mockFailingSecurity) Initialize() error {
 // Mock security implementation that returns an error
 type mockErrorSecurity struct{}
 
-func (m *mockErrorSecurity) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
+func (m *mockErrorSecurity) IsSecure(ctx context.Context, rctx *fasthttpz.RequestCtx) (bool, error) {
 	return false, errors.New("security check failed")
 }
 
@@ -193,7 +247,7 @@ func TestDefaultExecutor_pipelineSecure_Error(t *testing.T) {
 		},
 	}
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	resultCtx, err := executor.pipelineSecure(context.Background(), ctx, webhook)
 
@@ -212,7 +266,7 @@ func TestDefaultExecutor_pipelineSecure_Unauthorized(t *testing.T) {
 		},
 	}
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 
 	resultCtx, err := executor.pipelineSecure(context.Background(), ctx, webhook)
 

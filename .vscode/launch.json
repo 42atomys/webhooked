@@ -28,7 +28,7 @@
         "-p",
         "8081",
         "--config",
-        "tests/integrations/webhooked_config.integrations.yaml"
+        "tests/integrations/extended_config.integrations.yaml"
       ],
       "cwd": "${workspaceFolder}",
       "env": {

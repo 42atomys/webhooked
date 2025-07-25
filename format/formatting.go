@@ -14,7 +14,6 @@ import (
 	"github.com/42atomys/webhooked/internal/contextutil"
 	"github.com/go-sprout/sprout"
 	"github.com/go-sprout/sprout/group/all"
-	"github.com/valyala/fasthttp"
 )
 
 type Specs struct {
@@ -34,6 +33,10 @@ type TemplateFormatter interface {
 	HasTemplateCompiled() bool
 	WithTemplate(template []byte) *Formatting
 	Format(ctx context.Context, data map[string]any) ([]byte, error)
+}
+
+type TemplateContexter interface {
+	TemplateContext() map[string]any
 }
 
 var (
@@ -125,7 +128,7 @@ func (f *Formatting) Format(ctx context.Context, data map[string]any) ([]byte, e
 	defer f.bufferPool.Put(buf)
 
 	// Insert context data into the template data
-	maps.Copy(data, generateTemplateContext(ctx))
+	maps.Copy(data, compileContexts(ctx, data))
 
 	if err := f.template.Execute(buf, data); err != nil {
 		return nil, fmt.Errorf("error while filling your template: %s", err.Error())
@@ -134,33 +137,42 @@ func (f *Formatting) Format(ctx context.Context, data map[string]any) ([]byte, e
 	return buf.Bytes(), nil
 }
 
-func generateTemplateContext(ctx context.Context) map[string]any {
-	rctx, ok := contextutil.RequestCtxFromContext[*fasthttp.RequestCtx](ctx)
+func compileContexts(ctx context.Context, extras ...map[string]any) map[string]any {
+	specTemplateCtx, ok := contextutil.WebhookSpecFromContext[TemplateContexter](ctx)
 	if !ok {
-		return map[string]any{}
+		specTemplateCtx = nil
 	}
 
-	return GenerateRequestContext(rctx)
+	storageTemplateCtx, ok := contextutil.StoreFromContext[TemplateContexter](ctx)
+	if !ok {
+		storageTemplateCtx = nil
+	}
+
+	requestTemplateCtx, ok := contextutil.RequestCtxFromContext[TemplateContexter](ctx)
+	if !ok {
+		requestTemplateCtx = nil
+	}
+
+	merged := MergeTemplateContexts(specTemplateCtx, storageTemplateCtx, requestTemplateCtx)
+
+	for _, extra := range extras {
+		for k, v := range extra {
+			merged[k] = v
+		}
+	}
+	return merged
 }
 
-func GenerateRequestContext(rctx *fasthttp.RequestCtx) map[string]any {
-	if rctx == nil {
-		return map[string]any{}
-	}
+func MergeTemplateContexts(ctxs ...TemplateContexter) map[string]any {
+	merged := make(map[string]any)
+	for _, ctx := range ctxs {
+		if ctx == nil {
+			continue
+		}
 
-	return map[string]any{
-		"ConnID":      rctx.ConnID(),
-		"ConnTime":    rctx.ConnTime(),
-		"Host":        string(rctx.Host()),
-		"IsTLS":       rctx.IsTLS(),
-		"Method":      string(rctx.Method()),
-		"QueryArgs":   rctx.QueryArgs(),
-		"RemoteAddr":  rctx.RemoteAddr(),
-		"RemoteIP":    rctx.RemoteIP(),
-		"RequestTime": rctx.Time(),
-		"URI":         rctx.URI(),
-		"UserAgent":   string(rctx.UserAgent()),
-		"Request":     &rctx.Request,
-		"Payload":     string(rctx.Request.Body()),
+		for k, v := range ctx.TemplateContext() {
+			merged[k] = v
+		}
 	}
+	return merged
 }

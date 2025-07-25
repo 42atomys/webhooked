@@ -5,14 +5,18 @@
   "dockerComposeFile": "docker-compose.yaml",
   "service": "workspace",
   "workspaceFolder": "/workspace",
-
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers/features/go:1": {},
     "ghcr.io/eitsupi/devcontainer-features/go-task:1": {},
-    "ghcr.io/dhoeric/features/k6:1": {}
+    "ghcr.io/dhoeric/features/k6:1": {},
+    "ghcr.io/devcontainers-extra/features/apt-get-packages": {
+      "packages": [
+        "redis-tools",
+        "postgresql-client"
+      ]
+    }
   },
-
   // Configure tool-specific properties.
   "customizations": {
     // Configure properties specific to VS Code.
@@ -35,14 +39,15 @@
         "files.encoding": "utf8",
         "workbench.editor.decorations.badges": true,
         "workbench.editor.decorations.colors": true,
-        "editor.rulers": [80],
+        "editor.rulers": [
+          80
+        ],
         "search.useGlobalIgnoreFiles": true,
         "search.useParentIgnoreFiles": true,
         "[yaml]": {
           "editor.defaultFormatter": "redhat.vscode-yaml"
         }
       },
-
       // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
         "golang.Go",
@@ -54,12 +59,10 @@
       ]
     }
   },
-
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
     8080 // webhooked port
   ],
-
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   // "remoteUser": "vscode",
   "portsAttributes": {

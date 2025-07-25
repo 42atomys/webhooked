@@ -75,7 +75,14 @@ func (s *PostgresStorageSpec) Store(ctx context.Context, value []byte) error {
 		namedArgs[name] = value
 	}
 
-	_, err = stmt.QueryContext(ctx, namedArgs)
-	return fmt.Errorf("error executing query: %w", err)
+	_, err = stmt.ExecContext(ctx, namedArgs)
+	if err != nil {
+		return fmt.Errorf("error executing query: %w", err)
+	}
 
+	if err := stmt.Close(); err != nil {
+		return fmt.Errorf("error closing statement: %w", err)
+	}
+
+	return nil
 }

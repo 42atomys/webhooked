@@ -23,3 +23,9 @@ func (s *Storage) Store(ctx context.Context, value []byte) error {
 	log.Debug().Msgf("Storing data in %s storage", s.Type)
 	return s.Specs.Store(ctx, value)
 }
+
+func (s *Storage) TemplateContext() map[string]any {
+	return map[string]any{
+		"StorageType": s.Type,
+	}
+}

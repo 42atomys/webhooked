@@ -2,19 +2,16 @@
 package custom
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
-	"text/template"
 
 	"github.com/42atomys/webhooked/format"
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/42atomys/webhooked/internal/valuable"
-	"github.com/go-sprout/sprout"
-	"github.com/go-sprout/sprout/group/all"
 	"github.com/rs/zerolog/log"
-	"github.com/valyala/fasthttp"
 )
 
 // CustomSecuritySpec is a security specification that allows defining custom
@@ -24,8 +21,7 @@ import (
 type CustomSecuritySpec struct {
 	Condition *valuable.Valuable `json:"condition"`
 
-	template    *template.Template
-	builderPool sync.Pool
+	formatter *format.Formatting
 }
 
 // EnsureConfigurationCompleteness ensures that the CustomSecuritySpec is properly
@@ -49,17 +45,15 @@ func (s *CustomSecuritySpec) EnsureConfigurationCompleteness() error {
 func (s *CustomSecuritySpec) Initialize() error {
 	var err error
 
-	sproutHandler := sprout.New(sprout.WithGroups(all.RegistryGroup()))
-
-	s.template, err = template.New("condition").Funcs(sproutHandler.Build()).Parse(s.Condition.First())
+	s.formatter, err = format.New(format.Specs{
+		TemplateString: s.Condition.First(),
+	})
 	if err != nil {
 		return err
 	}
 
-	s.builderPool = sync.Pool{
-		New: func() any {
-			return new(strings.Builder)
-		},
+	if !s.formatter.HasTemplate() {
+		return errors.New("condition template is required")
 	}
 
 	return nil
@@ -72,27 +66,23 @@ func (s *CustomSecuritySpec) Initialize() error {
 // Otherwise, it is rejected.
 //
 // Parameters:
-//   - ctx: The fasthttp.RequestCtx containing all the request details.
+//   - ctx: The fasthttpz.RequestCtx containing all the request details.
 //
 // Returns:
 //   - bool: True if the condition is met, otherwise false.
 //   - error: An error if the validation process fails (e.g., template parsing or execution errors).
-func (s *CustomSecuritySpec) IsSecure(ctx *fasthttp.RequestCtx) (bool, error) {
-	// Acquire a builder from the pool
-	sb := s.builderPool.Get().(*strings.Builder)
-	sb.Reset()
+func (s *CustomSecuritySpec) IsSecure(ctx context.Context, rctx *fasthttpz.RequestCtx) (bool, error) {
 
-	// Execute the template with the request context
-	if err := s.template.Execute(sb, format.GenerateRequestContext(ctx)); err != nil {
+	bytes, err := s.formatter.Format(ctx, map[string]any{})
+	if err != nil {
 		return false, fmt.Errorf("failed to execute custom security condition template: %w", err)
 	}
 
-	result, err := strconv.ParseBool(strings.Trim(sb.String(), "\n"))
+	result, err := strconv.ParseBool(strings.Trim(string(bytes), "\n"))
 	if err != nil {
 		return false, fmt.Errorf("failed to parse custom security condition result as boolean: %w", err)
 	}
 
-	s.builderPool.Put(sb)
 	log.Debug().Str("condition", s.Condition.First()).Bool("result", result).Msgf("custom security condition evaluated")
 	return result, nil
 }

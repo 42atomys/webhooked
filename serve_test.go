@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/42atomys/webhooked/internal/config"
+	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttputil"
 )
 
 func TestNewServer(t *testing.T) {
@@ -26,7 +26,7 @@ func TestServer_HealthCheck(t *testing.T) {
 	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/health")
 
 	server.handleHealthCheck(ctx)
@@ -41,7 +41,7 @@ func TestServer_ReadinessCheck_NoConfig(t *testing.T) {
 	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/ready")
 
 	server.handleReadinessCheck(ctx)
@@ -58,7 +58,7 @@ func TestServer_ReadinessCheck_WithConfig(t *testing.T) {
 	server, err := NewServer(&config.Config{}, 8080)
 	require.NoError(t, err)
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/ready")
 
 	server.handleReadinessCheck(ctx)
@@ -94,10 +94,10 @@ func TestServer_RequestHandler_HealthEndpoints(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := &fasthttp.RequestCtx{}
+			ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 			ctx.Request.SetRequestURI(tt.path)
 
-			handler(ctx)
+			handler(ctx.RequestCtx)
 
 			assert.Equal(t, tt.expectedStatus, ctx.Response.StatusCode())
 		})
@@ -113,12 +113,12 @@ func TestServer_RequestHandler_WebhookPath(t *testing.T) {
 
 	handler := server.requestHandlerFunc()
 
-	ctx := &fasthttp.RequestCtx{}
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 	ctx.Request.SetRequestURI("/webhooks/v1alpha2/test")
 	ctx.Request.Header.SetMethod("POST")
 	ctx.Request.SetBody([]byte(`{"test": "data"}`))
 
-	handler(ctx)
+	handler(ctx.RequestCtx)
 
 	// Should return 404 since we don't have a matching webhook configured
 	assert.Equal(t, fasthttp.StatusNotFound, ctx.Response.StatusCode())
@@ -174,54 +174,6 @@ func TestBuildInfo(t *testing.T) {
 	assert.Contains(t, info, "commit:")
 	assert.Contains(t, info, "built:")
 	assert.Contains(t, info, "go:")
-}
-
-// Integration test with actual HTTP server
-func TestServer_Integration(t *testing.T) {
-	t.Skip("skipping integration test due to DNS resolution issues in test environment")
-
-	setupMinimalConfig(t)
-
-	server, err := NewServer(&config.Config{}, 0) // Use port 0 for random available port
-	require.NoError(t, err)
-
-	// Use in-memory listener for testing
-	ln := fasthttputil.NewInmemoryListener()
-	server.listener = ln
-
-	// Start server in goroutine
-	serverErr := make(chan error, 1)
-	go func() {
-		serverErr <- server.server.Serve(ln)
-	}()
-
-	// Test health endpoint
-	client := &fasthttp.Client{}
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.SetRequestURI("http://test/health")
-
-	err = client.Do(req, resp)
-	require.NoError(t, err)
-	assert.Equal(t, fasthttp.StatusOK, resp.StatusCode())
-
-	// Shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
-	err = server.Shutdown(ctx)
-	assert.NoError(t, err)
-
-	// Check if server actually stopped
-	select {
-	case <-serverErr:
-		// Server stopped
-	case <-time.After(2 * time.Second):
-		t.Error("server did not stop within timeout")
-	}
 }
 
 // Helper function to setup minimal configuration for testing
