@@ -1,0 +1,63 @@
+# Configuration for PR labeler
+# https://github.com/actions/labeler
+
+# Add 'aspect/documentation 📚' label to any change in docs folder
+aspect/documentation 📚:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+          - LICENSE
+
+# Add 'aspect/tests 🧪' label to any change in test files
+aspect/tests 🧪:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*_test.go'
+          - 'tests/**'
+
+# Add 'aspect/ci ⚙️' label to any change in GitHub Actions
+aspect/ci ⚙️:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.goreleaser.yaml'
+          - 'Dockerfile'
+
+# Add 'aspect/depencencies 📦️' label to any dependency update
+aspect/depencencies 📦️:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go.mod'
+          - 'go.sum'
+          - '.github/dependabot.yml'
+
+# Add 'aspect/security 🔒' label to security-related files
+aspect/security 🔒:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'security/**'
+
+# Add 'aspect/storage 💾' label to storage-related changes
+aspect/storage 💾:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'storage/**'
+
+# Add 'aspect/internal 🏗️' label to internal related stuffs
+aspect/internal 🏗️:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cmd/**'
+          - 'internal/**'
+          - 'semaphore/**'
+          - 'format/**'
+
+# Add 'aspect/docker 🐳' label to Docker-related changes
+aspect/docker 🐳:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'Dockerfile'
+          - '.dockerignore'
+          - 'docker-compose.yml'
+          - '.devcontainer/**'
