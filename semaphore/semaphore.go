@@ -101,7 +101,7 @@ type queueItem[T any] struct {
 type Config struct {
 	// Capacity is the initial size of the task queue.
 	// Must be > 0. Defaults to 1024 if not set.
-	Capacity int
+	Capacity int32
 
 	// MaxRetries is the maximum number of retry attempts for failed tasks.
 	// Defaults to 0 (no retries).
@@ -135,7 +135,7 @@ type Option func(*Config)
 
 // WithCapacity sets the initial capacity of the queue. If not set, defaults to 1024.
 // Must be > 0. Capacity can later be changed via `SetCapacity()`.
-func WithCapacity(capacity int) Option {
+func WithCapacity(capacity int32) Option {
 	return func(cfg *Config) {
 		cfg.Capacity = capacity
 	}
@@ -180,7 +180,7 @@ type Semaphore[T any] struct {
 	tail        int32
 	curWorkers  int32
 	consumerWg  sync.WaitGroup
-	retryWg     sync.WaitGroup  // Track pending retries
+	retryWg     sync.WaitGroup // Track pending retries
 	stop        int32
 	consumerSem chan struct{}
 }
@@ -223,7 +223,7 @@ func (s *Semaphore[T]) StartConsumers() {
 // the system shuts down cleanly.
 func (s *Semaphore[T]) StopConsumers() {
 	atomic.StoreInt32(&s.stop, 1)
-	
+
 	// Signal all consumers to wake up and check stop condition
 	// Use non-blocking sends to avoid deadlock if channel is full
 	for i := 0; i < s.cfg.MaxWorkers; i++ {
@@ -233,10 +233,10 @@ func (s *Semaphore[T]) StopConsumers() {
 			// Channel full, consumers will check stop condition anyway
 		}
 	}
-	
+
 	// Wait for all workers to complete
 	s.consumerWg.Wait()
-	
+
 	// Wait for all pending retries to complete
 	s.retryWg.Wait()
 }
@@ -256,7 +256,7 @@ func (s *Semaphore[T]) Execute(ctx context.Context, t T) error {
 // to a value that is at least the current queue size, ensuring no tasks are lost. If the requested
 // capacity is smaller than the current number of tasks, it returns an error. This method can be
 // used to scale the system under changing load conditions.
-func (s *Semaphore[T]) SetCapacity(newCap int) error {
+func (s *Semaphore[T]) SetCapacity(newCap int32) error {
 	if newCap < 1 {
 		return errors.New("capacity must be >= 1")
 	}
@@ -413,7 +413,7 @@ func (s *Semaphore[T]) consumer() {
 func (s *Semaphore[T]) run(item queueItem[T]) {
 	atomic.AddInt32(&s.curWorkers, 1)
 	defer atomic.AddInt32(&s.curWorkers, -1)
-	
+
 	err := s.executor.Process(context.Background(), item.task)
 
 	if err == nil {
@@ -426,21 +426,21 @@ func (s *Semaphore[T]) run(item queueItem[T]) {
 		s.retryWg.Add(1)
 		go func() {
 			defer s.retryWg.Done()
-			
+
 			var delay time.Duration
 			if len(s.cfg.BackoffSchedule) > 0 {
 				delay = s.cfg.BackoffSchedule[item.retries%len(s.cfg.BackoffSchedule)]
 			}
-			
+
 			if delay > 0 {
 				time.Sleep(delay)
 			}
-			
+
 			retryItem := queueItem[T]{
 				task:    item.task,
 				retries: item.retries + 1,
 			}
-			
+
 			// Try to enqueue retry even if semaphore is stopping
 			// We use a special retry enqueue that bypasses the stop check
 			enqueueErr := s.enqueueRetry(retryItem)
@@ -466,7 +466,7 @@ func (s *Semaphore[T]) run(item queueItem[T]) {
 // nextPowerOfTwo returns the smallest power of two greater than or equal to x.
 // If x is already a power of two, it returns x. This ensures that the queue
 // uses a power-of-two size for efficient indexing and wraparound using `mask`.
-func nextPowerOfTwo(x int) int {
+func nextPowerOfTwo(x int32) int32 {
 	if x < 2 {
 		return 2
 	}
