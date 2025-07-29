@@ -96,7 +96,7 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
         run: |
-          ./bin/webhooked serve --config tests/loadtesting/webhooks.tests.yaml &
+          ./bin/webhooked serve --port 8081 --config tests/loadtesting/webhooks.tests.yaml &
           sleep 5
           k6 run tests/loadtesting/k6_load_script.js --out json=k6_results.json
 
