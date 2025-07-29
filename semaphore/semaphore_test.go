@@ -269,3 +269,131 @@ func TestExecuteAfterStop(t *testing.T) {
 	require.Error(t, err)
 	assert.IsType(t, semaphore.QueueCloseError{}, err)
 }
+
+// Benchmarks
+
+func BenchmarkSemaphore_Execute(b *testing.B) {
+	exec := &testExecutor{
+		processFunc: func(ctx context.Context, t int) error {
+			return nil
+		},
+	}
+	s := semaphore.New(exec, semaphore.WithCapacity(10000))
+	s.StartConsumers()
+	defer s.StopConsumers()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		s.Execute(context.Background(), i)
+	}
+}
+
+func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
+	exec := &testExecutor{
+		processFunc: func(ctx context.Context, t int) error {
+			return nil
+		},
+	}
+	s := semaphore.New(exec, 
+		semaphore.WithCapacity(10000),
+		semaphore.WithMaxWorkers(10))
+	s.StartConsumers()
+	defer s.StopConsumers()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		s.Execute(context.Background(), i)
+	}
+}
+
+func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
+	exec := &testExecutor{
+		processFunc: func(ctx context.Context, t int) error {
+			return nil
+		},
+	}
+	s := semaphore.New(exec, 
+		semaphore.WithCapacity(10000),
+		semaphore.WithMaxWorkers(20))
+	s.StartConsumers()
+	defer s.StopConsumers()
+
+	b.RunParallel(func(pb *testing.PB) {
+		i := 0
+		for pb.Next() {
+			s.Execute(context.Background(), i)
+			i++
+		}
+	})
+}
+
+func BenchmarkSemaphore_WithRetries(b *testing.B) {
+	failCount := int32(0)
+	exec := &testExecutor{
+		processFunc: func(ctx context.Context, t int) error {
+			// Fail 50% of the time
+			if atomic.AddInt32(&failCount, 1)%2 == 0 {
+				return errors.New("simulated failure")
+			}
+			return nil
+		},
+	}
+	s := semaphore.New(exec,
+		semaphore.WithCapacity(10000),
+		semaphore.WithMaxRetries(2),
+		semaphore.WithBackoffSchedule([]time.Duration{time.Microsecond}))
+	s.StartConsumers()
+	defer s.StopConsumers()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		s.Execute(context.Background(), i)
+	}
+}
+
+func BenchmarkSemaphore_SetCapacity(b *testing.B) {
+	exec := &testExecutor{
+		processFunc: func(ctx context.Context, t int) error {
+			return nil
+		},
+	}
+	s := semaphore.New(exec, semaphore.WithCapacity(100))
+	s.StartConsumers()
+	defer s.StopConsumers()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		newCapacity := 100 + (i % 100)
+		s.SetCapacity(newCapacity)
+	}
+}
+
+func BenchmarkSemaphore_ProcessingSpeed(b *testing.B) {
+	processed := int32(0)
+	exec := &testExecutor{
+		processFunc: func(ctx context.Context, t int) error {
+			atomic.AddInt32(&processed, 1)
+			return nil
+		},
+	}
+	s := semaphore.New(exec, 
+		semaphore.WithCapacity(1000),
+		semaphore.WithMaxWorkers(10))
+	s.StartConsumers()
+
+	// Fill the queue
+	for i := 0; i < b.N; i++ {
+		s.Execute(context.Background(), i)
+	}
+
+	// Wait for all to be processed
+	start := time.Now()
+	for atomic.LoadInt32(&processed) < int32(b.N) {
+		time.Sleep(time.Millisecond)
+	}
+	elapsed := time.Since(start)
+
+	s.StopConsumers()
+	
+	b.ReportMetric(float64(b.N)/elapsed.Seconds(), "tasks/sec")
+}

@@ -98,3 +98,79 @@ func TestMultipleErrorCalls(t *testing.T) {
 	assert.Equal(t, fasthttp.StatusInternalServerError, ctx.Response.StatusCode())
 	assert.Equal(t, internalServerError, ctx.Response.Body())
 }
+
+// Benchmarks
+
+func BenchmarkErrHTTPNotFound(b *testing.B) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	testErr := errors.New("test error")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		ErrHTTPNotFound(ctx, testErr)
+	}
+}
+
+func BenchmarkErrHTTPUnauthorized(b *testing.B) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	testErr := errors.New("unauthorized error")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		ErrHTTPUnauthorized(ctx, testErr)
+	}
+}
+
+func BenchmarkErrHTTPInternalServerError(b *testing.B) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	testErr := errors.New("internal server error")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		ErrHTTPInternalServerError(ctx, testErr)
+	}
+}
+
+func BenchmarkErrHTTPBadRequest(b *testing.B) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	testErr := errors.New("bad request error")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		ErrHTTPBadRequest(ctx, testErr)
+	}
+}
+
+func BenchmarkAllErrorFunctions(b *testing.B) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	testErr := errors.New("test error")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		switch i % 4 {
+		case 0:
+			ErrHTTPNotFound(ctx, testErr)
+		case 1:
+			ErrHTTPUnauthorized(ctx, testErr)
+		case 2:
+			ErrHTTPInternalServerError(ctx, testErr)
+		case 3:
+			ErrHTTPBadRequest(ctx, testErr)
+		}
+	}
+}
+
+func BenchmarkErrorWithNil(b *testing.B) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		ErrHTTPNotFound(ctx, nil)
+	}
+}

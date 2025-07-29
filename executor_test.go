@@ -151,7 +151,7 @@ func TestDefaultExecutor_pipelineStore_Success(t *testing.T) {
 
 // Helper functions for test setup
 
-func setupTestConfig(t *testing.T) *config.Config {
+func setupTestConfig(t testing.TB) *config.Config {
 	config := &config.Config{
 		APIVersion: config.APIVersionV1Alpha2,
 		Kind:       config.KindConfiguration,
@@ -274,3 +274,128 @@ func TestDefaultExecutor_pipelineSecure_Unauthorized(t *testing.T) {
 	assert.NotNil(t, resultCtx)
 	assert.Equal(t, fasthttp.StatusUnauthorized, ctx.Response.StatusCode())
 }
+
+// Benchmarks
+
+func BenchmarkDefaultExecutor_IncomingRequest(b *testing.B) {
+	executor := NewExecutor(setupTestConfig(b))
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	ctx.Request.SetRequestURI("/webhooks/v1alpha2/test")
+	ctx.Request.Header.SetMethod("POST")
+	ctx.Request.SetBody([]byte(`{"test": "data"}`))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Reset response for each iteration
+		ctx.Response.Reset()
+		executor.IncomingRequest(context.Background(), ctx)
+	}
+}
+
+func BenchmarkDefaultExecutor_pipelineSecure(b *testing.B) {
+	executor := &DefaultExecutor{}
+	webhook := &config.Webhook{
+		Security: security.Security{
+			Type:  "noop",
+			Specs: &securityNoop.NoopSecuritySpec{},
+		},
+	}
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		executor.pipelineSecure(context.Background(), ctx, webhook)
+	}
+}
+
+func BenchmarkDefaultExecutor_pipelineStore_Single(b *testing.B) {
+	executor := NewExecutor(&config.Config{})
+	webhook := &config.Webhook{
+		Storage: []*storage.Storage{
+			{
+				Type:       "noop",
+				Formatting: &format.Formatting{},
+				Specs:      &storageNoop.NoopStorageSpec{},
+			},
+		},
+	}
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	ctx.Request.SetBody([]byte(`{"test": "data"}`))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		executor.pipelineStore(context.Background(), ctx, webhook)
+	}
+}
+
+func BenchmarkDefaultExecutor_pipelineStore_Multiple(b *testing.B) {
+	executor := NewExecutor(&config.Config{})
+	
+	// Create multiple storage backends
+	storages := make([]*storage.Storage, 5)
+	for i := 0; i < 5; i++ {
+		storages[i] = &storage.Storage{
+			Type:       "noop",
+			Formatting: &format.Formatting{},
+			Specs:      &storageNoop.NoopStorageSpec{},
+		}
+	}
+	
+	webhook := &config.Webhook{
+		Storage: storages,
+	}
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	ctx.Request.SetBody([]byte(`{"test": "data"}`))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		executor.pipelineStore(context.Background(), ctx, webhook)
+	}
+}
+
+func BenchmarkDefaultExecutor_pipelineResponse_NoTemplate(b *testing.B) {
+	executor := &DefaultExecutor{}
+	webhook := &config.Webhook{
+		Response: config.Response{},
+	}
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Response.Reset()
+		executor.pipelineResponse(context.Background(), ctx, webhook)
+	}
+}
+
+func BenchmarkDefaultExecutor_pipelineStore_Concurrent(b *testing.B) {
+	executor := NewExecutor(&config.Config{})
+	
+	// Create multiple storage backends
+	storages := make([]*storage.Storage, 10)
+	for i := 0; i < 10; i++ {
+		storages[i] = &storage.Storage{
+			Type:       "noop",
+			Formatting: &format.Formatting{},
+			Specs:      &storageNoop.NoopStorageSpec{},
+		}
+	}
+	
+	webhook := &config.Webhook{
+		Storage: storages,
+	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+		ctx.Request.SetBody([]byte(`{"test": "data"}`))
+		
+		for pb.Next() {
+			executor.pipelineStore(context.Background(), ctx, webhook)
+		}
+	})
+}
+

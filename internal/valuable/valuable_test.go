@@ -204,3 +204,117 @@ func (suite *TestSuiteValuable) TestValuablecommaListIfAbsent() {
 func TestRunValuableSuite(t *testing.T) {
 	suite.Run(t, new(TestSuiteValuable))
 }
+
+// Benchmarks
+
+func BenchmarkValuable_Get(b *testing.B) {
+	testValue := "test"
+	v := &Valuable{Value: &testValue}
+	v.retrieveData()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.Get()
+	}
+}
+
+func BenchmarkValuable_Get_WithValues(b *testing.B) {
+	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
+	v.retrieveData()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.Get()
+	}
+}
+
+func BenchmarkValuable_Get_WithEnvRef(b *testing.B) {
+	envName := "BENCH_TEST_ENV"
+	os.Setenv(envName, "benchvalue")
+	defer os.Unsetenv(envName)
+
+	v := &Valuable{ValueFrom: &ValueFromSource{EnvRef: &envName}}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.retrieveData()
+		v.Get()
+	}
+}
+
+func BenchmarkValuable_Contains(b *testing.B) {
+	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
+	v.retrieveData()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.Contains("test3")
+	}
+}
+
+func BenchmarkValuable_Contains_NotFound(b *testing.B) {
+	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
+	v.retrieveData()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.Contains("notfound")
+	}
+}
+
+func BenchmarkSerialize_String(b *testing.B) {
+	testValue := "test"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Serialize(testValue)
+	}
+}
+
+func BenchmarkSerialize_Map(b *testing.B) {
+	testMap := map[string]any{
+		"value": "test",
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Serialize(testMap)
+	}
+}
+
+func BenchmarkSerialize_ComplexMap(b *testing.B) {
+	testMap := map[string]any{
+		"valueFrom": map[string]any{
+			"envRef": "TEST_ENV",
+		},
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Serialize(testMap)
+	}
+}
+
+func BenchmarkValuable_Validate(b *testing.B) {
+	testValue := "test"
+	v := &Valuable{Value: &testValue}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.Validate()
+	}
+}
+
+func BenchmarkAppendCommaListIfAbsent(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		appendCommaListIfAbsent([]string{}, "foo,bar,baz,qux")
+	}
+}
+
+func BenchmarkAppendCommaListIfAbsent_WithDuplicates(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		appendCommaListIfAbsent([]string{}, "foo,foo,bar,bar,baz,baz")
+	}
+}

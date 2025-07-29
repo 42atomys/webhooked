@@ -1,6 +1,7 @@
 package webhooked
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -280,4 +281,146 @@ func TestWindow_ConcurrentAccess(t *testing.T) {
 	window.mu.RUnlock()
 
 	assert.Equal(t, 100, requestCount)
+}
+
+// Benchmarks
+
+func BenchmarkRateLimiter_Allow_NoLimit(b *testing.B) {
+	rl := NewRateLimiter(nil)
+	clientIP := "192.168.1.1"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rl.Allow(clientIP)
+	}
+}
+
+func BenchmarkRateLimiter_Allow_WithinLimit(b *testing.B) {
+	throttle := &config.Throttling{
+		Enabled:     true,
+		MaxRequests: 1000000, // High limit to always allow
+		Window:      60,
+	}
+	rl := NewRateLimiter(throttle)
+	clientIP := "192.168.1.1"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rl.Allow(clientIP)
+	}
+}
+
+func BenchmarkRateLimiter_Allow_WithBurstLimit(b *testing.B) {
+	throttle := &config.Throttling{
+		Enabled:     true,
+		MaxRequests: 1000000,
+		Window:      60,
+		Burst:       1000,
+		BurstWindow: 5,
+	}
+	rl := NewRateLimiter(throttle)
+	clientIP := "192.168.1.1"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rl.Allow(clientIP)
+	}
+}
+
+func BenchmarkRateLimiter_Allow_MultipleClients(b *testing.B) {
+	throttle := &config.Throttling{
+		Enabled:     true,
+		MaxRequests: 1000000,
+		Window:      60,
+	}
+	rl := NewRateLimiter(throttle)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		clientIP := fmt.Sprintf("192.168.1.%d", i%256)
+		rl.Allow(clientIP)
+	}
+}
+
+func BenchmarkRateLimiter_Allow_Concurrent(b *testing.B) {
+	throttle := &config.Throttling{
+		Enabled:     true,
+		MaxRequests: 1000000,
+		Window:      60,
+	}
+	rl := NewRateLimiter(throttle)
+
+	b.RunParallel(func(pb *testing.PB) {
+		clientIP := fmt.Sprintf("192.168.1.%d", b.N%256)
+		for pb.Next() {
+			rl.Allow(clientIP)
+		}
+	})
+}
+
+func BenchmarkRateLimiter_filterRequests(b *testing.B) {
+	rl := &RateLimiter{}
+	now := time.Now()
+	cutoff := now.Add(-30 * time.Second)
+
+	// Create a mix of old and new requests
+	requests := make([]time.Time, 100)
+	for i := 0; i < 50; i++ {
+		requests[i] = now.Add(-time.Duration(i+31) * time.Second) // Old requests
+	}
+	for i := 50; i < 100; i++ {
+		requests[i] = now.Add(-time.Duration(i-50) * time.Second) // Recent requests
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rl.filterRequests(requests, cutoff)
+	}
+}
+
+func BenchmarkRateLimiter_GetStats(b *testing.B) {
+	throttle := &config.Throttling{
+		Enabled:     true,
+		MaxRequests: 100,
+		Window:      60,
+		Burst:       10,
+		BurstWindow: 5,
+	}
+	rl := NewRateLimiter(throttle)
+
+	// Add some windows
+	for i := 0; i < 10; i++ {
+		clientIP := fmt.Sprintf("192.168.1.%d", i)
+		for j := 0; j < 5; j++ {
+			rl.Allow(clientIP)
+		}
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rl.GetStats()
+	}
+}
+
+func BenchmarkRateLimiter_Cleanup(b *testing.B) {
+	throttle := &config.Throttling{
+		Enabled:     true,
+		MaxRequests: 100,
+		Window:      1, // 1 second window for faster cleanup
+	}
+	rl := NewRateLimiter(throttle)
+
+	// Add some old windows
+	for i := 0; i < 100; i++ {
+		clientIP := fmt.Sprintf("192.168.1.%d", i)
+		rl.Allow(clientIP)
+	}
+
+	// Wait for windows to become old
+	time.Sleep(3 * time.Second)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rl.Cleanup()
+	}
 }
