@@ -13,6 +13,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -35,13 +36,13 @@ type expectedStorage struct {
 	storageType storageType
 	key         string
 	data        string
+	isJson      bool
 }
 
 type storageType string
 
 const (
-	BaseURL                      = "http://localhost:8081/webhooks/v1alpha2"
-	StorageTypeRedis storageType = "redis"
+	BaseURL = "http://localhost:8081/webhooks/v1alpha2"
 )
 
 type IntegrationTestSuite struct {
@@ -63,7 +64,6 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 		DB:       0, // use default DB
 		Password: os.Getenv("REDIS_PASSWORD"),
 	})
-
 	suite.NoError(redisclient.Ping(suite.ctx).Err(), "Failed to create Redis client")
 	suite.NoError(redisclient.FlushDB(suite.ctx).Err(), "Failed to flush Redis database")
 
@@ -80,6 +80,22 @@ func (suite *IntegrationTestSuite) TearDownSuite() {
 
 func (suite *IntegrationTestSuite) TestIntegrationScenarios() {
 	tests := []testInput{
+		{
+			name:     "empty-payload",
+			endpoint: "/integration/empty-payload",
+			headers: map[string]string{
+				"X-Token": "integration-test",
+			},
+			payload: map[string]any{},
+			expectedResponse: expectedResponse{
+				statusCode: 204,
+			},
+			expectedStorage: expectedStorage{
+				storageType: StorageTypeRedis,
+				key:         "empty-payload:events",
+				data:        `{}`,
+			},
+		},
 		{
 			name:     "basic-usage",
 			endpoint: "/integration/basic-usage",
@@ -181,7 +197,7 @@ func (suite *IntegrationTestSuite) TestIntegrationScenarios() {
 	}
 }
 
-func (suite *IntegrationTestSuite) runTest(test testInput) {
+func (suite *IntegrationTestSuite) doRequest(test testInput) {
 	// Prepare request
 	jsonValue, err := json.Marshal(test.payload)
 	suite.NoError(err, "Failed to marshal payload")
@@ -196,7 +212,7 @@ func (suite *IntegrationTestSuite) runTest(test testInput) {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	suite.NoError(err, "Failed to send request")
+	require.NoError(suite.T(), err, "Failed to send request")
 	defer resp.Body.Close()
 
 	// Check response status code
@@ -217,7 +233,11 @@ func (suite *IntegrationTestSuite) runTest(test testInput) {
 		suite.Equal(test.expectedResponse.body, strings.Trim(body, "\n"), "Response body mismatch")
 	}
 
-	time.Sleep(10 * time.Millisecond) // Allow some time for async processing
+	time.Sleep(100 * time.Millisecond) // Allow some time for async processing
+}
+
+func (suite *IntegrationTestSuite) runTest(test testInput) {
+	suite.doRequest(test)
 
 	// Check storage
 	if test.expectedStorage.storageType != "" {
@@ -231,9 +251,13 @@ func (suite *IntegrationTestSuite) runTest(test testInput) {
 			if err != redis.Nil {
 				suite.NoError(err, "Failed to get data from Redis")
 			}
-			suite.Equal(test.expectedStorage.data, data, "Data mismatch in Redis storage")
+
+			if test.expectedStorage.isJson {
+				suite.JSONEq(test.expectedStorage.data, data, "Data mismatch in Redis storage")
+			} else {
+				suite.Equal(test.expectedStorage.data, data, "Data mismatch in Redis storage")
+			}
 		default:
-			suite.Fail("Unsupported storage type: %s", test.expectedStorage.storageType)
 		}
 	}
 }
