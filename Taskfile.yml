@@ -37,7 +37,6 @@ tasks:
   test-units:
     aliases: [tu]
     desc: Run unit tests
-    deps: [lint, fmt]
     env:
       WH_DEBUG: 'true'
     cmds:
