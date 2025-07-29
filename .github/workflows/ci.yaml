@@ -155,10 +155,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
-        run: |
-          task run-integration &
-          sleep 5
-          go test -v ./tests/integrations/...
+        run: task test-integration
 
   build:
     name: Build

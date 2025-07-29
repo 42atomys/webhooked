@@ -1,3 +1,5 @@
+//go:build integrations
+
 package integration_test
 
 func (suite *SecurityIntegrationTestSuite) TestSecurityCustomScenarios() {
