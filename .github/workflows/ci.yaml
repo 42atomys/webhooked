@@ -9,7 +9,7 @@ on:
 
 env:
   GO_VERSION: '1.23'
-  GOLANGCI_LINT_VERSION: 'v1.61'
+  GOLANGCI_LINT_VERSION: 'v2.3.0'
 
 jobs:
   lint:
@@ -32,6 +32,10 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin ${{ env.GOLANGCI_LINT_VERSION }}
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6

@@ -63,7 +63,7 @@ func (suite *PostgresIntegrationTestSuite) SetupSuite() {
 
 func (suite *PostgresIntegrationTestSuite) TearDownSuite() {
 	if db, ok := suite.storages[StorageTypePostgres].(*sql.DB); ok {
-		db.Close()
+		_ = db.Close()
 	}
 	suite.IntegrationTestSuite.TearDownSuite()
 }

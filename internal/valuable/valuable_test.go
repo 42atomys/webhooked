@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,7 +23,7 @@ func (suite *TestSuiteValuable) BeforeTest(suiteName, testName string) {
 	suite.testValues = []string{"test1", "test2"}
 	suite.testEnvName = "TEST_WEBHOOKED_CONFIG_ENVREF"
 	suite.testInvalidEnvName = "TEST_WEBHOOKED_CONFIG_ENVREF_INVALID"
-	os.Setenv(suite.testEnvName, suite.testValue)
+	require.NoError(suite.T(), os.Setenv(suite.testEnvName, suite.testValue))
 }
 
 func (suite *TestSuiteValuable) TestValidate() {

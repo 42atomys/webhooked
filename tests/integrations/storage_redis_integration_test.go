@@ -44,7 +44,7 @@ func (suite *RedisIntegrationTestSuite) SetupSuite() {
 
 func (suite *RedisIntegrationTestSuite) TearDownSuite() {
 	if client, ok := suite.storages[StorageTypeRedis].(*redis.Client); ok {
-		client.Close()
+		_ = client.Close()
 	}
 	suite.IntegrationTestSuite.TearDownSuite()
 }

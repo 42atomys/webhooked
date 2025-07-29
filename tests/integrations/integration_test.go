@@ -213,7 +213,6 @@ func (suite *IntegrationTestSuite) doRequest(test testInput) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(suite.T(), err, "Failed to send request")
-	defer resp.Body.Close()
 
 	// Check response status code
 	suite.Equal(test.expectedResponse.statusCode, resp.StatusCode, "Unexpected status code")
@@ -233,6 +232,7 @@ func (suite *IntegrationTestSuite) doRequest(test testInput) {
 		suite.Equal(test.expectedResponse.body, strings.Trim(body, "\n"), "Response body mismatch")
 	}
 
+	_ = resp.Body.Close()
 	time.Sleep(100 * time.Millisecond) // Allow some time for async processing
 }
 

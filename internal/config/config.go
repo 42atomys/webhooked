@@ -120,8 +120,7 @@ func Load(path string) (*Config, error) {
 
 	// Load from environment variables
 	err := k.Load(env.ProviderWithValue("WH_", ".", func(s, v string) (string, any) {
-		key := strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, "WH_")), "_", ".", -1)
+		key := strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, "WH_")), "_", ".")
 
 		return key, v
 	}), nil)

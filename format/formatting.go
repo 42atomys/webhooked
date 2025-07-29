@@ -55,11 +55,11 @@ func (f *Formatting) compileTemplate(specs Specs) error {
 
 	if specs.TemplatePath != "" {
 		f.specs.TemplatePath = specs.TemplatePath
-		file, err := os.OpenFile(specs.TemplatePath, os.O_RDONLY, 0666)
+		file, err := os.OpenFile(specs.TemplatePath, os.O_RDONLY, 0600)
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck
 
 		var buffer bytes.Buffer
 		_, err = io.Copy(&buffer, file)

@@ -102,7 +102,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 // requestHandlerFunc returns the HTTP request handler for the server
 func (s *Server) requestHandlerFunc() fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		rctx := &fasthttpz.RequestCtx{ctx}
+		rctx := &fasthttpz.RequestCtx{RequestCtx: ctx}
 		log.Debug().Msgf("Incoming request: %s", rctx.Path())
 
 		start := rctx.Time()
