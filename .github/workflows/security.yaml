@@ -71,9 +71,12 @@ jobs:
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
 
-      - name: Run Nancy
-        run: |
-          go list -json -deps ./... | docker run --rm -i sonatypecorp/nancy:latest sleuth
+      - name: Write GoList
+        run: go list -json -m all > go.list
+      - name: Nancy
+        uses: sonatype-nexus-community/nancy-github-action@main
+        with:
+          goListFile: go.list
 
   trivy-scan:
     name: Trivy Security Scan
