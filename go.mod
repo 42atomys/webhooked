@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sprout/sprout v1.0.0-rc.2
-	github.com/go-viper/mapstructure/v2 v2.2.1
+	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/env v1.0.0
