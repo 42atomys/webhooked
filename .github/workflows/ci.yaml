@@ -143,18 +143,6 @@ jobs:
         run: task build
 
       - name: Run integration tests
-        env:
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          RABBITMQ_HOST: localhost
-          RABBITMQ_PORT: 5672
-          RABBITMQ_USER: rabbitmq
-          RABBITMQ_PASSWORD: rabbitmq
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
         run: task test-integration
 
   build:

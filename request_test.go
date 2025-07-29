@@ -171,6 +171,6 @@ func BenchmarkErrorWithNil(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		ErrHTTPNotFound(ctx, nil)
+		ErrHTTPNotFound(ctx, nil) // nolint:errcheck
 	}
 }
