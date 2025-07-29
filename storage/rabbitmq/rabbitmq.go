@@ -7,26 +7,28 @@ import (
 	"time"
 
 	"github.com/42atomys/webhooked/internal/valuable"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/rs/zerolog/log"
-	"github.com/streadway/amqp"
 )
 
 type RabbitmqStorageSpec struct {
-	DatabaseURL        valuable.Valuable `mapstructure:"databaseUrl" json:"databaseUrl"`
-	QueueName          string            `mapstructure:"queueName" json:"queueName"`
-	DefinedContentType string            `mapstructure:"contentType" json:"contentType"`
-	Durable            bool              `mapstructure:"durable" json:"durable"`
-	DeleteWhenUnused   bool              `mapstructure:"deleteWhenUnused" json:"deleteWhenUnused"`
-	Exclusive          bool              `mapstructure:"exclusive" json:"exclusive"`
-	NoWait             bool              `mapstructure:"noWait" json:"noWait"`
-	Mandatory          bool              `mapstructure:"mandatory" json:"mandatory"`
-	Immediate          bool              `mapstructure:"immediate" json:"immediate"`
-	Exchange           string            `mapstructure:"exchange" json:"exchange"`
-	MaxAttempt         int               `mapstructure:"maxAttempt" json:"maxAttempt"`
+	DatabaseURL valuable.Valuable `mapstructure:"databaseUrl" json:"databaseUrl"`
+	MaxAttempt  int               `mapstructure:"maxAttempt" json:"maxAttempt"`
+	// QueueDeclare
+	QueueName        string `mapstructure:"queueName" json:"queueName"`
+	Durable          *bool  `mapstructure:"durable" json:"durable"`
+	DeleteWhenUnused bool   `mapstructure:"deleteWhenUnused" json:"deleteWhenUnused"`
+	Exclusive        bool   `mapstructure:"exclusive" json:"exclusive"`
+	NoWait           bool   `mapstructure:"noWait" json:"noWait"`
+	// Publish
+	Exchange           string `mapstructure:"exchange" json:"exchange"`
+	DefinedContentType string `mapstructure:"contentType" json:"contentType"`
+	Mandatory          bool   `mapstructure:"mandatory" json:"mandatory"`
+	Immediate          bool   `mapstructure:"immediate" json:"immediate"`
 
-	client     *amqp.Connection
-	channel    *amqp.Channel
-	routingKey amqp.Queue
+	client  *amqp.Connection
+	channel *amqp.Channel
+	queue   amqp.Queue
 }
 
 func (s *RabbitmqStorageSpec) EnsureConfigurationCompleteness() error {
@@ -36,6 +38,11 @@ func (s *RabbitmqStorageSpec) EnsureConfigurationCompleteness() error {
 
 	if s.MaxAttempt == 0 {
 		s.MaxAttempt = 5
+	}
+
+	if s.Durable == nil {
+		durable := true
+		s.Durable = &durable
 	}
 
 	return nil
@@ -61,9 +68,9 @@ func (s *RabbitmqStorageSpec) Initialize() error {
 		}
 	}()
 
-	if s.routingKey, err = s.channel.QueueDeclare(
+	if s.queue, err = s.channel.QueueDeclare(
 		s.QueueName,
-		s.Durable,
+		*s.Durable,
 		s.DeleteWhenUnused,
 		s.Exclusive,
 		s.NoWait,
@@ -77,9 +84,10 @@ func (s *RabbitmqStorageSpec) Initialize() error {
 
 func (s *RabbitmqStorageSpec) Store(ctx context.Context, value []byte) error {
 	for attempt := 0; attempt < s.MaxAttempt; attempt++ {
-		err := s.channel.Publish(
+		err := s.channel.PublishWithContext(
+			ctx,
 			s.Exchange,
-			s.routingKey.Name,
+			s.queue.Name,
 			s.Mandatory,
 			s.Immediate,
 			amqp.Publishing{
