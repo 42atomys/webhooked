@@ -108,7 +108,7 @@ func BenchmarkErrHTTPNotFound(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		ErrHTTPNotFound(ctx, testErr)
+		ErrHTTPNotFound(ctx, testErr) // nolint:errcheck
 	}
 }
 
@@ -119,7 +119,7 @@ func BenchmarkErrHTTPUnauthorized(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		ErrHTTPUnauthorized(ctx, testErr)
+		ErrHTTPUnauthorized(ctx, testErr) // nolint:errcheck
 	}
 }
 
@@ -130,7 +130,7 @@ func BenchmarkErrHTTPInternalServerError(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		ErrHTTPInternalServerError(ctx, testErr)
+		ErrHTTPInternalServerError(ctx, testErr) // nolint:errcheck
 	}
 }
 
@@ -141,7 +141,7 @@ func BenchmarkErrHTTPBadRequest(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		ErrHTTPBadRequest(ctx, testErr)
+		ErrHTTPBadRequest(ctx, testErr) // nolint:errcheck
 	}
 }
 
@@ -154,13 +154,13 @@ func BenchmarkAllErrorFunctions(b *testing.B) {
 		ctx.Response.Reset()
 		switch i % 4 {
 		case 0:
-			ErrHTTPNotFound(ctx, testErr)
+			ErrHTTPNotFound(ctx, testErr) // nolint:errcheck
 		case 1:
-			ErrHTTPUnauthorized(ctx, testErr)
+			ErrHTTPUnauthorized(ctx, testErr) // nolint:errcheck
 		case 2:
-			ErrHTTPInternalServerError(ctx, testErr)
+			ErrHTTPInternalServerError(ctx, testErr) // nolint:errcheck
 		case 3:
-			ErrHTTPBadRequest(ctx, testErr)
+			ErrHTTPBadRequest(ctx, testErr) // nolint:errcheck
 		}
 	}
 }

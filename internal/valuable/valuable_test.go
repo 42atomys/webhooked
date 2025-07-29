@@ -210,7 +210,8 @@ func TestRunValuableSuite(t *testing.T) {
 func BenchmarkValuable_Get(b *testing.B) {
 	testValue := "test"
 	v := &Valuable{Value: &testValue}
-	v.retrieveData()
+	err := v.retrieveData()
+	require.NoError(b, err, "Failed to retrieve data for benchmark")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -220,7 +221,8 @@ func BenchmarkValuable_Get(b *testing.B) {
 
 func BenchmarkValuable_Get_WithValues(b *testing.B) {
 	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
-	v.retrieveData()
+	err := v.retrieveData()
+	require.NoError(b, err, "Failed to retrieve data for benchmark")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -230,21 +232,23 @@ func BenchmarkValuable_Get_WithValues(b *testing.B) {
 
 func BenchmarkValuable_Get_WithEnvRef(b *testing.B) {
 	envName := "BENCH_TEST_ENV"
-	os.Setenv(envName, "benchvalue")
-	defer os.Unsetenv(envName)
+	os.Setenv(envName, "benchvalue") // nolint:errcheck
+	defer os.Unsetenv(envName)       // nolint:errcheck
 
 	v := &Valuable{ValueFrom: &ValueFromSource{EnvRef: &envName}}
+	err := v.retrieveData()
+	require.NoError(b, err, "Failed to retrieve data for benchmark")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		v.retrieveData()
 		v.Get()
 	}
 }
 
 func BenchmarkValuable_Contains(b *testing.B) {
 	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
-	v.retrieveData()
+	err := v.retrieveData()
+	require.NoError(b, err, "Failed to retrieve data for benchmark")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -254,7 +258,8 @@ func BenchmarkValuable_Contains(b *testing.B) {
 
 func BenchmarkValuable_Contains_NotFound(b *testing.B) {
 	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
-	v.retrieveData()
+	err := v.retrieveData()
+	require.NoError(b, err, "Failed to retrieve data for benchmark")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -267,7 +272,7 @@ func BenchmarkSerialize_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Serialize(testValue)
+		Serialize(testValue) // nolint:errcheck
 	}
 }
 
@@ -278,7 +283,7 @@ func BenchmarkSerialize_Map(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Serialize(testMap)
+		Serialize(testMap) // nolint:errcheck
 	}
 }
 
@@ -291,7 +296,7 @@ func BenchmarkSerialize_ComplexMap(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Serialize(testMap)
+		Serialize(testMap) // nolint:errcheck
 	}
 }
 
@@ -301,7 +306,7 @@ func BenchmarkValuable_Validate(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		v.Validate()
+		v.Validate() // nolint:errcheck
 	}
 }
 

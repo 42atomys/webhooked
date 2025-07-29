@@ -289,7 +289,7 @@ func BenchmarkDefaultExecutor_IncomingRequest(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Reset response for each iteration
 		ctx.Response.Reset()
-		executor.IncomingRequest(context.Background(), ctx)
+		executor.IncomingRequest(context.Background(), ctx) // nolint:errcheck
 	}
 }
 
@@ -306,7 +306,7 @@ func BenchmarkDefaultExecutor_pipelineSecure(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		executor.pipelineSecure(context.Background(), ctx, webhook)
+		executor.pipelineSecure(context.Background(), ctx, webhook) // nolint:errcheck
 	}
 }
 
@@ -327,13 +327,13 @@ func BenchmarkDefaultExecutor_pipelineStore_Single(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		executor.pipelineStore(context.Background(), ctx, webhook)
+		executor.pipelineStore(context.Background(), ctx, webhook) // nolint:errcheck
 	}
 }
 
 func BenchmarkDefaultExecutor_pipelineStore_Multiple(b *testing.B) {
 	executor := NewExecutor(&config.Config{})
-	
+
 	// Create multiple storage backends
 	storages := make([]*storage.Storage, 5)
 	for i := 0; i < 5; i++ {
@@ -343,7 +343,7 @@ func BenchmarkDefaultExecutor_pipelineStore_Multiple(b *testing.B) {
 			Specs:      &storageNoop.NoopStorageSpec{},
 		}
 	}
-	
+
 	webhook := &config.Webhook{
 		Storage: storages,
 	}
@@ -353,7 +353,7 @@ func BenchmarkDefaultExecutor_pipelineStore_Multiple(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		executor.pipelineStore(context.Background(), ctx, webhook)
+		executor.pipelineStore(context.Background(), ctx, webhook) // nolint:errcheck
 	}
 }
 
@@ -368,13 +368,13 @@ func BenchmarkDefaultExecutor_pipelineResponse_NoTemplate(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		executor.pipelineResponse(context.Background(), ctx, webhook)
+		executor.pipelineResponse(context.Background(), ctx, webhook) // nolint:errcheck
 	}
 }
 
 func BenchmarkDefaultExecutor_pipelineStore_Concurrent(b *testing.B) {
 	executor := NewExecutor(&config.Config{})
-	
+
 	// Create multiple storage backends
 	storages := make([]*storage.Storage, 10)
 	for i := 0; i < 10; i++ {
@@ -384,7 +384,7 @@ func BenchmarkDefaultExecutor_pipelineStore_Concurrent(b *testing.B) {
 			Specs:      &storageNoop.NoopStorageSpec{},
 		}
 	}
-	
+
 	webhook := &config.Webhook{
 		Storage: storages,
 	}
@@ -392,10 +392,9 @@ func BenchmarkDefaultExecutor_pipelineStore_Concurrent(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
 		ctx.Request.SetBody([]byte(`{"test": "data"}`))
-		
+
 		for pb.Next() {
-			executor.pipelineStore(context.Background(), ctx, webhook)
+			executor.pipelineStore(context.Background(), ctx, webhook) // nolint:errcheck
 		}
 	})
 }
-

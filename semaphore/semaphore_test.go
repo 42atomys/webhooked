@@ -284,7 +284,7 @@ func BenchmarkSemaphore_Execute(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i)
+		s.Execute(context.Background(), i) // nolint:errcheck
 	}
 }
 
@@ -294,7 +294,7 @@ func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
 			return nil
 		},
 	}
-	s := semaphore.New(exec, 
+	s := semaphore.New(exec,
 		semaphore.WithCapacity(10000),
 		semaphore.WithMaxWorkers(10))
 	s.StartConsumers()
@@ -302,7 +302,7 @@ func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i)
+		s.Execute(context.Background(), i) // nolint:errcheck
 	}
 }
 
@@ -312,7 +312,7 @@ func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
 			return nil
 		},
 	}
-	s := semaphore.New(exec, 
+	s := semaphore.New(exec,
 		semaphore.WithCapacity(10000),
 		semaphore.WithMaxWorkers(20))
 	s.StartConsumers()
@@ -321,7 +321,7 @@ func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		i := 0
 		for pb.Next() {
-			s.Execute(context.Background(), i)
+			s.Execute(context.Background(), i) // nolint:errcheck
 			i++
 		}
 	})
@@ -347,7 +347,7 @@ func BenchmarkSemaphore_WithRetries(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i)
+		s.Execute(context.Background(), i) // nolint:errcheck
 	}
 }
 
@@ -363,8 +363,8 @@ func BenchmarkSemaphore_SetCapacity(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		newCapacity := 100 + (i % 100)
-		s.SetCapacity(newCapacity)
+		newCapacity := int32(100 + (i % 100))
+		s.SetCapacity(newCapacity) // nolint:errcheck
 	}
 }
 
@@ -376,14 +376,14 @@ func BenchmarkSemaphore_ProcessingSpeed(b *testing.B) {
 			return nil
 		},
 	}
-	s := semaphore.New(exec, 
+	s := semaphore.New(exec,
 		semaphore.WithCapacity(1000),
 		semaphore.WithMaxWorkers(10))
 	s.StartConsumers()
 
 	// Fill the queue
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i)
+		s.Execute(context.Background(), i) // nolint:errcheck
 	}
 
 	// Wait for all to be processed
@@ -394,6 +394,6 @@ func BenchmarkSemaphore_ProcessingSpeed(b *testing.B) {
 	elapsed := time.Since(start)
 
 	s.StopConsumers()
-	
+
 	b.ReportMetric(float64(b.N)/elapsed.Seconds(), "tasks/sec")
 }
