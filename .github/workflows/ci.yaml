@@ -51,9 +51,6 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.22', '1.23']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,7 +58,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ env.GO_VERSION }}
           cache: true
 
       - name: Install Task
@@ -87,8 +84,6 @@ jobs:
     services:
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -97,8 +92,6 @@ jobs:
 
       postgres:
         image: postgres:16-alpine
-        ports:
-          - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -111,9 +104,6 @@ jobs:
 
       rabbitmq:
         image: rabbitmq:3-management-alpine
-        ports:
-          - 5672:5672
-          - 15672:15672
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
