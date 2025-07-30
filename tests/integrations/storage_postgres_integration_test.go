@@ -53,20 +53,6 @@ func (suite *PostgresIntegrationTestSuite) SetupSuite() {
 	err = db.Ping()
 	require.NoError(suite.T(), err, "Failed to ping PostgreSQL")
 
-	// Create database if it doesn't exist
-	_, err = db.Exec(`
-	DO $$
-	BEGIN
-		IF NOT EXISTS (
-				SELECT FROM pg_database WHERE datname = 'webhooked_test'
-		) THEN
-				CREATE DATABASE webhooked_test;
-		END IF;
-	END
-	$$;
-	`)
-	require.NoError(suite.T(), err, "Failed to create database if it does not exist")
-
 	// Clean up test table
 	_, err = db.Exec("DROP TABLE IF EXISTS webhook_events")
 	require.NoError(suite.T(), err, "Failed to drop test table")
