@@ -60,11 +60,24 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 
 	suite.ctx = context.Background()
 
+	redisHost, defined := os.LookupEnv("REDIS_HOST")
+	if !defined {
+		redisHost = "redis"
+	}
+	redisPort, defined := os.LookupEnv("REDIS_PORT")
+	if !defined {
+		redisPort = "6379"
+	}
+	redisPassword, defined := os.LookupEnv("REDIS_PASSWORD")
+	if !defined {
+		redisPassword = ""
+	}
+
 	// Initialize storage configuration
 	redisclient := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT"),
+		Addr:     redisHost + ":" + redisPort,
 		DB:       0, // use default DB
-		Password: os.Getenv("REDIS_PASSWORD"),
+		Password: redisPassword,
 	})
 	suite.NoError(redisclient.Ping(suite.ctx).Err(), "Failed to create Redis client")
 	suite.NoError(redisclient.FlushDB(suite.ctx).Err(), "Failed to flush Redis database")

@@ -3,6 +3,7 @@
 package integration_test
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -22,8 +23,26 @@ type RabbitMQIntegrationTestSuite struct {
 func (suite *RabbitMQIntegrationTestSuite) SetupSuite() {
 	suite.IntegrationTestSuite.SetupSuite()
 
+	rabbitmqHost, defined := os.LookupEnv("RABBITMQ_HOST")
+	if !defined {
+		rabbitmqHost = "rabbitmq"
+	}
+	rabbitmqPort, defined := os.LookupEnv("RABBITMQ_PORT")
+	if !defined {
+		rabbitmqPort = "5672"
+	}
+	rabbitmqUser, defined := os.LookupEnv("RABBITMQ_USER")
+	if !defined {
+		rabbitmqUser = "rabbitmq"
+	}
+	rabbitmqPassword, defined := os.LookupEnv("RABBITMQ_PASSWORD")
+	if !defined {
+		rabbitmqPassword = "rabbitmq"
+	}
+	dsn := "amqp://" + rabbitmqUser + ":" + rabbitmqPassword + "@" + rabbitmqHost + ":" + rabbitmqPort + "/"
+
 	// Initialize RabbitMQ connection
-	conn, err := amqp.Dial("amqp://rabbitmq:rabbitmq@rabbitmq:5672/")
+	conn, err := amqp.Dial(dsn)
 	require.NoError(suite.T(), err, "Failed to connect to RabbitMQ")
 
 	ch, err := conn.Channel()

@@ -4,6 +4,7 @@ package integration_test
 
 import (
 	"database/sql"
+	"os"
 	"testing"
 	"time"
 
@@ -23,8 +24,29 @@ type PostgresIntegrationTestSuite struct {
 func (suite *PostgresIntegrationTestSuite) SetupSuite() {
 	suite.IntegrationTestSuite.SetupSuite()
 
+	postgresHost, defined := os.LookupEnv("POSTGRES_HOST")
+	if !defined {
+		postgresHost = "postgres"
+	}
+	postgresPort, defined := os.LookupEnv("POSTGRES_PORT")
+	if !defined {
+		postgresPort = "5432"
+	}
+	postgresUser, defined := os.LookupEnv("POSTGRES_USER")
+	if !defined {
+		postgresUser = "postgres"
+	}
+	postgresPassword, defined := os.LookupEnv("POSTGRES_PASSWORD")
+	if !defined {
+		postgresPassword = "postgres"
+	}
+	postgresDB, defined := os.LookupEnv("POSTGRES_DB")
+	if !defined {
+		postgresDB = "webhooked_test"
+	}
+
 	// Initialize PostgreSQL client
-	dsn := "postgres://postgres:postgres@postgres:5432/webhooked_test?sslmode=disable"
+	dsn := "postgres://" + postgresUser + ":" + postgresPassword + "@" + postgresHost + ":" + postgresPort + "/" + postgresDB + "?sslmode=disable"
 	db, err := sql.Open("postgres", dsn)
 	require.NoError(suite.T(), err, "Failed to connect to PostgreSQL")
 

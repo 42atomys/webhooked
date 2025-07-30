@@ -4,6 +4,7 @@ package integration_test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -23,11 +24,24 @@ type RedisIntegrationTestSuite struct {
 func (suite *RedisIntegrationTestSuite) SetupSuite() {
 	suite.IntegrationTestSuite.SetupSuite()
 
+	redisHost, defined := os.LookupEnv("REDIS_HOST")
+	if !defined {
+		redisHost = "redis"
+	}
+	redisPort, defined := os.LookupEnv("REDIS_PORT")
+	if !defined {
+		redisPort = "6379"
+	}
+	redisPassword, defined := os.LookupEnv("REDIS_PASSWORD")
+	if !defined {
+		redisPassword = ""
+	}
+
 	// Initialize Redis client
 	client := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
-		Password: "",
-		DB:       0,
+		Addr:     redisHost + ":" + redisPort,
+		DB:       0, // use default DB
+		Password: redisPassword,
 	})
 
 	ctx := context.Background()
