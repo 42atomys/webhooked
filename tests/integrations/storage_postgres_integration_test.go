@@ -1,4 +1,4 @@
-//go:build integrations
+//go:build integration
 
 package integration_test
 
@@ -42,7 +42,7 @@ func (suite *PostgresIntegrationTestSuite) SetupSuite() {
 	}
 	postgresDB, defined := os.LookupEnv("POSTGRES_DB")
 	if !defined {
-		postgresDB = "webhooked_test"
+		postgresDB = "postgres"
 	}
 
 	// Initialize PostgreSQL client

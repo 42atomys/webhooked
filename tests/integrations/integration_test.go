@@ -1,4 +1,4 @@
-//go:build integrations
+//go:build integration
 
 package integration_test
 
@@ -53,6 +53,10 @@ type IntegrationTestSuite struct {
 	storages map[storageType]any
 }
 
+type BasicIntegrationTestSuite struct {
+	IntegrationTestSuite
+}
+
 func (suite *IntegrationTestSuite) SetupSuite() {
 	// Initialize logging
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
@@ -85,15 +89,85 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.storages = map[storageType]any{
 		StorageTypeRedis: redisclient,
 	}
-
-	log.Info().Msg("Starting integration test suite...")
 }
 
 func (suite *IntegrationTestSuite) TearDownSuite() {
-	log.Info().Msg("Integration test suite completed")
+	for _, storage := range suite.storages {
+		switch s := storage.(type) {
+		case *redis.Client:
+			s.Close()
+		}
+	}
+	suite.storages = nil
+	suite.ctx = nil
 }
 
-func (suite *IntegrationTestSuite) TestIntegrationScenarios() {
+func (suite *IntegrationTestSuite) doRequest(test testInput) {
+	// Prepare request
+	jsonValue, err := json.Marshal(test.payload)
+	suite.NoError(err, "Failed to marshal payload")
+
+	req, err := http.NewRequestWithContext(suite.ctx, "POST", BaseURL+test.endpoint, bytes.NewBuffer(jsonValue))
+	suite.NoError(err, "Failed to create request")
+
+	req.Header.Set("Content-Type", "application/json")
+	for key, value := range test.headers {
+		req.Header.Set(key, value)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(suite.T(), err, "Failed to send request")
+
+	// Check response status code
+	suite.Equal(test.expectedResponse.statusCode, resp.StatusCode, "Unexpected status code")
+
+	// Check headers
+	for key, expectedValue := range test.expectedResponse.headers {
+		suite.Equal(expectedValue, resp.Header.Get(key), "Header mismatch for %s", key)
+	}
+
+	// Check response body
+	if test.expectedResponse.body != "" {
+		buf := new(bytes.Buffer)
+		_, err := buf.ReadFrom(resp.Body)
+		suite.NoError(err, "Failed to read response body")
+
+		body := buf.String()
+		suite.Equal(test.expectedResponse.body, strings.Trim(body, "\n"), "Response body mismatch")
+	}
+
+	_ = resp.Body.Close()
+	time.Sleep(100 * time.Millisecond) // Allow some time for async processing
+}
+
+func (suite *IntegrationTestSuite) runTest(test testInput) {
+	suite.doRequest(test)
+
+	// Check storage
+	if test.expectedStorage.storageType != "" {
+		storage, exists := suite.storages[test.expectedStorage.storageType]
+		suite.True(exists, "Storage type %s not found", test.expectedStorage.storageType)
+
+		switch test.expectedStorage.storageType {
+		case StorageTypeRedis:
+			redisClient := storage.(*redis.Client)
+			data, err := redisClient.LPop(suite.ctx, test.expectedStorage.key).Result()
+			if err != redis.Nil {
+				suite.NoError(err, "Failed to get data from Redis")
+			}
+
+			if test.expectedStorage.isJson {
+				suite.JSONEq(test.expectedStorage.data, data, "Data mismatch in Redis storage")
+			} else {
+				suite.Equal(test.expectedStorage.data, data, "Data mismatch in Redis storage")
+			}
+		default:
+		}
+	}
+}
+
+func (suite *BasicIntegrationTestSuite) TestIntegrationScenarios() {
 	tests := []testInput{
 		{
 			name:     "empty-payload",
@@ -212,71 +286,6 @@ func (suite *IntegrationTestSuite) TestIntegrationScenarios() {
 	}
 }
 
-func (suite *IntegrationTestSuite) doRequest(test testInput) {
-	// Prepare request
-	jsonValue, err := json.Marshal(test.payload)
-	suite.NoError(err, "Failed to marshal payload")
-
-	req, err := http.NewRequestWithContext(suite.ctx, "POST", BaseURL+test.endpoint, bytes.NewBuffer(jsonValue))
-	suite.NoError(err, "Failed to create request")
-
-	req.Header.Set("Content-Type", "application/json")
-	for key, value := range test.headers {
-		req.Header.Set(key, value)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	require.NoError(suite.T(), err, "Failed to send request")
-
-	// Check response status code
-	suite.Equal(test.expectedResponse.statusCode, resp.StatusCode, "Unexpected status code")
-
-	// Check headers
-	for key, expectedValue := range test.expectedResponse.headers {
-		suite.Equal(expectedValue, resp.Header.Get(key), "Header mismatch for %s", key)
-	}
-
-	// Check response body
-	if test.expectedResponse.body != "" {
-		buf := new(bytes.Buffer)
-		_, err := buf.ReadFrom(resp.Body)
-		suite.NoError(err, "Failed to read response body")
-
-		body := buf.String()
-		suite.Equal(test.expectedResponse.body, strings.Trim(body, "\n"), "Response body mismatch")
-	}
-
-	_ = resp.Body.Close()
-	time.Sleep(100 * time.Millisecond) // Allow some time for async processing
-}
-
-func (suite *IntegrationTestSuite) runTest(test testInput) {
-	suite.doRequest(test)
-
-	// Check storage
-	if test.expectedStorage.storageType != "" {
-		storage, exists := suite.storages[test.expectedStorage.storageType]
-		suite.True(exists, "Storage type %s not found", test.expectedStorage.storageType)
-
-		switch test.expectedStorage.storageType {
-		case StorageTypeRedis:
-			redisClient := storage.(*redis.Client)
-			data, err := redisClient.LPop(suite.ctx, test.expectedStorage.key).Result()
-			if err != redis.Nil {
-				suite.NoError(err, "Failed to get data from Redis")
-			}
-
-			if test.expectedStorage.isJson {
-				suite.JSONEq(test.expectedStorage.data, data, "Data mismatch in Redis storage")
-			} else {
-				suite.Equal(test.expectedStorage.data, data, "Data mismatch in Redis storage")
-			}
-		default:
-		}
-	}
-}
-
-func TestIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+func TestBasicIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(BasicIntegrationTestSuite))
 }
