@@ -33,6 +33,9 @@
       "cwd": "${workspaceFolder}",
       "env": {
         "X_DEV_SECRET_TOKEN": "test",
+        "REDIS_HOST": "redis",
+        "RABBITMQ_DATABASE_URL": "amqp://rabbitmq:rabbitmq@rabbitmq:5672/",
+        "POSTGRES_DATABASE_URL": "postgres://postgres:postgres@postgres:5432/webhooked_test?sslmode=disable"
       }
     }
   ]

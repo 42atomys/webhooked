@@ -48,9 +48,9 @@ tasks:
     desc: Run webhooked server for integration tests
     deps: [build]
     env:
-      REDIS_HOST: localhost
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ''
+      REDIS_HOST: redis
+      RABBITMQ_DATABASE_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672/
+      POSTGRES_DATABASE_URL: postgres://postgres:postgres@postgres:5432/webhooked_test?sslmode=disable
     cmds:
       - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml
 
