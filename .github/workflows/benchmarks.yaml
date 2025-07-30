@@ -32,7 +32,7 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          go test -bench=. -benchmem -count=5 -run=^$ ./... | tee benchmark_results.txt
+          go test -tags=unit,integration -bench=. -benchmem -count=5 -run=^$ ./... | tee benchmark_results.txt
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
