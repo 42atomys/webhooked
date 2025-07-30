@@ -51,19 +51,3 @@ jobs:
         with:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           configuration-path: .github/labeler.yml
-
-  stale-pr-handler:
-    name: Stale PR Handler
-    runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Close stale PRs
-        uses: actions/stale@v9
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-pr-message: 'This PR has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs.'
-          close-pr-message: 'This PR has been automatically closed due to inactivity.'
-          stale-pr-label: 'stale'
-          days-before-pr-stale: 30
-          days-before-pr-close: 7
-          exempt-pr-labels: 'pinned,security,work-in-progress'
