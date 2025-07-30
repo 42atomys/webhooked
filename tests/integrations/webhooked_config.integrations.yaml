@@ -1,6 +1,6 @@
 # Extended configuration for comprehensive integration testing
 redisSpecs: &redisSpecs
-  host: localhost
+  host: redis
   port: '6379'
   database: 0
 
