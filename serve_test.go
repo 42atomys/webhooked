@@ -9,13 +9,19 @@ import (
 
 	"github.com/42atomys/webhooked/internal/config"
 	"github.com/42atomys/webhooked/internal/fasthttpz"
+	"github.com/42atomys/webhooked/security"
+	"github.com/42atomys/webhooked/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
 
 func TestNewServer(t *testing.T) {
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(&config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs:      []*config.Spec{},
+	}, 8080)
 
 	require.NoError(t, err)
 	assert.NotNil(t, server)
@@ -24,8 +30,19 @@ func TestNewServer(t *testing.T) {
 	assert.NotNil(t, server.executor)
 }
 
+func TestNewServer_InvalidConfig(t *testing.T) {
+	_, err := NewServer(&config.Config{}, 8080)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "invalid configuration")
+}
+
 func TestServer_HealthCheck(t *testing.T) {
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(&config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs:      []*config.Spec{},
+	}, 8080)
 	require.NoError(t, err)
 
 	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
@@ -40,7 +57,11 @@ func TestServer_HealthCheck(t *testing.T) {
 }
 
 func TestServer_ReadinessCheck_NoConfig(t *testing.T) {
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(&config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs:      []*config.Spec{},
+	}, 8080)
 	require.NoError(t, err)
 
 	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
@@ -50,14 +71,12 @@ func TestServer_ReadinessCheck_NoConfig(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusServiceUnavailable, ctx.Response.StatusCode())
 	assert.Contains(t, string(ctx.Response.Body()), "not ready")
+	assert.Contains(t, string(ctx.Response.Body()), "reason")
 	assert.Equal(t, "application/json", string(ctx.Response.Header.ContentType()))
 }
 
 func TestServer_ReadinessCheck_WithConfig(t *testing.T) {
-	// Setup configuration
-	setupMinimalConfig(t)
-
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(setupMinimalConfig(), 8080)
 	require.NoError(t, err)
 
 	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
@@ -66,13 +85,14 @@ func TestServer_ReadinessCheck_WithConfig(t *testing.T) {
 	server.handleReadinessCheck(ctx)
 
 	// Since we can't easily mock the global config, expect ServiceUnavailable
-	assert.Equal(t, fasthttp.StatusServiceUnavailable, ctx.Response.StatusCode())
-	assert.Contains(t, string(ctx.Response.Body()), "not ready")
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Contains(t, string(ctx.Response.Body()), "ready")
+	assert.Contains(t, string(ctx.Response.Body()), "version")
 	assert.Equal(t, "application/json", string(ctx.Response.Header.ContentType()))
 }
 
 func TestServer_RequestHandler_HealthEndpoints(t *testing.T) {
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(setupMinimalConfig(), 8080)
 	require.NoError(t, err)
 
 	handler := server.requestHandlerFunc()
@@ -90,7 +110,7 @@ func TestServer_RequestHandler_HealthEndpoints(t *testing.T) {
 		{
 			name:           "readiness check",
 			path:           "/ready",
-			expectedStatus: fasthttp.StatusServiceUnavailable, // No config loaded
+			expectedStatus: fasthttp.StatusOK, // No config loaded
 		},
 	}
 
@@ -107,10 +127,7 @@ func TestServer_RequestHandler_HealthEndpoints(t *testing.T) {
 }
 
 func TestServer_RequestHandler_WebhookPath(t *testing.T) {
-	// Setup minimal config for webhook testing
-	setupMinimalConfig(t)
-
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(setupMinimalConfig(), 8080)
 	require.NoError(t, err)
 
 	handler := server.requestHandlerFunc()
@@ -126,8 +143,56 @@ func TestServer_RequestHandler_WebhookPath(t *testing.T) {
 	assert.Equal(t, fasthttp.StatusNotFound, ctx.Response.StatusCode())
 }
 
+func TestServer_RequestHandler_WebhookPath_RateLimitExceeded(t *testing.T) {
+	config := &config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs: []*config.Spec{
+			{
+				Webhooks: []*config.Webhook{
+					{
+						Name:          "test",
+						EntrypointURL: "/test",
+						Security:      security.Security{},
+						Storage:       []*storage.Storage{},
+						Response:      config.Response{},
+					},
+				},
+				Throttling: &config.Throttling{
+					Enabled:     true,
+					MaxRequests: 1,
+					Window:      10,
+				},
+			},
+		},
+	}
+
+	server, err := NewServer(config, 8080)
+	require.NoError(t, err)
+
+	handler := server.requestHandlerFunc()
+
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+	ctx.Request.SetRequestURI("/webhooks/v1alpha2/test")
+	ctx.Request.Header.SetMethod("POST")
+	ctx.Request.SetBody([]byte(`{"test": "data"}`))
+
+	// First request should succeed
+	handler(ctx.RequestCtx)
+	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+
+	// Second request should hit rate limit
+	handler(ctx.RequestCtx)
+	assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
+}
+
 func TestServer_Shutdown(t *testing.T) {
-	server, err := NewServer(&config.Config{}, 8080)
+	require.NotPanics(t, func() {
+		server := &Server{}
+		server.Shutdown(context.Background())
+	})
+
+	server, err := NewServer(setupMinimalConfig(), 8080)
 	require.NoError(t, err)
 
 	// Test shutdown without starting
@@ -139,7 +204,7 @@ func TestServer_Shutdown(t *testing.T) {
 }
 
 func TestServer_Shutdown_WithTimeout(t *testing.T) {
-	server, err := NewServer(&config.Config{}, 8080)
+	server, err := NewServer(setupMinimalConfig(), 8080)
 	require.NoError(t, err)
 
 	// Create a context that expires immediately
@@ -178,18 +243,52 @@ func TestBuildInfo(t *testing.T) {
 	assert.Contains(t, info, "go:")
 }
 
-// Helper function to setup minimal configuration for testing
-func setupMinimalConfig(t *testing.T) {
-	testConfig := &config.Config{
+func TestGetRaeLimitStats_Disabled(t *testing.T) {
+	server, err := NewServer(&config.Config{
 		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs:      []*config.Spec{},
+	}, 8080)
+	require.NoError(t, err)
+
+	assert.Equal(t, map[string]any{"enabled": false}, server.GetRateLimitStats())
+}
+
+func TestGetRaeLimitStats_Enabled(t *testing.T) {
+	server, err := NewServer(&config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
+		Specs: []*config.Spec{
+			{
+				Throttling: &config.Throttling{
+					Enabled: true,
+				},
+			},
+		},
+	}, 8080)
+	require.NoError(t, err)
+
+	stats := server.GetRateLimitStats()
+	assert.Equal(t, map[string]any{
+		"enabled":        true,
+		"active_clients": 0,
+		"burst_limit":    0,
+		"burst_window":   0,
+		"max_requests":   0,
+		"total_requests": 0,
+		"window_seconds": 0,
+	}, stats)
+}
+
+// Helper function to setup minimal configuration for testing
+func setupMinimalConfig() *config.Config {
+	return &config.Config{
+		APIVersion: config.APIVersionV1Alpha2,
+		Kind:       config.KindConfiguration,
 		Specs: []*config.Spec{
 			{
 				Webhooks: []*config.Webhook{},
 			},
 		},
 	}
-
-	// This would ideally use a test-specific config loading mechanism
-	// For now, we'll just ensure we have a minimal config structure
-	_ = testConfig
 }

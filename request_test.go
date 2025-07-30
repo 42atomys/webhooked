@@ -75,6 +75,26 @@ func TestErrHTTPUnauthorized_WithNilError(t *testing.T) {
 	assert.Nil(t, returnedErr)
 }
 
+func TestErrHTTPInternalServerError_WithNilError(t *testing.T) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+
+	returnedErr := ErrHTTPInternalServerError(ctx, nil)
+
+	assert.Equal(t, fasthttp.StatusInternalServerError, ctx.Response.StatusCode())
+	assert.Equal(t, internalServerError, ctx.Response.Body())
+	assert.Nil(t, returnedErr)
+}
+
+func TestErrHTTPBadRequest_WithNilError(t *testing.T) {
+	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
+
+	returnedErr := ErrHTTPBadRequest(ctx, nil)
+
+	assert.Equal(t, fasthttp.StatusBadRequest, ctx.Response.StatusCode())
+	assert.Equal(t, badRequest, ctx.Response.Body())
+	assert.Nil(t, returnedErr)
+}
+
 func TestErrorConstants(t *testing.T) {
 	// Test that our error message constants are reasonable
 	assert.Equal(t, []byte("Not Found"), notFound)
@@ -173,6 +193,15 @@ func BenchmarkErrorWithNil(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ctx.Response.Reset()
-		ErrHTTPNotFound(ctx, nil) // nolint:errcheck
+		switch i % 4 {
+		case 0:
+			ErrHTTPNotFound(ctx, nil) // nolint:errcheck
+		case 1:
+			ErrHTTPUnauthorized(ctx, nil) // nolint:errcheck
+		case 2:
+			ErrHTTPInternalServerError(ctx, nil) // nolint:errcheck
+		case 3:
+			ErrHTTPBadRequest(ctx, nil) // nolint:errcheck
+		}
 	}
 }

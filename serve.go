@@ -12,7 +12,6 @@ import (
 	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/pprofhandler"
 	"github.com/valyala/fasthttp/reuseport"
 )
 
@@ -28,6 +27,10 @@ type Server struct {
 
 // NewServer creates a new Server instance
 func NewServer(config *config.Config, port int) (*Server, error) {
+	if err := config.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid configuration: %w", err)
+	}
+
 	executor := NewExecutor(config)
 
 	// Use fasthttp.Server with optimized settings for high concurrency
@@ -151,8 +154,6 @@ func (s *Server) requestHandlerFunc() fasthttp.RequestHandler {
 			log.Debug().Msgf("Request processed in %v", time.Since(start))
 			return
 		}
-
-		pprofhandler.PprofHandler(rctx.RequestCtx)
 	}
 }
 

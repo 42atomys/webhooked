@@ -27,6 +27,8 @@
         "go.coverMode": "atomic",
         "go.coverOnSave": true,
         "go.disableConcurrentTests": true,
+        "go.testTags": "unit,integration",
+        "go.buildTags": "unit,integration",
         "editor.formatOnSave": true,
         "go.lintTool": "golangci-lint",
         "editor.renderWhitespace": "all",
