@@ -21,6 +21,15 @@ tasks:
     cmds:
       - cmd: go build -ldflags "-X github.com/42atomys/webhooked.Version={{.VERSION}} -X github.com/42atomys/webhooked.GitCommit={{.COMMIT}} -X github.com/42atomys/webhooked.BuildDate={{.BUILD_DATE}}" -o ./bin/webhooked ./cmd/webhooked/webhooked.go
 
+  docker-build:
+    aliases: [db]
+    desc: Build the Docker image
+    vars:
+      DOCKER_BUILDKIT: '1'
+      IMAGE_TAG: latest
+    cmds:
+      - cmd: docker build -t webhooked:{{.IMAGE_TAG}} .
+
   lint:
     aliases: [l]
     desc: Run linting checks

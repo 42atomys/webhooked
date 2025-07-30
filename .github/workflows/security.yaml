@@ -110,8 +110,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image
-        run: docker build -t webhooked:scan .
+        run: task docker-build IMAGE_TAG=scan
 
       - name: Run Trivy vulnerability scanner on Docker image
         uses: aquasecurity/trivy-action@0.24.0
