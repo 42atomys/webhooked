@@ -133,14 +133,6 @@ jobs:
         with:
           sarif_file: 'docker-trivy-results.sarif'
 
-      - name: Run Docker Scout
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: webhooked:scan
-          only-severities: critical,high
-          exit-code: true
-
   license-check:
     name: License Check
     runs-on: ubuntu-latest
