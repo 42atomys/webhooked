@@ -156,6 +156,13 @@ jobs:
           RABBITMQ_DATABASE_URL: amqp://rabbitmq:rabbitmq@localhost:5672/
           POSTGRES_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         run: task test-integration
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build

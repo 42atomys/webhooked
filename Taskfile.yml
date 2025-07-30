@@ -65,7 +65,7 @@ tasks:
     cmds:
       - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml &
       - defer: kill -9 $(pgrep -f "./bin/webhooked") || true
-      - cmd: go test -v --tags=integration ./...
+      - cmd: go test ./... --tags=integration -coverprofile coverage.out -covermode count
 
   test-load-testing:
     aliases: [tl]
