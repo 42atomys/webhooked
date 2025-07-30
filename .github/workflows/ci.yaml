@@ -154,7 +154,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
           RABBITMQ_DATABASE_URL: amqp://rabbitmq:rabbitmq@localhost:5672/
-          POSTGRES_DATABASE_URL: postgres://postgres:postgres@localhost:5432/webhooked_test?sslmode=disable
+          POSTGRES_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         run: task test-integration
 
   build:
