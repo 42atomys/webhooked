@@ -81,19 +81,6 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    env:
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USER: rabbitmq
-      RABBITMQ_PASSWORD: rabbitmq
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ''
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
     services:
       redis:
         image: redis:7-alpine
@@ -102,6 +89,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 6379:6379
 
       postgres:
         image: postgres:16-alpine
@@ -114,6 +103,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
       rabbitmq:
         image: rabbitmq:3-management-alpine
@@ -125,6 +116,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5672:5672
+          - 15672:15672
 
     steps:
       - name: Checkout code
@@ -146,6 +140,19 @@ jobs:
         run: task build
 
       - name: Run integration tests
+        env:
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USER: rabbitmq
+          RABBITMQ_PASSWORD: rabbitmq
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ''
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
         run: task test-integration
 
   build:
