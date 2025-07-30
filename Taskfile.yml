@@ -3,18 +3,16 @@ version: '3'
 
 vars:
   GREETING: Hello, World!
-
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo "unknown"
+  BUILD_DATE:
+    sh: date -u +"%Y-%m-%dT%H:%M:%SZ"
 tasks:
   build:
     aliases: [b]
     desc: Build the project
-    vars:
-      VERSION:
-        sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
-      COMMIT:
-        sh: git rev-parse --short HEAD 2>/dev/null || echo "unknown"
-      BUILD_DATE:
-        sh: date -u +"%Y-%m-%dT%H:%M:%SZ"
     #env:
     #  GOOS: linux
     #  GOARCH: amd64
