@@ -73,9 +73,9 @@ jobs:
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.out
-          flags: unittests
-          name: codecov-umbrella
+          file: ./unit_coverage.out
+          flags: unit-tests
+          name: codecov-units
           token: ${{ secrets.CODECOV_TOKEN }}
 
   integration-tests:
@@ -159,9 +159,9 @@ jobs:
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.out
-          flags: unittests
-          name: codecov-umbrella
+          file: ./integration_coverage.out
+          flags: integration-tests
+          name: codecov-integrations
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build:

@@ -40,8 +40,8 @@ tasks:
     env:
       WH_DEBUG: 'true'
     cmds:
-      - cmd: go test ./... --tags=unit -coverprofile coverage.out -covermode count
-      - cmd: go tool cover -func coverage.out
+      - cmd: go test ./... --tags=unit -coverprofile unit_coverage.out -covermode count
+      - cmd: go tool cover -func unit_coverage.out
 
   run-integration:
     aliases: [ri]
@@ -65,7 +65,8 @@ tasks:
     cmds:
       - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml &
       - defer: kill -9 $(pgrep -f "./bin/webhooked") || true
-      - cmd: go test ./... --tags=integration -coverprofile coverage.out -covermode count
+      - cmd: go test ./... --tags=integration -coverprofile integration_coverage.out -covermode count
+      - cmd: go tool cover -func integration_coverage.out
 
   test-load-testing:
     aliases: [tl]
