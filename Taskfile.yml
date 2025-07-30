@@ -26,7 +26,7 @@ tasks:
     desc: Build the Docker image
     vars:
       DOCKER_BUILDKIT: '1'
-      IMAGE_TAG: latest
+      IMAGE_TAG: '{{.IMAGE_TAG | default "latest"}}'
     cmds:
       - cmd: docker build -t webhooked:{{.IMAGE_TAG}} .
 
