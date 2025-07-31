@@ -46,23 +46,25 @@ func TestBasicFunctionality(t *testing.T) {
 
 func TestQueueFullError(t *testing.T) {
 	exec := &testExecutor{
-		processFunc: func(ctx context.Context, t int) error { return nil },
+		processFunc: func(ctx context.Context, t int) error {
+			return nil
+		},
 	}
-	s := semaphore.New(exec, semaphore.WithCapacity(2))
-	s.StartConsumers()
+	// Use capacity 1 - don't start consumers so queue fills up
+	// Note: capacity 1 becomes actual size 2 due to power-of-two rounding
+	s := semaphore.New(exec, semaphore.WithCapacity(1))
 
-	// Fill the queue
+	// Fill the queue (actual capacity is 2 due to power-of-two)
 	err1 := s.Execute(context.Background(), 1)
-	err2 := s.Execute(context.Background(), 2)
 	require.NoError(t, err1)
+	
+	err2 := s.Execute(context.Background(), 2)
 	require.NoError(t, err2)
 
-	// This one should fail if not processed instantly and queue still full
+	// This one should fail because queue is full (capacity 2, 2 tasks queued)
 	err3 := s.Execute(context.Background(), 3)
 	require.Error(t, err3)
 	assert.IsType(t, semaphore.QueueFullError{}, err3)
-
-	s.StopConsumers()
 }
 
 func TestQueueCloseError(t *testing.T) {
@@ -188,24 +190,22 @@ func TestIncreaseCapacity(t *testing.T) {
 func TestSetCapacitySmallerThanCurrentSize(t *testing.T) {
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {
-			time.Sleep(time.Millisecond * 50)
 			return nil
 		},
 	}
+	// Use capacity 4 but don't start consumers so tasks queue up
 	s := semaphore.New(exec, semaphore.WithCapacity(4))
-	s.StartConsumers()
 
+	// Fill the queue without consumers running
 	for i := 0; i < 4; i++ {
 		err := s.Execute(context.Background(), i)
 		require.NoError(t, err)
 	}
 
-	// Try to reduce capacity to 2 while 4 are in queue/processing
+	// Try to reduce capacity to 2 while 4 are queued
 	err := s.SetCapacity(2)
 	require.Error(t, err)
 	assert.Equal(t, "new capacity is smaller than current queue size", err.Error())
-
-	s.StopConsumers()
 }
 
 func TestWithMaxWorkers(t *testing.T) {
