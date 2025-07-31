@@ -40,11 +40,7 @@ func init() {
 		),
 	)
 
-	pflag.Usage = func() {
-		log.Print(usage)
-		pflag.PrintDefaults()
-	}
-
+	pflag.Usage = usageFn
 	pflag.StringVarP(&Config, "config", "c", "webhooked.yaml", "The path to the configuration file.")
 	pflag.BoolVarP(&Init, "init", "i", false, "Initialize a new Webhooked configuration.")
 	pflag.BoolVarP(&Help, "help", "h", false, "Show Webhooked usage.")
@@ -66,4 +62,9 @@ func ValidateFlags() error {
 	}
 
 	return nil
+}
+
+func usageFn() {
+	log.Print(usage)
+	pflag.PrintDefaults()
 }

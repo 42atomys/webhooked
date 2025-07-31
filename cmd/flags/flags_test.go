@@ -3,8 +3,12 @@
 package flags
 
 import (
+	"bytes"
+	"log"
+	"os"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -177,6 +181,28 @@ func (suite *TestSuiteFlagsValidation) TestUsageConstant() {
 	assert.Contains(usage, "--init")
 	assert.Contains(usage, "--port")
 	assert.Contains(usage, "--validate")
+}
+
+func (suite *TestSuiteFlagsValidation) TestUsageFn() {
+	assert := assert.New(suite.T())
+
+	// Test that usage function prints expected content
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(os.Stdout)
+
+	usageFn()
+
+	log.Print(usage)
+	pflag.PrintDefaults()
+
+	assert.Contains(buf.String(), "Usage: webhooked [options]")
+	assert.Contains(buf.String(), "--help")
+	assert.Contains(buf.String(), "--version")
+	assert.Contains(buf.String(), "--config")
+	assert.Contains(buf.String(), "--init")
+	assert.Contains(buf.String(), "--port")
+	assert.Contains(buf.String(), "--validate")
 }
 
 func (suite *TestSuiteFlagsValidation) TestFlagVariablesExist() {
