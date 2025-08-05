@@ -41,6 +41,14 @@ tasks:
       - cmd: gofmt -s -w .
       - cmd: goimports -w .
 
+  benchmarks:
+    aliases: [bch]
+    desc: Run benchmarks
+    env:
+      WH_DEBUG: 'false'
+    cmds:
+      - cmd: go test -tags=unit,integration -bench=. -benchmem -count=5 -run=^$ ./...
+
   test-units:
     aliases: [tu]
     desc: Run unit tests

@@ -158,7 +158,7 @@ func (rl *RateLimiter) StartCleanupRoutine() {
 		}
 	}()
 
-	log.Info().
+	log.Debug().
 		Dur("cleanup_interval", cleanupInterval).
 		Msg("rate limiter cleanup routine started")
 }

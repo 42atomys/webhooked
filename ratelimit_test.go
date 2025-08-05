@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/42atomys/webhooked/internal/config"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -288,6 +290,8 @@ func TestWindow_ConcurrentAccess(t *testing.T) {
 // Benchmarks
 
 func BenchmarkRateLimiter_Allow_NoLimit(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	rl := NewRateLimiter(nil)
 	clientIP := "192.168.1.1"
 
@@ -298,6 +302,8 @@ func BenchmarkRateLimiter_Allow_NoLimit(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_Allow_WithinLimit(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	throttle := &config.Throttling{
 		Enabled:     true,
 		MaxRequests: 1000000, // High limit to always allow
@@ -313,6 +319,8 @@ func BenchmarkRateLimiter_Allow_WithinLimit(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_Allow_WithBurstLimit(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	throttle := &config.Throttling{
 		Enabled:     true,
 		MaxRequests: 1000000,
@@ -330,6 +338,8 @@ func BenchmarkRateLimiter_Allow_WithBurstLimit(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_Allow_MultipleClients(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	throttle := &config.Throttling{
 		Enabled:     true,
 		MaxRequests: 1000000,
@@ -345,6 +355,8 @@ func BenchmarkRateLimiter_Allow_MultipleClients(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_Allow_Concurrent(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	throttle := &config.Throttling{
 		Enabled:     true,
 		MaxRequests: 1000000,
@@ -361,6 +373,8 @@ func BenchmarkRateLimiter_Allow_Concurrent(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_filterRequests(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	rl := &RateLimiter{}
 	now := time.Now()
 	cutoff := now.Add(-30 * time.Second)
@@ -381,6 +395,8 @@ func BenchmarkRateLimiter_filterRequests(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_GetStats(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	throttle := &config.Throttling{
 		Enabled:     true,
 		MaxRequests: 100,
@@ -405,6 +421,8 @@ func BenchmarkRateLimiter_GetStats(b *testing.B) {
 }
 
 func BenchmarkRateLimiter_Cleanup(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
+
 	throttle := &config.Throttling{
 		Enabled:     true,
 		MaxRequests: 100,

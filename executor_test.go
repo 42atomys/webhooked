@@ -14,6 +14,8 @@ import (
 	securityNoop "github.com/42atomys/webhooked/security/noop"
 	"github.com/42atomys/webhooked/storage"
 	storageNoop "github.com/42atomys/webhooked/storage/noop"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -280,6 +282,7 @@ func TestDefaultExecutor_pipelineSecure_Unauthorized(t *testing.T) {
 // Benchmarks
 
 func BenchmarkDefaultExecutor_IncomingRequest(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	executor := NewExecutor(setupTestConfig(b))
 
 	ctx := &fasthttpz.RequestCtx{RequestCtx: &fasthttp.RequestCtx{}}
@@ -296,6 +299,7 @@ func BenchmarkDefaultExecutor_IncomingRequest(b *testing.B) {
 }
 
 func BenchmarkDefaultExecutor_pipelineSecure(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	executor := &DefaultExecutor{}
 	webhook := &config.Webhook{
 		Security: security.Security{
@@ -313,6 +317,7 @@ func BenchmarkDefaultExecutor_pipelineSecure(b *testing.B) {
 }
 
 func BenchmarkDefaultExecutor_pipelineStore_Single(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	executor := NewExecutor(&config.Config{})
 	webhook := &config.Webhook{
 		Storage: []*storage.Storage{
@@ -334,6 +339,7 @@ func BenchmarkDefaultExecutor_pipelineStore_Single(b *testing.B) {
 }
 
 func BenchmarkDefaultExecutor_pipelineStore_Multiple(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	executor := NewExecutor(&config.Config{})
 
 	// Create multiple storage backends
@@ -360,6 +366,7 @@ func BenchmarkDefaultExecutor_pipelineStore_Multiple(b *testing.B) {
 }
 
 func BenchmarkDefaultExecutor_pipelineResponse_NoTemplate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	executor := &DefaultExecutor{}
 	webhook := &config.Webhook{
 		Response: config.Response{},
@@ -375,6 +382,7 @@ func BenchmarkDefaultExecutor_pipelineResponse_NoTemplate(b *testing.B) {
 }
 
 func BenchmarkDefaultExecutor_pipelineStore_Concurrent(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	executor := NewExecutor(&config.Config{})
 
 	// Create multiple storage backends
