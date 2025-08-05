@@ -12,6 +12,8 @@ import (
 	securityNoop "github.com/42atomys/webhooked/security/noop"
 	"github.com/42atomys/webhooked/storage"
 	storageNoop "github.com/42atomys/webhooked/storage/noop"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -20,10 +22,10 @@ import (
 type TestSuiteConfigValidate struct {
 	suite.Suite
 
-	validWebhook    *Webhook
-	minimalWebhook  *Webhook
-	invalidWebhook  *Webhook
-	testFormatting  *format.Formatting
+	validWebhook   *Webhook
+	minimalWebhook *Webhook
+	invalidWebhook *Webhook
+	testFormatting *format.Formatting
 }
 
 func (suite *TestSuiteConfigValidate) BeforeTest(suiteName, testName string) {
@@ -55,7 +57,7 @@ func (suite *TestSuiteConfigValidate) BeforeTest(suiteName, testName string) {
 	suite.minimalWebhook = &Webhook{
 		Name:          "minimal-webhook",
 		EntrypointURL: "/minimal",
-		Response:      Response{}, // Empty response to test defaults
+		Response:      Response{},          // Empty response to test defaults
 		Security:      security.Security{}, // Empty security to test defaults
 		Storage:       []*storage.Storage{},
 	}
@@ -174,23 +176,23 @@ func (suite *TestSuiteConfigValidate) TestEnsureResponseCompleteness_FormattingS
 	assert := assert.New(suite.T())
 
 	tests := []struct {
-		name               string
-		initialFormatting  *format.Formatting
+		name                string
+		initialFormatting   *format.Formatting
 		expectedHasTemplate bool
 	}{
 		{
-			name:               "nil formatting gets initialized",
-			initialFormatting:  nil,
+			name:                "nil formatting gets initialized",
+			initialFormatting:   nil,
 			expectedHasTemplate: false, // defaultResponseTemplate is empty
 		},
 		{
-			name:               "formatting without template gets template",
-			initialFormatting:  &format.Formatting{},
+			name:                "formatting without template gets template",
+			initialFormatting:   &format.Formatting{},
 			expectedHasTemplate: false, // defaultResponseTemplate is empty
 		},
 		{
-			name:               "formatting with template remains unchanged",
-			initialFormatting:  suite.testFormatting,
+			name:                "formatting with template remains unchanged",
+			initialFormatting:   suite.testFormatting,
 			expectedHasTemplate: true,
 		},
 	}
@@ -377,6 +379,7 @@ func (m *mockFailingStorageSpec) Store(ctx context.Context, data []byte) error {
 // Benchmarks
 
 func BenchmarkValidateAndSetDefaults(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	webhook := &Webhook{
 		Name:          "benchmark-webhook",
 		EntrypointURL: "/benchmark",
@@ -395,6 +398,7 @@ func BenchmarkValidateAndSetDefaults(b *testing.B) {
 }
 
 func BenchmarkEnsureResponseCompleteness(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	webhook := &Webhook{
 		Name:     "benchmark",
 		Response: Response{},
@@ -402,12 +406,13 @@ func BenchmarkEnsureResponseCompleteness(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		webhook.Response = Response{} // Reset for each iteration
+		webhook.Response = Response{}       // Reset for each iteration
 		ensureResponseCompleteness(webhook) // nolint:errcheck
 	}
 }
 
 func BenchmarkEnsureSecurityCompleteness(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	webhook := &Webhook{
 		Name:     "benchmark",
 		Security: security.Security{},
@@ -416,11 +421,12 @@ func BenchmarkEnsureSecurityCompleteness(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		webhook.Security = security.Security{} // Reset for each iteration
-		ensureSecurityCompleteness(webhook) // nolint:errcheck
+		ensureSecurityCompleteness(webhook)    // nolint:errcheck
 	}
 }
 
 func BenchmarkEnsureStorageCompleteness(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	webhook := &Webhook{
 		Name: "benchmark",
 		Storage: []*storage.Storage{
@@ -435,6 +441,6 @@ func BenchmarkEnsureStorageCompleteness(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		webhook.Storage[0].Formatting = &format.Formatting{} // Reset for each iteration
-		ensureStorageCompleteness(webhook) // nolint:errcheck
+		ensureStorageCompleteness(webhook)                   // nolint:errcheck
 	}
 }

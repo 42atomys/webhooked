@@ -6,6 +6,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -385,6 +387,7 @@ func TestRunContextUtilSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkWithWebhookSpec(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	spec := map[string]string{"name": "benchmark-webhook"}
 
@@ -395,6 +398,7 @@ func BenchmarkWithWebhookSpec(b *testing.B) {
 }
 
 func BenchmarkWebhookSpecFromContext(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	spec := map[string]string{"name": "benchmark-webhook"}
 	ctx = WithWebhookSpec(ctx, spec)
@@ -406,6 +410,7 @@ func BenchmarkWebhookSpecFromContext(b *testing.B) {
 }
 
 func BenchmarkWithRequestCtx(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	reqCtx := map[string]any{"method": "POST", "path": "/webhook"}
 
@@ -416,6 +421,7 @@ func BenchmarkWithRequestCtx(b *testing.B) {
 }
 
 func BenchmarkRequestCtxFromContext(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	reqCtx := map[string]any{"method": "POST", "path": "/webhook"}
 	ctx = WithRequestCtx(ctx, reqCtx)
@@ -427,6 +433,7 @@ func BenchmarkRequestCtxFromContext(b *testing.B) {
 }
 
 func BenchmarkWithStore(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	store := map[string]string{"type": "redis", "addr": "localhost:6379"}
 
@@ -437,6 +444,7 @@ func BenchmarkWithStore(b *testing.B) {
 }
 
 func BenchmarkStoreFromContext(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	store := map[string]string{"type": "redis", "addr": "localhost:6379"}
 	ctx = WithStore(ctx, store)
@@ -448,6 +456,7 @@ func BenchmarkStoreFromContext(b *testing.B) {
 }
 
 func BenchmarkMultipleContextOperations(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	webhookSpec := "benchmark-webhook"
 	requestCtx := "benchmark-request"
@@ -459,13 +468,14 @@ func BenchmarkMultipleContextOperations(b *testing.B) {
 		ctx = WithRequestCtx(ctx, requestCtx)
 		ctx = WithStore(ctx, store)
 
-		WebhookSpecFromContext[string](ctx)  // nolint:errcheck
-		RequestCtxFromContext[string](ctx)   // nolint:errcheck
+		WebhookSpecFromContext[string](ctx) // nolint:errcheck
+		RequestCtxFromContext[string](ctx)  // nolint:errcheck
 		StoreFromContext[string](ctx)       // nolint:errcheck
 	}
 }
 
 func BenchmarkTypeAssertion_Success(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	spec := map[string]string{"name": "benchmark"}
 	ctx = WithWebhookSpec(ctx, spec)
@@ -477,6 +487,7 @@ func BenchmarkTypeAssertion_Success(b *testing.B) {
 }
 
 func BenchmarkTypeAssertion_Failure(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	spec := map[string]string{"name": "benchmark"}
 	ctx = WithWebhookSpec(ctx, spec)

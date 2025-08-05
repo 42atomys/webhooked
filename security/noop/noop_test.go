@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/42atomys/webhooked/internal/fasthttpz"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -23,7 +25,7 @@ type TestSuiteNoopSecurity struct {
 func (suite *TestSuiteNoopSecurity) BeforeTest(suiteName, testName string) {
 	suite.spec = &NoopSecuritySpec{}
 	suite.ctx = context.Background()
-	
+
 	// Create a fasthttp request context
 	fastCtx := &fasthttp.RequestCtx{}
 	suite.requestCtx = &fasthttpz.RequestCtx{RequestCtx: fastCtx}
@@ -101,7 +103,7 @@ func (suite *TestSuiteNoopSecurity) TestIsSecure_DifferentRequestContexts() {
 	for i := range contexts {
 		fastCtx := &fasthttp.RequestCtx{}
 		contexts[i] = &fasthttpz.RequestCtx{RequestCtx: fastCtx}
-		
+
 		// Set different request data
 		fastCtx.Request.SetRequestURI("https://example.com/webhook")
 		fastCtx.Request.Header.SetMethod("POST")
@@ -195,21 +197,21 @@ func (suite *TestSuiteNoopSecurity) TestConcurrentAccess() {
 
 	// Test concurrent access to the same spec instance
 	spec := &NoopSecuritySpec{}
-	
+
 	// Initialize once
 	err := spec.EnsureConfigurationCompleteness()
 	assert.NoError(err)
-	
+
 	err = spec.Initialize()
 	assert.NoError(err)
 
 	// Run concurrent security checks
 	done := make(chan bool, 10)
-	
+
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			defer func() { done <- true }()
-			
+
 			for j := 0; j < 10; j++ {
 				result, err := spec.IsSecure(suite.ctx, suite.requestCtx)
 				assert.NoError(err, "Goroutine %d iteration %d should not error", id, j)
@@ -231,6 +233,7 @@ func TestRunNoopSecuritySuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkEnsureConfigurationCompleteness(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopSecuritySpec{}
 
 	b.ResetTimer()
@@ -240,6 +243,7 @@ func BenchmarkEnsureConfigurationCompleteness(b *testing.B) {
 }
 
 func BenchmarkInitialize(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopSecuritySpec{}
 
 	b.ResetTimer()
@@ -249,9 +253,10 @@ func BenchmarkInitialize(b *testing.B) {
 }
 
 func BenchmarkIsSecure(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopSecuritySpec{}
 	ctx := context.Background()
-	
+
 	fastCtx := &fasthttp.RequestCtx{}
 	requestCtx := &fasthttpz.RequestCtx{RequestCtx: fastCtx}
 
@@ -262,6 +267,7 @@ func BenchmarkIsSecure(b *testing.B) {
 }
 
 func BenchmarkFullWorkflow(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	fastCtx := &fasthttp.RequestCtx{}
 	requestCtx := &fasthttpz.RequestCtx{RequestCtx: fastCtx}
@@ -276,10 +282,11 @@ func BenchmarkFullWorkflow(b *testing.B) {
 }
 
 func BenchmarkConcurrentIsSecure(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopSecuritySpec{}
 	spec.EnsureConfigurationCompleteness() // nolint:errcheck
 	spec.Initialize()                      // nolint:errcheck
-	
+
 	ctx := context.Background()
 	fastCtx := &fasthttp.RequestCtx{}
 	requestCtx := &fasthttpz.RequestCtx{RequestCtx: fastCtx}

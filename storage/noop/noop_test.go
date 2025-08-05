@@ -6,6 +6,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -211,21 +213,21 @@ func (suite *TestSuiteNoopStorage) TestConcurrentAccess() {
 
 	// Test concurrent access to the same spec instance
 	spec := &NoopStorageSpec{}
-	
+
 	// Initialize once
 	err := spec.EnsureConfigurationCompleteness()
 	assert.NoError(err)
-	
+
 	err = spec.Initialize()
 	assert.NoError(err)
 
 	// Run concurrent store operations
 	done := make(chan bool, 10)
-	
+
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			defer func() { done <- true }()
-			
+
 			for j := 0; j < 10; j++ {
 				testData := []byte(`{"goroutine": ` + string(rune('0'+id)) + `, "iteration": ` + string(rune('0'+j)) + `}`)
 				err := spec.Store(suite.ctx, testData)
@@ -261,6 +263,7 @@ func TestRunNoopStorageSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkEnsureConfigurationCompleteness(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopStorageSpec{}
 
 	b.ResetTimer()
@@ -270,6 +273,7 @@ func BenchmarkEnsureConfigurationCompleteness(b *testing.B) {
 }
 
 func BenchmarkInitialize(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopStorageSpec{}
 
 	b.ResetTimer()
@@ -279,6 +283,7 @@ func BenchmarkInitialize(b *testing.B) {
 }
 
 func BenchmarkStore(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopStorageSpec{}
 	ctx := context.Background()
 	testData := []byte(`{"benchmark": "data"}`)
@@ -290,9 +295,10 @@ func BenchmarkStore(b *testing.B) {
 }
 
 func BenchmarkStore_LargeData(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopStorageSpec{}
 	ctx := context.Background()
-	
+
 	// Create 1MB of data
 	largeData := make([]byte, 1024*1024)
 	for i := range largeData {
@@ -306,6 +312,7 @@ func BenchmarkStore_LargeData(b *testing.B) {
 }
 
 func BenchmarkFullWorkflow(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx := context.Background()
 	testData := []byte(`{"benchmark": "workflow"}`)
 
@@ -319,10 +326,11 @@ func BenchmarkFullWorkflow(b *testing.B) {
 }
 
 func BenchmarkConcurrentStore(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	spec := &NoopStorageSpec{}
 	spec.EnsureConfigurationCompleteness() // nolint:errcheck
 	spec.Initialize()                      // nolint:errcheck
-	
+
 	ctx := context.Background()
 	testData := []byte(`{"concurrent": "benchmark"}`)
 

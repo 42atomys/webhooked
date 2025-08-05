@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/42atomys/webhooked/format"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -28,7 +30,7 @@ type TestSuiteStorageHooks struct {
 
 func (suite *TestSuiteStorageHooks) BeforeTest(suiteName, testName string) {
 	suite.validNoopData = map[string]any{
-		"type": "noop",
+		"type":  "noop",
 		"specs": map[string]any{},
 	}
 
@@ -54,7 +56,7 @@ func (suite *TestSuiteStorageHooks) BeforeTest(suiteName, testName string) {
 	}
 
 	suite.invalidTypeData = map[string]any{
-		"type": "unknown",
+		"type":  "unknown",
 		"specs": map[string]any{},
 	}
 
@@ -63,12 +65,12 @@ func (suite *TestSuiteStorageHooks) BeforeTest(suiteName, testName string) {
 	}
 
 	suite.invalidSpecsData = map[string]any{
-		"type": "noop",
+		"type":  "noop",
 		"specs": "invalid_specs_not_map",
 	}
 
 	suite.withFormattingData = map[string]any{
-		"type": "noop",
+		"type":  "noop",
 		"specs": map[string]any{},
 		"formatting": map[string]any{
 			"templateString": "Hello {{ .Name }}!",
@@ -235,7 +237,7 @@ func (suite *TestSuiteStorageHooks) TestDecodeHook_InvalidFormattingTemplate() {
 	assert := assert.New(suite.T())
 
 	dataWithBadTemplate := map[string]any{
-		"type": "noop",
+		"type":  "noop",
 		"specs": map[string]any{},
 		"formatting": map[string]any{
 			"templateString": "{{ invalid template",
@@ -256,8 +258,8 @@ func (suite *TestSuiteStorageHooks) TestDecodeHook_InvalidFormattingSpecs() {
 	assert := assert.New(suite.T())
 
 	dataWithBadFormatting := map[string]any{
-		"type": "noop",
-		"specs": map[string]any{},
+		"type":       "noop",
+		"specs":      map[string]any{},
 		"formatting": "invalid_formatting_not_map",
 	}
 
@@ -331,7 +333,7 @@ func (suite *TestSuiteStorageHooks) TestDecodeHook_ComplexScenario() {
 	complexData := map[string]any{
 		"type": "postgres",
 		"specs": map[string]any{
-			"dsn": "postgres://user:pass@localhost/db",
+			"dsn":   "postgres://user:pass@localhost/db",
 			"table": "webhooks",
 		},
 		"formatting": map[string]any{
@@ -446,8 +448,9 @@ func (suite *TestSuiteStorageHooks) TestStorage_NilSpecs() {
 // Benchmarks
 
 func BenchmarkDecodeHook_NoopStorage(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
-		"type": "noop",
+		"type":  "noop",
 		"specs": map[string]any{},
 	}
 	fromType := reflect.TypeOf(data)
@@ -460,8 +463,9 @@ func BenchmarkDecodeHook_NoopStorage(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_WithFormatting(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
-		"type": "noop",
+		"type":  "noop",
 		"specs": map[string]any{},
 		"formatting": map[string]any{
 			"templateString": "Hello {{ .Name }}!",
@@ -477,6 +481,7 @@ func BenchmarkDecodeHook_WithFormatting(b *testing.B) {
 }
 
 func BenchmarkCreateSpec(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		createSpec("noop") // nolint:errcheck
@@ -484,6 +489,7 @@ func BenchmarkCreateSpec(b *testing.B) {
 }
 
 func BenchmarkStorage_Store(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	mockSpec := &mockStorageSpec{}
 	storage := &Storage{
 		Type:       "mock",
@@ -500,6 +506,7 @@ func BenchmarkStorage_Store(b *testing.B) {
 }
 
 func BenchmarkStorage_TemplateContext(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	storage := &Storage{
 		Type:       "benchmark-type",
 		Formatting: &format.Formatting{},

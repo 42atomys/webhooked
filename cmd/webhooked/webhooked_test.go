@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/42atomys/webhooked/cmd/flags"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -25,7 +27,7 @@ type TestSuiteWebhookedCmd struct {
 		Version  bool
 		Debug    bool
 	}
-	tempConfigPath string
+	tempConfigPath     string
 	validConfigContent string
 }
 
@@ -322,6 +324,7 @@ func TestRunWebhookedCmdSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkExec_Version(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	// Save and restore flags
 	originalVersion := flags.Version
 	originalConfig := flags.Config
@@ -340,6 +343,7 @@ func BenchmarkExec_Version(b *testing.B) {
 }
 
 func BenchmarkInitializeConfig(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	// Save and restore flags
 	originalConfig := flags.Config
 	defer func() {
@@ -350,12 +354,13 @@ func BenchmarkInitializeConfig(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tempPath := filepath.Join(os.TempDir(), "bench_config.yaml")
 		flags.Config = tempPath
-		initializeConfig() // nolint:errcheck
+		initializeConfig()  // nolint:errcheck
 		os.Remove(tempPath) // Clean up
 	}
 }
 
 func BenchmarkGracefulShutdown_NilServer(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	app := &app{server: nil}
 
 	b.ResetTimer()

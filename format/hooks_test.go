@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -15,15 +17,15 @@ import (
 type TestSuiteFormatHooks struct {
 	suite.Suite
 
-	validTemplateStringData    map[string]any
-	validTemplatePathData      map[string]any
-	bothTemplatesData          map[string]any
-	emptyTemplatesData         map[string]any
-	invalidTemplateStringData  map[string]any
-	invalidTemplatePathData    map[string]any
-	nonMapData                 string
-	tempTemplatePath           string
-	invalidTemplatePath        string
+	validTemplateStringData   map[string]any
+	validTemplatePathData     map[string]any
+	bothTemplatesData         map[string]any
+	emptyTemplatesData        map[string]any
+	invalidTemplateStringData map[string]any
+	invalidTemplatePathData   map[string]any
+	nonMapData                string
+	tempTemplatePath          string
+	invalidTemplatePath       string
 }
 
 func (suite *TestSuiteFormatHooks) BeforeTest(suiteName, testName string) {
@@ -323,6 +325,7 @@ func TestRunFormatHooksSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkDecodeHook_ValidTemplateString(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
 		"templateString": "Hello {{ .Name }}!",
 	}
@@ -336,6 +339,7 @@ func BenchmarkDecodeHook_ValidTemplateString(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_EmptyTemplates(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
 		"templateString": "",
 		"templatePath":   "",
@@ -350,6 +354,7 @@ func BenchmarkDecodeHook_EmptyTemplates(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_WrongType(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := "not a map"
 	fromType := reflect.TypeOf(data)
 	toType := reflect.TypeOf((*Formatting)(nil))
@@ -361,6 +366,7 @@ func BenchmarkDecodeHook_WrongType(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_ComplexTemplate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
 		"templateString": `
 {{- range .Items }}
@@ -383,6 +389,7 @@ func BenchmarkDecodeHook_ComplexTemplate(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_BothTemplates(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	// Create a temporary file for benchmarking
 	tempFile := "/tmp/benchmark_template.txt"
 	os.WriteFile(tempFile, []byte("Benchmark template: {{ .Value }}"), 0644)

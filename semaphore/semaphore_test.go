@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/42atomys/webhooked/semaphore"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -57,7 +59,7 @@ func TestQueueFullError(t *testing.T) {
 	// Fill the queue (actual capacity is 2 due to power-of-two)
 	err1 := s.Execute(context.Background(), 1)
 	require.NoError(t, err1)
-	
+
 	err2 := s.Execute(context.Background(), 2)
 	require.NoError(t, err2)
 
@@ -275,6 +277,7 @@ func TestExecuteAfterStop(t *testing.T) {
 // Benchmarks
 
 func BenchmarkSemaphore_Execute(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {
 			return nil
@@ -291,6 +294,7 @@ func BenchmarkSemaphore_Execute(b *testing.B) {
 }
 
 func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {
 			return nil
@@ -309,6 +313,7 @@ func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
 }
 
 func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {
 			return nil
@@ -330,6 +335,7 @@ func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
 }
 
 func BenchmarkSemaphore_WithRetries(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	failCount := int32(0)
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {
@@ -354,6 +360,7 @@ func BenchmarkSemaphore_WithRetries(b *testing.B) {
 }
 
 func BenchmarkSemaphore_SetCapacity(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {
 			return nil
@@ -371,6 +378,7 @@ func BenchmarkSemaphore_SetCapacity(b *testing.B) {
 }
 
 func BenchmarkSemaphore_ProcessingSpeed(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	processed := int32(0)
 	exec := &testExecutor{
 		processFunc: func(ctx context.Context, t int) error {

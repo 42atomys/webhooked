@@ -7,6 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -15,9 +17,9 @@ import (
 type TestSuiteFormatting struct {
 	suite.Suite
 
-	validTemplateString    string
-	invalidTemplateString  string
-	complexTemplateString  string
+	validTemplateString   string
+	invalidTemplateString string
+	complexTemplateString string
 	testData              map[string]any
 	tempTemplatePath      string
 	invalidTemplatePath   string
@@ -25,7 +27,7 @@ type TestSuiteFormatting struct {
 
 func (suite *TestSuiteFormatting) BeforeTest(suiteName, testName string) {
 	suite.validTemplateString = "Hello {{ .Name }}!"
-	suite.invalidTemplateString = "Hello {{ .Name "  // Missing closing brace
+	suite.invalidTemplateString = "Hello {{ .Name " // Missing closing brace
 	suite.complexTemplateString = `
 Name: {{ .Name }}
 Age: {{ .Age }}
@@ -38,8 +40,8 @@ Items:
 `
 
 	suite.testData = map[string]any{
-		"Name": "World",
-		"Age":  25,
+		"Name":  "World",
+		"Age":   25,
 		"Items": []string{"item1", "item2", "item3"},
 	}
 
@@ -231,7 +233,7 @@ func (suite *TestSuiteFormatting) TestFormat_NoTemplate() {
 
 	formatting, err := New(Specs{})
 	require.NoError(suite.T(), err)
-	
+
 	// Clear the template to simulate no template scenario
 	formatting.template = nil
 
@@ -247,7 +249,7 @@ func (suite *TestSuiteFormatting) TestFormat_TemplateExecutionError() {
 
 	// Template that will cause execution error (division by zero with custom func)
 	// Use a template that calls a function with wrong number of arguments
-	badTemplate := "{{ printf }}"  // printf requires at least one argument
+	badTemplate := "{{ printf }}" // printf requires at least one argument
 	formatting, err := New(Specs{TemplateString: badTemplate})
 	require.NoError(suite.T(), err)
 
@@ -340,6 +342,7 @@ func (m *mockTemplateContexter) TemplateContext() map[string]any {
 // Benchmarks
 
 func BenchmarkNew_SimpleTemplate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	specs := Specs{TemplateString: "Hello {{ .Name }}!"}
 
 	b.ResetTimer()
@@ -349,6 +352,7 @@ func BenchmarkNew_SimpleTemplate(b *testing.B) {
 }
 
 func BenchmarkFormat_SimpleTemplate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	formatting, _ := New(Specs{TemplateString: "Hello {{ .Name }}!"})
 	data := map[string]any{"Name": "World"}
 	ctx := context.Background()
@@ -360,6 +364,7 @@ func BenchmarkFormat_SimpleTemplate(b *testing.B) {
 }
 
 func BenchmarkFormat_ComplexTemplate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	templateString := `
 Name: {{ .Name }}
 Age: {{ .Age }}
@@ -372,8 +377,8 @@ Items:
 `
 	formatting, _ := New(Specs{TemplateString: templateString})
 	data := map[string]any{
-		"Name": "World",
-		"Age":  25,
+		"Name":  "World",
+		"Age":   25,
 		"Items": []string{"item1", "item2", "item3"},
 	}
 	ctx := context.Background()
@@ -385,6 +390,7 @@ Items:
 }
 
 func BenchmarkMergeTemplateContexts(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	ctx1 := &mockTemplateContexter{
 		context: map[string]any{"key1": "value1", "shared": "ctx1"},
 	}
@@ -399,6 +405,7 @@ func BenchmarkMergeTemplateContexts(b *testing.B) {
 }
 
 func BenchmarkWithTemplate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	formatting, _ := New(Specs{TemplateString: "initial"})
 	template := []byte("New template: {{ .Value }}")
 

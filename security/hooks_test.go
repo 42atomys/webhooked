@@ -9,6 +9,8 @@ import (
 	"github.com/42atomys/webhooked/security/custom"
 	"github.com/42atomys/webhooked/security/github"
 	"github.com/42atomys/webhooked/security/noop"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -40,7 +42,7 @@ func (suite *TestSuiteSecurityHooks) BeforeTest(suiteName, testName string) {
 	suite.validCustomData = map[string]any{
 		"type": "custom",
 		"specs": map[string]any{
-			"headerName": "X-Custom-Secret",
+			"headerName":  "X-Custom-Secret",
 			"secretToken": "test-token",
 		},
 	}
@@ -226,7 +228,7 @@ func (suite *TestSuiteSecurityHooks) TestDecodeHook_ComplexGitHubSpecs() {
 		"type": "github",
 		"specs": map[string]any{
 			"secretToken": "github-webhook-secret",
-			"eventTypes": []string{"push", "pull_request"},
+			"eventTypes":  []string{"push", "pull_request"},
 		},
 	}
 
@@ -289,6 +291,7 @@ func BenchmarkDecodeHook_NoopSecurity(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_GitHubSecurity(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
 		"type": "github",
 		"specs": map[string]any{
@@ -305,6 +308,7 @@ func BenchmarkDecodeHook_GitHubSecurity(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_CustomSecurity(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
 		"type": "custom",
 		"specs": map[string]any{
@@ -322,6 +326,7 @@ func BenchmarkDecodeHook_CustomSecurity(b *testing.B) {
 }
 
 func BenchmarkCreateSpec_AllTypes(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	types := []string{"noop", "github", "custom"}
 
 	b.ResetTimer()
@@ -332,6 +337,7 @@ func BenchmarkCreateSpec_AllTypes(b *testing.B) {
 }
 
 func BenchmarkDecodeHook_WrongType(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	fromType := reflect.TypeOf("string")
 	toType := reflect.TypeOf(Security{})
 	data := "test-data"

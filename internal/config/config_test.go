@@ -10,6 +10,8 @@ import (
 	securityNoop "github.com/42atomys/webhooked/security/noop"
 	"github.com/42atomys/webhooked/storage"
 	storageNoop "github.com/42atomys/webhooked/storage/noop"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -18,12 +20,12 @@ import (
 type TestSuiteConfig struct {
 	suite.Suite
 
-	validConfig      *Config
-	invalidAPIConfig *Config
+	validConfig       *Config
+	invalidAPIConfig  *Config
 	invalidKindConfig *Config
-	validConfigFile  string
+	validConfigFile   string
 	invalidConfigFile string
-	tempConfigPath   string
+	tempConfigPath    string
 }
 
 func (suite *TestSuiteConfig) BeforeTest(suiteName, testName string) {
@@ -337,7 +339,7 @@ func (suite *TestSuiteConfig) TestLoad_WithEnvironmentVariables() {
 	// Set environment variable
 	originalDebug := os.Getenv("WH_DEBUG")
 	defer os.Setenv("WH_DEBUG", originalDebug)
-	
+
 	os.Setenv("WH_DEBUG", "true")
 
 	// Write minimal config to temporary file
@@ -381,6 +383,7 @@ func TestRunConfigSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkConfigValidate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	config := &Config{
 		APIVersion: APIVersionV1Alpha2,
 		Kind:       KindConfiguration,
@@ -407,6 +410,7 @@ func BenchmarkConfigValidate(b *testing.B) {
 }
 
 func BenchmarkFetchWebhookByPath(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	config := &Config{
 		APIVersion: APIVersionV1Alpha2,
 		Kind:       KindConfiguration,
@@ -431,6 +435,7 @@ func BenchmarkFetchWebhookByPath(b *testing.B) {
 }
 
 func BenchmarkWebhookTemplateContext(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	webhook := &Webhook{
 		Name:          "benchmark-webhook",
 		EntrypointURL: "/benchmark",
@@ -443,6 +448,7 @@ func BenchmarkWebhookTemplateContext(b *testing.B) {
 }
 
 func BenchmarkFetchWebhookByPath_MultipleWebhooks(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	// Create config with many webhooks to test search performance
 	webhooks := make([]*Webhook, 100)
 	for i := 0; i < 100; i++ {

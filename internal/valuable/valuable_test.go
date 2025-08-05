@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -210,6 +212,7 @@ func TestRunValuableSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkValuable_Get(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	testValue := "test"
 	v := &Valuable{Value: &testValue}
 	err := v.retrieveData()
@@ -222,6 +225,7 @@ func BenchmarkValuable_Get(b *testing.B) {
 }
 
 func BenchmarkValuable_Get_WithValues(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
 	err := v.retrieveData()
 	require.NoError(b, err, "Failed to retrieve data for benchmark")
@@ -233,6 +237,7 @@ func BenchmarkValuable_Get_WithValues(b *testing.B) {
 }
 
 func BenchmarkValuable_Get_WithEnvRef(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	envName := "BENCH_TEST_ENV"
 	os.Setenv(envName, "benchvalue") // nolint:errcheck
 	defer os.Unsetenv(envName)       // nolint:errcheck
@@ -248,6 +253,7 @@ func BenchmarkValuable_Get_WithEnvRef(b *testing.B) {
 }
 
 func BenchmarkValuable_Contains(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
 	err := v.retrieveData()
 	require.NoError(b, err, "Failed to retrieve data for benchmark")
@@ -259,6 +265,7 @@ func BenchmarkValuable_Contains(b *testing.B) {
 }
 
 func BenchmarkValuable_Contains_NotFound(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	v := &Valuable{Values: []string{"test1", "test2", "test3", "test4", "test5"}}
 	err := v.retrieveData()
 	require.NoError(b, err, "Failed to retrieve data for benchmark")
@@ -270,6 +277,7 @@ func BenchmarkValuable_Contains_NotFound(b *testing.B) {
 }
 
 func BenchmarkSerialize_String(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	testValue := "test"
 
 	b.ResetTimer()
@@ -279,6 +287,7 @@ func BenchmarkSerialize_String(b *testing.B) {
 }
 
 func BenchmarkSerialize_Map(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	testMap := map[string]any{
 		"value": "test",
 	}
@@ -290,6 +299,7 @@ func BenchmarkSerialize_Map(b *testing.B) {
 }
 
 func BenchmarkSerialize_ComplexMap(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	testMap := map[string]any{
 		"valueFrom": map[string]any{
 			"envRef": "TEST_ENV",
@@ -303,6 +313,7 @@ func BenchmarkSerialize_ComplexMap(b *testing.B) {
 }
 
 func BenchmarkValuable_Validate(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	testValue := "test"
 	v := &Valuable{Value: &testValue}
 
@@ -313,6 +324,7 @@ func BenchmarkValuable_Validate(b *testing.B) {
 }
 
 func BenchmarkAppendCommaListIfAbsent(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		appendCommaListIfAbsent([]string{}, "foo,bar,baz,qux")
@@ -320,6 +332,7 @@ func BenchmarkAppendCommaListIfAbsent(b *testing.B) {
 }
 
 func BenchmarkAppendCommaListIfAbsent_WithDuplicates(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		appendCommaListIfAbsent([]string{}, "foo,foo,bar,bar,baz,baz")

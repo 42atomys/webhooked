@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -200,7 +202,7 @@ func (suite *TestSuiteRequestCtx) TestTemplateContext_DifferentHosts() {
 		// Create fresh context for each host test
 		fastCtx := &fasthttp.RequestCtx{}
 		requestCtx := &RequestCtx{RequestCtx: fastCtx}
-		
+
 		fastCtx.Request.Header.SetHost(host)
 		context := requestCtx.TemplateContext()
 
@@ -303,6 +305,7 @@ func TestRunRequestCtxSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkTemplateContext(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	fastCtx := &fasthttp.RequestCtx{}
 	requestCtx := &RequestCtx{RequestCtx: fastCtx}
 
@@ -320,6 +323,7 @@ func BenchmarkTemplateContext(b *testing.B) {
 }
 
 func BenchmarkTemplateContext_LargePayload(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	fastCtx := &fasthttp.RequestCtx{}
 	requestCtx := &RequestCtx{RequestCtx: fastCtx}
 
@@ -340,6 +344,7 @@ func BenchmarkTemplateContext_LargePayload(b *testing.B) {
 }
 
 func BenchmarkTemplateContext_ManyFields(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	fastCtx := &fasthttp.RequestCtx{}
 	requestCtx := &RequestCtx{RequestCtx: fastCtx}
 

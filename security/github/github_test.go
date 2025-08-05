@@ -11,6 +11,8 @@ import (
 
 	"github.com/42atomys/webhooked/internal/fasthttpz"
 	"github.com/42atomys/webhooked/internal/valuable"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -20,14 +22,14 @@ import (
 type TestSuiteGitHubSecurity struct {
 	suite.Suite
 
-	validSecret     *valuable.Valuable
-	emptySecret     *valuable.Valuable
-	testSecret      string
-	testPayload     []byte
-	validSignature  string
+	validSecret      *valuable.Valuable
+	emptySecret      *valuable.Valuable
+	testSecret       string
+	testPayload      []byte
+	validSignature   string
 	invalidSignature string
-	ctx             context.Context
-	requestCtx      *fasthttpz.RequestCtx
+	ctx              context.Context
+	requestCtx       *fasthttpz.RequestCtx
 }
 
 func (suite *TestSuiteGitHubSecurity) BeforeTest(suiteName, testName string) {
@@ -364,6 +366,7 @@ func TestRunGitHubSecuritySuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkEnsureConfigurationCompleteness(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	secret, _ := valuable.Serialize("test-secret")
 	spec := &GitHubSecuritySpec{
 		Secret: secret,
@@ -376,6 +379,7 @@ func BenchmarkEnsureConfigurationCompleteness(b *testing.B) {
 }
 
 func BenchmarkInitialize(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	secret, _ := valuable.Serialize("test-secret")
 	spec := &GitHubSecuritySpec{
 		Secret: secret,
@@ -388,16 +392,17 @@ func BenchmarkInitialize(b *testing.B) {
 }
 
 func BenchmarkIsSecure_ValidSignature(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	secret, _ := valuable.Serialize("test-secret")
 	spec := &GitHubSecuritySpec{
 		Secret: secret,
 	}
-	
+
 	payload := []byte(`{"action":"opened","number":1}`)
 	h := hmac.New(sha256.New, []byte("test-secret"))
 	h.Write(payload)
 	signature := "sha256=" + hex.EncodeToString(h.Sum(nil))
-	
+
 	ctx := context.Background()
 	requestCtx := &fasthttpz.RequestCtx{
 		RequestCtx: &fasthttp.RequestCtx{},
@@ -412,14 +417,15 @@ func BenchmarkIsSecure_ValidSignature(b *testing.B) {
 }
 
 func BenchmarkIsSecure_InvalidSignature(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	secret, _ := valuable.Serialize("test-secret")
 	spec := &GitHubSecuritySpec{
 		Secret: secret,
 	}
-	
+
 	payload := []byte(`{"action":"opened","number":1}`)
 	invalidSignature := "sha256=invalid_signature_hash"
-	
+
 	ctx := context.Background()
 	requestCtx := &fasthttpz.RequestCtx{
 		RequestCtx: &fasthttp.RequestCtx{},
@@ -434,6 +440,7 @@ func BenchmarkIsSecure_InvalidSignature(b *testing.B) {
 }
 
 func BenchmarkHMACGeneration(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	secret := []byte("test-secret")
 	payload := []byte(`{"action":"opened","number":1}`)
 
