@@ -47,7 +47,6 @@ jobs:
           tool: 'go'
           output-file-path: benchmark_results.txt
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
           alert-threshold: '130%'
           comment-on-alert: true
           fail-on-alert: true
@@ -104,17 +103,4 @@ jobs:
         run: |
           ./bin/webhooked serve --port 8081 --config tests/loadtesting/webhooks.tests.yaml &
           sleep 5
-          k6 run tests/loadtesting/k6_load_script.js --out json=k6_results.json
-
-      - name: Process k6 results
-        run: |
-          # Extract key metrics from k6 results
-          jq -r '.metric | select(.type=="trend" and .contains.p95) | "\(.name): \(.contains.p95)"' k6_results.json > k6_summary.txt
-
-      - name: Upload k6 results
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-benchmark-results
-          path: |
-            k6_results.json
-            k6_summary.txt
+          k6 run tests/loadtesting/k6_load_script.js
