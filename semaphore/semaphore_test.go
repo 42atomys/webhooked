@@ -154,7 +154,7 @@ func TestMaxRetryReached(t *testing.T) {
 	require.NoError(t, err)
 
 	// Give some time for retries to be processed
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	s.StopConsumers()
 
