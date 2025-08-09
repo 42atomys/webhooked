@@ -22,7 +22,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: "1.23"
           cache: true
 
       - name: Install Task
@@ -38,25 +38,7 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          task benchmarks | tee benchmark_results.txt
-
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Go Benchmark
-          tool: 'go'
-          output-file-path: benchmark_results.txt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          alert-threshold: '130%'
-          comment-on-alert: true
-          fail-on-alert: true
-          alert-comment-cc-users: '@42atomys'
-
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results
-          path: benchmark_results.txt
+          task benchmarks
 
   load-test-benchmark:
     name: Load Test Benchmark
@@ -79,7 +61,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: "1.23"
           cache: true
 
       - name: Install k6
