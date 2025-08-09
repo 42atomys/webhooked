@@ -277,6 +277,7 @@ func TestRunSecurityHooksSuite(t *testing.T) {
 // Benchmarks
 
 func BenchmarkDecodeHook_NoopSecurity(b *testing.B) {
+	log.Logger = log.Output(zerolog.Nop())
 	data := map[string]any{
 		"type":  "noop",
 		"specs": map[string]any{},
