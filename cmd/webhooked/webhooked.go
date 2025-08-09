@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -28,6 +29,14 @@ func main() {
 		os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
+	log.Logger = log.Logger.Level(zerolog.InfoLevel)
+
+	debug, _ := strconv.ParseBool(os.Getenv("WH_DEBUG"))
+	if flags.Debug || debug {
+		log.Logger = log.Logger.Level(zerolog.DebugLevel)
+	}
+
 	if err := exec(ctx); err != nil {
 		log.Error().Err(err).Msg("application failed to start")
 		os.Exit(1)
@@ -36,12 +45,6 @@ func main() {
 }
 
 func exec(ctx context.Context) error {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
-	log.Logger = log.Logger.Level(zerolog.InfoLevel)
-	if flags.Debug {
-		log.Logger = log.Logger.Level(zerolog.DebugLevel)
-	}
-
 	if err := flags.ValidateFlags(); err != nil {
 		return fmt.Errorf("error validating flags: %w", err)
 	}
