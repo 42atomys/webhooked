@@ -47,7 +47,7 @@ tasks:
     env:
       WH_DEBUG: 'false'
     cmds:
-      - cmd: go test -tags=unit,integration -bench=. -benchmem -count=5 -run=^$ ./...
+      - cmd: go test -tags=unit,integration -bench=. -benchmem -count=4 -run=^$ ./...
 
   test-units:
     aliases: [tu]
