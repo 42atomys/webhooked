@@ -322,26 +322,6 @@ func TestRunWebhookedCmdSuite(t *testing.T) {
 // Note: Mock server removed due to type constraints with *webhooked.Server
 
 // Benchmarks
-
-func BenchmarkExec_Version(b *testing.B) {
-	log.Logger = log.Output(zerolog.Nop())
-	// Save and restore flags
-	originalVersion := flags.Version
-	originalConfig := flags.Config
-	defer func() {
-		flags.Version = originalVersion
-		flags.Config = originalConfig
-	}()
-
-	flags.Version = true
-	flags.Config = "dummy.yaml"
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		exec(context.Background()) // nolint:errcheck
-	}
-}
-
 func BenchmarkInitializeConfig(b *testing.B) {
 	log.Logger = log.Output(zerolog.Nop())
 	// Save and restore flags
