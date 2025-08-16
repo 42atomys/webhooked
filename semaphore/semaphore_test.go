@@ -283,7 +283,7 @@ func BenchmarkSemaphore_Execute(b *testing.B) {
 			return nil
 		},
 	}
-	s := semaphore.New(exec, semaphore.WithCapacity(10000))
+	s := semaphore.New(exec, semaphore.WithCapacity(int32(b.N)))
 	s.StartConsumers()
 	defer s.StopConsumers()
 
@@ -302,7 +302,7 @@ func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
 		},
 	}
 	s := semaphore.New(exec,
-		semaphore.WithCapacity(10000),
+		semaphore.WithCapacity(int32(b.N)),
 		semaphore.WithMaxWorkers(10))
 	s.StartConsumers()
 	defer s.StopConsumers()
@@ -322,7 +322,7 @@ func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
 		},
 	}
 	s := semaphore.New(exec,
-		semaphore.WithCapacity(10000),
+		semaphore.WithCapacity(int32(b.N)),
 		semaphore.WithMaxWorkers(20))
 	s.StartConsumers()
 	defer s.StopConsumers()
@@ -350,7 +350,7 @@ func BenchmarkSemaphore_WithRetries(b *testing.B) {
 		},
 	}
 	s := semaphore.New(exec,
-		semaphore.WithCapacity(10000),
+		semaphore.WithCapacity(int32(b.N)),
 		semaphore.WithMaxRetries(2),
 		semaphore.WithBackoffSchedule([]time.Duration{time.Microsecond}))
 	s.StartConsumers()
@@ -370,7 +370,7 @@ func BenchmarkSemaphore_SetCapacity(b *testing.B) {
 			return nil
 		},
 	}
-	s := semaphore.New(exec, semaphore.WithCapacity(100))
+	s := semaphore.New(exec, semaphore.WithCapacity(int32(b.N)))
 	s.StartConsumers()
 	defer s.StopConsumers()
 
