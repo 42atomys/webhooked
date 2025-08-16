@@ -289,7 +289,8 @@ func BenchmarkSemaphore_Execute(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i) // nolint:errcheck
+		err := s.Execute(context.Background(), i)
+		require.NoError(b, err)
 	}
 }
 
@@ -308,7 +309,8 @@ func BenchmarkSemaphore_Execute_WithWorkers(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i) // nolint:errcheck
+		err := s.Execute(context.Background(), i)
+		require.NoError(b, err)
 	}
 }
 
@@ -328,7 +330,8 @@ func BenchmarkSemaphore_Execute_Concurrent(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		i := 0
 		for pb.Next() {
-			s.Execute(context.Background(), i) // nolint:errcheck
+			err := s.Execute(context.Background(), i)
+			require.NoError(b, err)
 			i++
 		}
 	})
@@ -355,7 +358,8 @@ func BenchmarkSemaphore_WithRetries(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i) // nolint:errcheck
+		err := s.Execute(context.Background(), i)
+		require.NoError(b, err)
 	}
 }
 
@@ -373,7 +377,8 @@ func BenchmarkSemaphore_SetCapacity(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		newCapacity := int32(100 + (i % 100))
-		s.SetCapacity(newCapacity) // nolint:errcheck
+		err := s.SetCapacity(newCapacity)
+		require.NoError(b, err)
 	}
 }
 
@@ -387,13 +392,14 @@ func BenchmarkSemaphore_ProcessingSpeed(b *testing.B) {
 		},
 	}
 	s := semaphore.New(exec,
-		semaphore.WithCapacity(1000),
+		semaphore.WithCapacity(int32(b.N)),
 		semaphore.WithMaxWorkers(10))
 	s.StartConsumers()
 
 	// Fill the queue
 	for i := 0; i < b.N; i++ {
-		s.Execute(context.Background(), i) // nolint:errcheck
+		err := s.Execute(context.Background(), i)
+		require.NoError(b, err)
 	}
 
 	// Wait for all to be processed
