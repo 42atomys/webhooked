@@ -8,8 +8,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/internal/config"
-	v1alpha1 "atomys.codes/webhooked/internal/server/v1alpha1"
+	"github.com/42atomys/webhooked/internal/config"
+	v1alpha1 "github.com/42atomys/webhooked/internal/server/v1alpha1"
 )
 
 // APIVersion is the interface for all supported API versions

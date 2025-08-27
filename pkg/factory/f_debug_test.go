@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"atomys.codes/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/valuable"
 )
 
 type testSuiteFactoryDebug struct {

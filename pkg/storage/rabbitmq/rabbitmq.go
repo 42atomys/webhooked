@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/streadway/amqp"
 
-	"atomys.codes/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/valuable"
 )
 
 // storage is the struct contains client and config

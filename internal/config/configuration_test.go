@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"atomys.codes/webhooked/internal/valuable"
-	"atomys.codes/webhooked/pkg/factory"
+	"github.com/42atomys/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/pkg/factory"
 )
 
 func TestLoad(t *testing.T) {

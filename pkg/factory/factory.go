@@ -11,7 +11,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/internal/valuable"
 )
 
 const ctxPipeline contextKey = "pipeline"

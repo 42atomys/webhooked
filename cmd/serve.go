@@ -27,8 +27,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
-	"atomys.codes/webhooked/internal/config"
-	"atomys.codes/webhooked/internal/server"
+	"github.com/42atomys/webhooked/internal/config"
+	"github.com/42atomys/webhooked/internal/server"
 )
 
 var (

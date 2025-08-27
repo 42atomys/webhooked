@@ -77,7 +77,8 @@
         "cschleiden.vscode-github-actions",
         "eamodio.gitlens",
         "jinliming2.vscode-go-template",
-        "quicktype.quicktype"
+        "quicktype.quicktype",
+        "golang.go"
       ]
     }
   },

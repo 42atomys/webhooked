@@ -27,7 +27,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/cmd"
+	"github.com/42atomys/webhooked/cmd"
 )
 
 func init() {

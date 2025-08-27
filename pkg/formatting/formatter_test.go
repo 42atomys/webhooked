@@ -22,11 +22,6 @@ func TestNewWithTemplate(t *testing.T) {
 	assert.NotNil(tmpl)
 	assert.Equal("{{ .Payload }}", tmpl.tmplString)
 	assert.Equal(0, len(tmpl.data))
-
-	tmpl = NewWithTemplate("{{ .Payload }}")
-	assert.NotNil(tmpl)
-	assert.Equal("{{ .Payload }}", tmpl.tmplString)
-	assert.Equal(0, len(tmpl.data))
 }
 
 func Test_WithData(t *testing.T) {
@@ -91,8 +86,8 @@ func Test_Render(t *testing.T) {
 	{
 		"customData": {{ toJson .CustomData }},
 		"metadata": {
-			"testID": "{{ .Request.Header | getHeader "X-Test" }}",
-			"deliveryID": "{{ .Request.Header | getHeader "X-Delivery" | default "unknown" }}"
+			"testID": "{{ .Request.Header.Get "X-Test" }}",
+			"deliveryID": "{{ .Request.Header.Get "X-Delivery" | default "unknown" }}"
 		},
 		{{ with $payload := fromJson .Payload }}
 		"payload": {
@@ -142,13 +137,14 @@ func Test_Render(t *testing.T) {
 	assert.Equal("", str)
 
 	// Test with template with invalid format sended to a function
-	tmpl = New().WithTemplate(`{{ lookup "test" .Payload }}`).WithPayload([]byte(`{"test": "test"}`))
+	templateStringToTest := `{{ .Payload | dig "test" }}`
+	tmpl = New().WithTemplate(templateStringToTest).WithPayload([]byte(`{"test": "test"}`))
 	assert.NotNil(tmpl)
-	assert.Equal(`{{ lookup "test" .Payload }}`, tmpl.tmplString)
+	assert.Equal(templateStringToTest, tmpl.tmplString)
 
 	str, err = tmpl.Render()
 	assert.Error(err)
-	assert.Contains(err.Error(), "template cannot be rendered, check your template")
+	assert.Contains(err.Error(), "last argument must be a map[string]any")
 	assert.Equal("", str)
 }
 

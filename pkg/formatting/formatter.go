@@ -7,13 +7,29 @@ import (
 	"net/http"
 	"sync"
 	"text/template"
+
+	"github.com/go-sprout/sprout"
+	"github.com/go-sprout/sprout/registry/checksum"
+	"github.com/go-sprout/sprout/registry/conversion"
+	"github.com/go-sprout/sprout/registry/encoding"
+	"github.com/go-sprout/sprout/registry/env"
+	"github.com/go-sprout/sprout/registry/maps"
+	"github.com/go-sprout/sprout/registry/numeric"
+	"github.com/go-sprout/sprout/registry/random"
+	"github.com/go-sprout/sprout/registry/reflect"
+	"github.com/go-sprout/sprout/registry/regexp"
+	"github.com/go-sprout/sprout/registry/slices"
+	"github.com/go-sprout/sprout/registry/std"
+	"github.com/go-sprout/sprout/registry/strings"
+	"github.com/go-sprout/sprout/registry/time"
 )
 
 type Formatter struct {
 	tmplString string
 
-	mu   sync.RWMutex // protect following field amd template parsing
-	data map[string]interface{}
+	mu        sync.RWMutex // protect following field amd template parsing
+	data      map[string]interface{}
+	fnHandler sprout.Handler // sprout handler for template functions
 }
 
 var (
@@ -27,26 +43,38 @@ var (
 	ErrNoTemplate = fmt.Errorf("no template defined")
 )
 
-// NewWithTemplate returns a new Formatter instance. It takes the template
-// string as a parameter. The template string is the string that will be used
-// to render the template. The data is the map of data that will be used to
-// render the template.
-// ! DEPRECATED: use New() and WithTemplate() instead
-func NewWithTemplate(tmplString string) *Formatter {
-	return &Formatter{
-		tmplString: tmplString,
-		data:       make(map[string]interface{}),
-		mu:         sync.RWMutex{},
-	}
+// Global buffer pool to reduce buffer allocations
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
 }
 
 // New returns a new Formatter instance. It takes no parameters. The template
 // string must be set using the WithTemplate method. The data is the map of data
 // that will be used to render the template.
 func New() *Formatter {
+	fh := sprout.New()
+	_ = fh.AddRegistries(
+		checksum.NewRegistry(),
+		conversion.NewRegistry(),
+		encoding.NewRegistry(),
+		env.NewRegistry(),
+		maps.NewRegistry(),
+		numeric.NewRegistry(),
+		random.NewRegistry(),
+		reflect.NewRegistry(),
+		regexp.NewRegistry(),
+		slices.NewRegistry(),
+		std.NewRegistry(),
+		strings.NewRegistry(),
+		time.NewRegistry(),
+	)
+
 	return &Formatter{
-		data: make(map[string]interface{}),
-		mu:   sync.RWMutex{},
+		data:      make(map[string]interface{}),
+		mu:        sync.RWMutex{},
+		fnHandler: fh,
 	}
 }
 
@@ -93,19 +121,19 @@ func (d *Formatter) Render() (string, error) {
 		return "", ErrNoTemplate
 	}
 
-	t := template.New("formattingTmpl").Funcs(funcMap())
+	t := template.New("formattingTmpl").Funcs(d.fnHandler.Build())
 	t, err := t.Parse(d.tmplString)
 	if err != nil {
 		return "", fmt.Errorf("error in your template: %s", err.Error())
 	}
 
-	buf := new(bytes.Buffer)
+	// Reuse buffer to reduce allocations
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+
 	if err := t.Execute(buf, d.data); err != nil {
 		return "", fmt.Errorf("error while filling your template: %s", err.Error())
-	}
-
-	if buf.String() == "<no value>" {
-		return "", fmt.Errorf("template cannot be rendered, check your template")
 	}
 
 	return buf.String(), nil

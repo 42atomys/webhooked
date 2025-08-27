@@ -8,8 +8,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/internal/valuable"
-	"atomys.codes/webhooked/pkg/formatting"
+	"github.com/42atomys/webhooked/internal/valuable"
+	"github.com/42atomys/webhooked/pkg/formatting"
 )
 
 // storage is the struct contains client and config

@@ -11,10 +11,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
 
-	"atomys.codes/webhooked/internal/config"
+	"github.com/42atomys/webhooked/internal/config"
 )
 
-//statusRecorder to record the status code from the ResponseWriter
+// statusRecorder to record the status code from the ResponseWriter
 type statusRecorder struct {
 	http.ResponseWriter
 	statusCode int
