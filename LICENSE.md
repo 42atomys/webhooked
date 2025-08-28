@@ -1,20 +1,22 @@
-# GNU Affero General Public License v3.0 (AGPL-3.0)
+# Webhooked Licensing
 
-This project is licensed under the terms of the GNU Affero General Public License v3.0
-for the Community Edition.
+Webhooked is offered under a **dual licensing model**:
 
-## Summary of Key Terms (non-legal summary)
-- ✅ You can use, modify, and redistribute this software freely, **including in commercial environments**, 
-  as long as you comply with the AGPL-3.0 terms.
-- ⚠ If you modify this software and make it available to others **over a network**, you must make your 
-  modifications' source code available under the same license.
-- ❌ You cannot take this software, modify it, and offer it as a closed-source service without releasing 
-  your modifications.
+- **Community Edition** – Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 
-## Private Sharing Exception
-You may run the Software for the benefit of a small, non-commercial group such as friends or family, without purchasing a commercial license, even if this group is outside your organization.
-However, if you have modified the Software, you must make the modified source code available to all members of that group in accordance with the AGPL-3.0 requirements.
+  - Free for hobbyists, open source projects, research, and other non-commercial uses.
+  - Commercial use is permitted under AGPL-3.0, but you must comply with its copyleft obligations.
+  - See [LICENSE_AGPL.md](./LICENSE_AGPL.md).
 
-## Full License Text
-The complete text of the GNU Affero General Public License v3.0 can be found here:  
-https://www.gnu.org/licenses/agpl-3.0.txt
+- **Enterprise Edition** – Licensed under a commercial license.
+  - No copyleft obligations.
+  - Suitable for companies integrating Webhooked into proprietary or closed-source products.
+  - Includes support, maintenance, and warranty options.
+  - See [LICENSE_ENTERPRISE.md](./LICENSE_ENTERPRISE.md).
+
+---
+
+## Choosing a License
+
+- If you are a **hobbyist, student, or using Webhooked in open source or internal projects** → use the AGPL license.
+- If you are a **company building commercial products or services** and cannot comply with the AGPL copyleft terms → contact us for an Enterprise License at **licensing@webhooked.tools**.
