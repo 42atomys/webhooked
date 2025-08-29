@@ -14,6 +14,19 @@ We welcome bug reports, feature requests, documentation updates, and code contri
 
 ---
 
+## Commit Convention
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` New features
+- `fix:` Bug fixes
+- `perf:` Performance improvements
+- `docs:` Documentation changes
+- `test:` Test additions/changes
+- `refactor:` Code refactoring
+- `chore:` Maintenance tasks
+- ***
+
 ## Contributor License Agreement (CLA)
 
 By submitting a contribution (via Pull Request, patch, or otherwise), you confirm that:
@@ -36,4 +49,4 @@ We aim for an inclusive community where everyone feels welcome.
 
 ---
 
-📧 Questions? Reach us at **licensing@webhooked.tools**
+📧 Questions? Reach us at <licensing@webhooked.tools>

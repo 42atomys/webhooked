@@ -33,4 +33,4 @@ The Software is provided "AS IS", with commercial warranties as defined in the s
 
 ---
 
-For inquiries or to purchase an EE License, contact: **licensing@webhooked.tools**
+For inquiries or to purchase an EE License, contact: <licensing@webhooked.tools>
