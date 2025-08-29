@@ -1,0 +1,40 @@
+name: Stale Automation
+on:
+  schedule:
+    - cron: '42 8,23 * * *'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  close-issues:
+    name: Stale PR Handler
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+
+          stale-issue-label: 'state/slote 🦴,stale/stale 🦴'
+          stale-issue-message: 'This issue is stale because it has been open for 30 days with no activity.'
+          stale-pr-message: 'This PR has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs.'
+
+          close-issue-label: 'state/slote 🦴,stale/dead 💀'
+          close-issue-message: 'This issue was closed because it has been inactive for 7 days since being marked as stale.'
+          close-pr-message: 'This PR has been automatically closed due to inactivity.'
+
+          exempt-issue-labels: 'slate/lock 🔒'
+          exempt-pr-labels: 'slate/lock 🔒'
+          exempt-all-milestones: true
+
+          remove-stale-when-updated: true
+          labels-to-add-when-unstale: 'stale/unstale 🍖'
+          labels-to-remove-when-unstale: 'stale/stale 🦴,stale/dead 💀,state/slote 🦴'
+
+          enable-statistics: true

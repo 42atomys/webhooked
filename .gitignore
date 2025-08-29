@@ -8,13 +8,8 @@ bin
 
 # Test binary, built with `go test -c`
 *.test
+cmd/webhooked/test_webhooked_config.yaml
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
-# Configuration file
-config/*.yaml
-!config/webhooked.example.yaml
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+*.html

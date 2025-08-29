@@ -1,0 +1,116 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo "unknown"
+  BUILD_DATE:
+    sh: date -u +"%Y-%m-%dT%H:%M:%SZ"
+tasks:
+  build:
+    aliases: [b]
+    desc: Build the project
+    #env:
+    #  GOOS: linux
+    #  GOARCH: amd64
+    cmds:
+      - cmd: go build -ldflags "-X github.com/42atomys/webhooked.Version={{.VERSION}} -X github.com/42atomys/webhooked.GitCommit={{.COMMIT}} -X github.com/42atomys/webhooked.BuildDate={{.BUILD_DATE}}" -o ./bin/webhooked ./cmd/webhooked/webhooked.go
+
+  docker-build:
+    aliases: [db]
+    desc: Build the Docker image
+    vars:
+      DOCKER_BUILDKIT: '1'
+      IMAGE_TAG: '{{.IMAGE_TAG | default "latest"}}'
+    cmds:
+      - cmd: docker build -t webhooked:{{.IMAGE_TAG}} --build-arg VERSION={{.VERSION}} --build-arg COMMIT={{.COMMIT}} --build-arg BUILD_DATE={{.BUILD_DATE}} .
+
+  lint:
+    aliases: [l]
+    desc: Run linting checks
+    cmds:
+      - cmd: golangci-lint run
+
+  fmt:
+    aliases: [f]
+    desc: Format code
+    cmds:
+      - cmd: gofmt -s -w .
+      - cmd: goimports -w .
+
+  benchmarks:
+    aliases: [bch]
+    desc: Run benchmarks
+    env:
+      WH_DEBUG: 'false'
+    cmds:
+      - cmd: go test -tags=unit,integration -bench=. -benchmem -count=4 -run=^$ ./...
+
+  test-units:
+    aliases: [tu]
+    desc: Run unit tests
+    env:
+      WH_DEBUG: 'true'
+    cmds:
+      - cmd: go test ./... --tags=unit -coverprofile unit_coverage.out -covermode count
+      - cmd: go tool cover -func unit_coverage.out
+
+  run-integration:
+    aliases: [ri]
+    desc: Run webhooked server for integration tests
+    deps: [build]
+    env:
+      REDIS_HOST: redis
+      RABBITMQ_DATABASE_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672/
+      POSTGRES_DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    cmds:
+      - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml
+
+  test-integration:
+    aliases: [ti]
+    desc: Run integration tests
+    deps: [build]
+    env:
+      REDIS_HOST: redis
+      RABBITMQ_DATABASE_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672/
+      POSTGRES_DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    cmds:
+      - cmd: ./bin/webhooked -p 8081 --config ./tests/integrations/webhooked_config.integrations.yaml &
+      - defer: kill -9 $(pgrep -f "./bin/webhooked") || true
+      - cmd: go test ./... --tags=integration -coverprofile integration_coverage.out -covermode count
+      - cmd: go tool cover -func integration_coverage.out
+
+  test-load-testing:
+    aliases: [tl]
+    desc: Run load testing
+    env:
+      K6_WEB_DASHBOARD: true
+      K6_WEB_DASHBOARD_EXPORT: load-testing-report-{{ now }}.html
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ''
+    cmds:
+      # - cmd: go install go.k6.io/xk6/cmd/xk6@latest
+      #- cmd: xk6 build --with github.com/grafana/xk6-dashboard
+      #- task: build
+      #- cmd: ./bin/webhooked -p 8081 --config ./tests/loadtesting/webhooks.tests.yaml serve &> /dev/null &
+      #- defer: kill -9 $(pgrep -f "./bin/webhooked")
+      - cmd: k6 run ./tests/loadtesting/k6_load_script.js
+
+  tests:
+    aliases: [t]
+    desc: Run all tests
+    cmds:
+      - task: test-units
+      - task: test-integration
+
+  send-test-payload:
+    desc: Send a test payload to the webhooked server
+    aliases: [test-payload, tp]
+    vars:
+      addr: http://localhost:8081
+    cmds:
+      - cmd: 'curl -XPOST -H ''X-Hook-Secret:test'' -d ''{"time": "{{ now }}", "content": "Hello World"}'' {{ .addr }}/webhooks/v1alpha2/integration/basic-usage'

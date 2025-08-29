@@ -1,0 +1,88 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          go install golang.org/x/perf/cmd/benchstat@latest
+          go mod download
+
+      - name: Run benchmarks
+        run: |
+          task benchmarks
+
+  load-test-benchmark:
+    name: Load Test Benchmark
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.53.0/k6-v0.53.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+          sudo mv k6 /usr/local/bin/
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build application
+        run: task build
+
+      - name: Run load test benchmark
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          ./bin/webhooked serve --port 8081 --config tests/loadtesting/webhooks.tests.yaml &
+          sleep 5
+          k6 run tests/loadtesting/k6_load_script.js

@@ -1,3 +1,6 @@
+// Package valuable provides a flexible way to handle string values that can be retrieved
+// from multiple sources, such as direct assignment, environment variables, files,
+// or static references.
 package valuable
 
 import (
@@ -6,146 +9,201 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 )
 
-// Valuable represent value who it is possible to retrieve the data
-// in multiple ways. From a simple value without nesting,
-// or from a deep data source.
+// Valuable represents a value that can be retrieved in multiple ways.
+// It can be a simple value, multiple values, or a reference to an external data source.
 type Valuable struct {
-	// Value represents the `value` field of a configuration entry that
-	// contains only one value
+	// Value represents a single string value.
 	Value *string `json:"value,omitempty"`
-	// Values represents the `value` field of a configuration entry that
-	// contains multiple values stored in a list
+	// Values represents multiple string values stored in a slice.
 	Values []string `json:"values,omitempty"`
-	// ValueFrom represents the `valueFrom` field of a configuration entry
-	// that contains a reference to a data source
+	// ValueFrom represents a reference to an external data source.
 	ValueFrom *ValueFromSource `json:"valueFrom,omitempty"`
+
+	// cachedValues caches the computed values to improve performance.
+	cachedValues []string
 }
 
 // ValueFromSource represents the `valueFrom` field of a configuration entry
-// that contains a reference to a data source (file, env, etc.)
+// that contains a reference to an external data source (file, environment variable, etc.).
 type ValueFromSource struct {
-	// StaticRef represents the `staticRef` field of a configuration entry
-	// that contains a static value. Can contain a comma separated list
+	// StaticRef represents a static value. Can contain a comma-separated list.
 	StaticRef *string `json:"staticRef,omitempty"`
-	// EnvRef represents the `envRef` field of a configuration entry
-	// that contains a reference to an environment variable
+	// EnvRef represents a reference to an environment variable.
 	EnvRef *string `json:"envRef,omitempty"`
+	// FileRef represents a reference to a file.
+	FileRef *string `json:"fileRef,omitempty"`
 }
 
-// Validate validates the Valuable object and returns an error if any
-// validation fails. In case of envRef, the env variable must exist.
+// Validate checks the Valuable object and returns an error if any validation fails.
+// In the case of EnvRef, the environment variable must exist.
+// For FileRef, the file must exist.
 func (v *Valuable) Validate() error {
-	if v.ValueFrom != nil && v.ValueFrom.EnvRef != nil {
+	if v.ValueFrom == nil {
+		return nil
+	}
+
+	if v.ValueFrom.EnvRef != nil {
 		if _, ok := os.LookupEnv(*v.ValueFrom.EnvRef); !ok {
 			return fmt.Errorf("environment variable %s not found", *v.ValueFrom.EnvRef)
+		}
+	}
+	if v.ValueFrom.FileRef != nil {
+		if _, err := os.Stat(*v.ValueFrom.FileRef); os.IsNotExist(err) {
+			return fmt.Errorf("file %s not found", *v.ValueFrom.FileRef)
 		}
 	}
 
 	return nil
 }
 
-// SerializeValuable serialize anything to a Valuable
-// @param data is the data to serialize
-// @return the serialized Valuable
-func SerializeValuable(data interface{}) (*Valuable, error) {
-	var v *Valuable = &Valuable{}
+// Serialize converts any data into a Valuable and retrieves data from external sources.
+// It supports string values.
+// @param data is the data to serialize.
+// @return the serialized Valuable.
+func Serialize(data any) (*Valuable, error) {
+	v := &Valuable{}
+
+	decoderConfig := &mapstructure.DecoderConfig{
+		Result:  v,
+		TagName: "json",
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			decodeHookMapInterfaceToMapString,
+		),
+	}
+
 	switch t := data.(type) {
-	case string:
-		v.Value = &t
-	case int, float32, float64, bool:
-		str := fmt.Sprint(t)
-		v.Value = &str
 	case nil:
 		return &Valuable{}, nil
-	case map[interface{}]interface{}:
-		var val *Valuable
-		if err := mapstructure.Decode(data, &val); err != nil {
-			return nil, err
+	case string:
+		v.Value = &t
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, bool:
+		str := fmt.Sprint(t)
+		v.Value = &str
+	case map[string]any, map[any]any:
+		decoder, err := mapstructure.NewDecoder(decoderConfig)
+		if err != nil {
+			return nil, fmt.Errorf("error creating decoder: %w", err)
 		}
-		v = val
+		if err := decoder.Decode(data); err != nil {
+			return nil, fmt.Errorf("unsupported data type %T: %v", data, err)
+		}
 	default:
-		valuable := Valuable{}
-		if err := mapstructure.Decode(data, &valuable); err != nil {
-			return nil, fmt.Errorf("unimplemented valuable type %s", reflect.TypeOf(data).String())
-		}
-		v = &valuable
+		return nil, fmt.Errorf("unsupported data type %T", data)
+	}
+
+	// Retrieve data from external sources during serialization
+	if err := v.retrieveData(); err != nil {
+		return nil, fmt.Errorf("error retrieving data: %w", err)
 	}
 
 	if err := v.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error validating valuable: %w", err)
 	}
 
 	return v, nil
 }
 
-// Get returns all values of the Valuable as a slice
-// @return the slice of values
-func (v *Valuable) Get() []string {
+// retrieveData fetches data from external sources and caches it.
+// This function is called during serialization.
+func (v *Valuable) retrieveData() error {
 	var computedValues []string
 
-	computedValues = append(computedValues, v.Values...)
+	if len(v.Values) > 0 {
+		computedValues = append(computedValues, v.Values...)
+	}
 
 	if v.Value != nil && !contains(computedValues, *v.Value) {
 		computedValues = append(computedValues, *v.Value)
 	}
 
-	if v.ValueFrom == nil {
-		return computedValues
+	if v.ValueFrom != nil {
+		if v.ValueFrom.StaticRef != nil {
+			computedValues = appendCommaListIfAbsent(computedValues, *v.ValueFrom.StaticRef)
+		}
+
+		if v.ValueFrom.EnvRef != nil {
+			envValue := os.Getenv(*v.ValueFrom.EnvRef)
+			computedValues = appendCommaListIfAbsent(computedValues, envValue)
+		}
+
+		if v.ValueFrom.FileRef != nil {
+			fileContent, err := os.ReadFile(*v.ValueFrom.FileRef)
+			if err != nil {
+				return fmt.Errorf("failed to read file %s: %v", *v.ValueFrom.FileRef, err)
+			}
+			fileValue := string(fileContent)
+			computedValues = append(computedValues, strings.TrimSpace(fileValue))
+		}
 	}
 
-	if v.ValueFrom.StaticRef != nil && !contains(computedValues, *v.ValueFrom.StaticRef) {
-		computedValues = appendCommaListIfAbsent(computedValues, *v.ValueFrom.StaticRef)
-	}
-
-	if v.ValueFrom.EnvRef != nil {
-		computedValues = appendCommaListIfAbsent(computedValues, os.Getenv(*v.ValueFrom.EnvRef))
-	}
-
-	return computedValues
+	v.cachedValues = computedValues
+	return nil
 }
 
-// First returns the first value of the Valuable possible values
-// as a string. The order of preference is:
+// decodeHookMapInterfaceToMapString is a decode hook for mapstructure
+// that converts map[any]any to map[string]any.
+func decodeHookMapInterfaceToMapString(
+	f reflect.Type, t reflect.Type, data any,
+) (any, error) {
+	if f.Kind() != reflect.Map || t.Kind() != reflect.Map {
+		return data, nil
+	}
+
+	if f.Key().Kind() == reflect.String {
+		// No conversion needed
+		return data, nil
+	}
+
+	mapData, ok := data.(map[any]any)
+	if !ok {
+		return data, nil
+	}
+
+	newMap := make(map[string]any, len(mapData))
+	for k, v := range mapData {
+		keyStr := fmt.Sprint(k)
+		newMap[keyStr] = v
+	}
+	return newMap, nil
+}
+
+// Get returns all cached values of the Valuable as a slice.
+// @return the slice of values.
+func (v *Valuable) Get() []string {
+	return v.cachedValues
+}
+
+// First returns the first possible value of the Valuable.
+// The order of preference is:
 // - Values
 // - Value
 // - ValueFrom.StaticRef
 // - ValueFrom.EnvRef
-// @return the first value
+// - ValueFrom.FileRef
+// @return the first value.
 func (v *Valuable) First() string {
-	if len(v.Get()) == 0 {
+	if len(v.cachedValues) == 0 {
 		return ""
 	}
-
-	return v.Get()[0]
+	return v.cachedValues[0]
 }
 
-// String returns the string representation of the Valuable object
-// following the order listed on the First() function
+// String returns the string representation of the first value.
 func (v Valuable) String() string {
 	return v.First()
 }
 
-// Contains returns true if the Valuable contains the given value
-// @param value is the value to check
-// @return true if the Valuable contains the given value
+// Contains returns true if the Valuable contains the given value.
+// @param element is the value to check.
+// @return true if the Valuable contains the given value.
 func (v *Valuable) Contains(element string) bool {
-	for _, s := range v.Get() {
-		if s == element {
-			return true
-		}
-	}
-	return false
+	return contains(v.cachedValues, element)
 }
 
-// contains returns true if the Valuable contains the given value.
-// This function is private to prevent stack overflow during the initialization
-// of the Valuable object.
-// @param
-// @param value is the value to check
-// @return true if the Valuable contains the given value
+// contains checks if a slice contains a specific string.
 func contains(slice []string, element string) bool {
 	for _, s := range slice {
 		if s == element {
@@ -155,16 +213,18 @@ func contains(slice []string, element string) bool {
 	return false
 }
 
-// appendCommaListIfAbsent accept a string list separated with commas to append
-// to the Values all elements of this list only if element is absent
-// of the Values
+// appendCommaListIfAbsent accepts a comma-separated list of strings to append
+// to the slice only if the element is absent.
 func appendCommaListIfAbsent(slice []string, commaList string) []string {
-	for _, s := range strings.Split(commaList, ",") {
-		if contains(slice, s) {
+	items := strings.Split(commaList, ",")
+	for _, s := range items {
+		s = strings.TrimSpace(s)
+		if s == "" {
 			continue
 		}
-
-		slice = append(slice, s)
+		if !contains(slice, s) {
+			slice = append(slice, s)
+		}
 	}
 	return slice
 }

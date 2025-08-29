@@ -3,7 +3,8 @@ package valuable
 import (
 	"reflect"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
+	"github.com/rs/zerolog/log"
 )
 
 // Decode decodes the given data into the given result.
@@ -12,12 +13,12 @@ import (
 // @param input is the data to decode
 // @param output is the result of the decoding
 // @return an error if the decoding failed
-func Decode(input, output interface{}) (err error) {
+func Decode(input, output any) (err error) {
 	var decoder *mapstructure.Decoder
 
 	decoder, err = mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:     output,
-		DecodeHook: valuableDecodeHook,
+		DecodeHook: MapToValuableHookFunc(),
 	})
 	if err != nil {
 		return err
@@ -26,12 +27,13 @@ func Decode(input, output interface{}) (err error) {
 	return decoder.Decode(input)
 }
 
-// valuableDecodeHook is a mapstructure.DecodeHook that serializes
-// the given data into a Valuable.
-func valuableDecodeHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-	if t != reflect.TypeOf(Valuable{}) {
-		return data, nil
-	}
+func MapToValuableHookFunc() mapstructure.DecodeHookFunc {
+	return func(f reflect.Type, t reflect.Type, data any) (any, error) {
+		if t != reflect.TypeOf(Valuable{}) {
+			return data, nil
+		}
 
-	return SerializeValuable(data)
+		log.Debug().Msgf("MapToValuableHookFunc: %v -> %v", f, t)
+		return Serialize(data)
+	}
 }

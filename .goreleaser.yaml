@@ -1,0 +1,126 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: webhooked
+    main: ./cmd/webhooked/webhooked.go
+    binary: webhooked
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+    ldflags:
+      - -s -w -X github.com/42atomys/webhooked.Version={{.Version}} -X github.com/42atomys/webhooked.GitCommit={{.Commit}} -X github.com/42atomys/webhooked.BuildDate={{.Date}}
+
+archives:
+  - id: webhooked
+    name_template: >-
+      webhooked_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - examples/**/*
+      - docs/**/*
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'Features'
+      regexp: '^feat'
+    - title: 'Bug Fixes'
+      regexp: '^fix'
+    - title: 'Performance'
+      regexp: '^perf'
+    - title: 'Refactoring'
+      regexp: '^refactor'
+    - title: 'Security'
+      regexp: '^security'
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
+dockers:
+  - image_templates:
+      - "atomys/webhooked:{{ .Tag }}"
+      - "atomys/webhooked:latest"
+      - "ghcr.io/42atomys/webhooked:{{ .Tag }}"
+      - "ghcr.io/42atomys/webhooked:latest"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--platform=linux/amd64,linux/arm64,linux/arm/v7"
+
+sboms:
+  - artifacts: archive
+
+announce:
+  discord:
+    enabled: true
+    message_template: 'Webhooked {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+
+release:
+  github:
+    owner: 42atomys
+    name: webhooked
+  draft: false
+  prerelease: auto
+  mode: keep-existing
+  footer: |
+    ## Docker images
+
+    ```bash
+    docker pull atomys/webhooked:{{ .Tag }}
+    docker pull ghcr.io/42atomys/webhooked:{{ .Tag }}
+    ```
